@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymGear Compare</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #f59e0b;
+            margin-bottom: 5px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            background: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #444;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-size: 18px;
+        }
+        #error {
+            display: none;
+            background: #2a1a1a;
+            color: #ef4444;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ef4444;
+            border-radius: 4px;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        .card h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+            color: #fff;
+        }
+        .card p {
+            color: #aaa;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .price {
+            font-size: 28px;
+            font-weight: bold;
+            color: #f59e0b;
+            margin: 15px 0;
+        }
+        .view-btn {
+            width: 100%;
+            padding: 12px;
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .view-btn:hover {
+            background: #2563eb;
+        }
+        .no-products {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ GymGear Compare</h1>
+        <p class="subtitle">🤖 Real-time AI web search • Live prices • Current sales</p>
+
+        <div class="controls">
+            <button onclick="search('benches')">🏋️ Bench Racks</button>
+            <button onclick="search('weights')">⚙️ Weight Plates</button>
+        </div>
+
+        <div id="error"></div>
+        <div id="loading">🔄 Searching the web for products...</div>
+        <div id="products" class="products"></div>
+        <div id="noProducts" class="no-products" style="display: none;">No products found. Try searching again!</div>
+    </div>
+
+    <script>
+        const BACKEND = 'https://gymgear-backend5.onrender.com';
+
+        async function search(category) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const products = document.getElementById('products');
+            const noProducts = document.getElementById('noProducts');
+
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            products.innerHTML = '';
+            noProducts.style.display = 'none';
+
+            try {
+                const response = await fetch(`${BACKEND}/api/search-products`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category: category })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.products && data.products.length > 0) {
+                    let html = '';
+                    data.products.forEach(product => {
+                        const price = product.salePrice || product.regularPrice;
+                        html += `
+                            <div class="card">
+                                <h3>${product.name}</h3>
+                                <p>${product.brand}</p>
+                                <p>📍 ${product.retailer}</p>
+                                <div class="price">$${price.toFixed(2)}</div>
+                                ${product.salePrice && product.salePrice < product.regularPrice ? `
+                                    <p style="color: #22c55e;">💰 Was $${product.regularPrice.toFixed(2)} - Save ${product.discount}</p>
+                                ` : ''}
+                                ${product.quality ? `<p>Quality: ${product.quality}/10</p>` : ''}
+                                ${product.rating ? `<p>⭐ ${product.rating}/5.0</p>` : ''}
+                                <button class="view-btn" onclick="window.open('${product.url}', '_blank')">View Deal on ${product.retailer} →</button>
+                            </div>
+                        `;
+                    });
+                    products.innerHTML = html;
+                } else if (data.error) {
+                    noProducts.style.display = 'block';
+                    noProducts.textContent = data.error || 'No products found';
+                } else {
+                    noProducts.style.display = 'block';
+                }
+            } catch (err) {
+                error.style.display = 'block';
+                error.innerHTML = `⚠️ Error: ${err.message}<br>Make sure your backend is running at ${BACKEND}`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Auto-search on load
+        window.addEventListener('load', () => search('benches'));
+    </script>
+</body>
+</html>
