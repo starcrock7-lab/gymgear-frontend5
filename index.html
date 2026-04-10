@@ -134,6 +134,9 @@
 
     <script>
         const BACKEND = 'https://gymgear-backend5.onrender.com';
+        // This is a hardcoded key - only for your frontend
+        // In production, you'd get this from a secure server endpoint
+        const BACKEND_API_KEY = 'YOUR_BACKEND_SECRET_KEY_HERE';
 
         async function search(category) {
             const loading = document.getElementById('loading');
@@ -149,13 +152,22 @@
             try {
                 const response = await fetch(`${BACKEND}/api/search-products`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': BACKEND_API_KEY  // Send API key in header
+                    },
                     body: JSON.stringify({ category: category })
                 });
 
                 const data = await response.json();
 
-                if (data.success && data.products && data.products.length > 0) {
+                if (response.status === 403) {
+                    error.style.display = 'block';
+                    error.innerHTML = '⚠️ Authentication failed. Invalid API key.';
+                } else if (response.status === 401) {
+                    error.style.display = 'block';
+                    error.innerHTML = '⚠️ Missing authentication. Please contact support.';
+                } else if (data.success && data.products && data.products.length > 0) {
                     let html = '';
                     data.products.forEach(product => {
                         const price = product.salePrice || product.regularPrice;
