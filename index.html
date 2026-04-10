@@ -134,9 +134,6 @@
 
     <script>
         const BACKEND = 'https://gymgear-backend5.onrender.com';
-        // This is a hardcoded key - only for your frontend
-        // In production, you'd get this from a secure server endpoint
-        const BACKEND_API_KEY = '24e2140c-7753-4307-bd16-f1c2e4e8b105';
 
         async function search(category) {
             const loading = document.getElementById('loading');
@@ -152,22 +149,13 @@
             try {
                 const response = await fetch(`${BACKEND}/api/search-products`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-api-key': BACKEND_API_KEY  // Send API key in header
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ category: category })
                 });
 
                 const data = await response.json();
 
-                if (response.status === 403) {
-                    error.style.display = 'block';
-                    error.innerHTML = '⚠️ Authentication failed. Invalid API key.';
-                } else if (response.status === 401) {
-                    error.style.display = 'block';
-                    error.innerHTML = '⚠️ Missing authentication. Please contact support.';
-                } else if (data.success && data.products && data.products.length > 0) {
+                if (data.success && data.products && data.products.length > 0) {
                     let html = '';
                     data.products.forEach(product => {
                         const price = product.salePrice || product.regularPrice;
@@ -195,13 +183,12 @@
                 }
             } catch (err) {
                 error.style.display = 'block';
-                error.innerHTML = `⚠️ Error: ${err.message}<br>Make sure your backend is running at ${BACKEND}`;
+                error.innerHTML = `⚠️ Error: ${err.message}`;
             } finally {
                 loading.style.display = 'none';
             }
         }
 
-        // Auto-search on load
         window.addEventListener('load', () => search('benches'));
     </script>
 </body>
