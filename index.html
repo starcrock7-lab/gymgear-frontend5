@@ -60,7 +60,14 @@
             background: #f59e0b;
             color: #000;
         }
-        button:disabled {
+        button.compare-btn {
+            background: #22c55e;
+            margin-left: auto;
+        }
+        button.compare-btn:hover {
+            background: #16a34a;
+        }
+        button.compare-btn:disabled {
             background: #666;
             cursor: not-allowed;
         }
@@ -68,7 +75,7 @@
             padding: 12px 15px;
             background: #222;
             color: #fff;
-            border: 1px solid #333;
+            border: 1px solid #f59e0b;
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
@@ -93,6 +100,17 @@
             color: #888;
             font-size: 18px;
         }
+        .selection-info {
+            background: #1a2a1a;
+            border-left: 4px solid #22c55e;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .selection-info.show {
+            display: block;
+        }
         .products {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -114,16 +132,27 @@
             box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
         }
         .card.selected {
-            border-color: #f59e0b;
-            background: #1f1508;
+            border-color: #22c55e;
+            background: #1a2a1a;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
         }
         .card-image {
             width: 100%;
-            height: 200px;
-            object-fit: cover;
+            height: 180px;
+            background: #333;
             border-radius: 4px;
             margin-bottom: 15px;
-            background: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 12px;
+            overflow: hidden;
+        }
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .card h3 {
             margin-bottom: 8px;
@@ -142,16 +171,18 @@
             color: #f59e0b;
             margin: 12px 0;
         }
-        .specs {
-            background: #222;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 11px;
+        .rating {
+            font-size: 13px;
             color: #aaa;
             margin: 8px 0;
         }
-        .view-btn, .details-btn {
-            width: 100%;
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .details-btn, .view-btn {
+            flex: 1;
             padding: 10px;
             background: #3b82f6;
             color: #fff;
@@ -160,7 +191,6 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 13px;
-            margin-top: 8px;
         }
         .view-btn:hover, .details-btn:hover {
             background: #2563eb;
@@ -171,6 +201,10 @@
             border-radius: 8px;
             border: 2px solid #f59e0b;
             margin-top: 40px;
+            display: none;
+        }
+        .comparison-section.show {
+            display: block;
         }
         .comparison-container {
             display: grid;
@@ -187,9 +221,10 @@
         .comparison-product img {
             width: 100%;
             height: 250px;
-            object-fit: cover;
+            background: #333;
             border-radius: 6px;
             margin-bottom: 15px;
+            object-fit: cover;
         }
         .comparison-product h2 {
             color: #f59e0b;
@@ -239,7 +274,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             overflow: auto;
         }
         .modal-content {
@@ -266,9 +301,10 @@
         .modal-image {
             width: 100%;
             height: 300px;
-            object-fit: cover;
+            background: #333;
             border-radius: 6px;
             margin-bottom: 20px;
+            object-fit: cover;
         }
         .modal h2 {
             color: #f59e0b;
@@ -292,23 +328,26 @@
     <div class="container">
         <header>
             <h1>⚡ GymGear Compare Pro</h1>
-            <p class="subtitle">🤖 AI-powered comparison • Real images & prices from top retailers</p>
+            <p class="subtitle">🤖 AI-powered comparison • Real prices from top retailers</p>
         </header>
 
         <div class="controls">
             <button onclick="search('benches')" class="active">🏋️ Bench Racks</button>
             <button onclick="search('weights')">⚙️ Weight Plates</button>
-            <select id="compareDropdown" style="display: none;">
-                <option value="">Select product to compare...</option>
-            </select>
+            <button onclick="clearSelection()" class="compare-btn" style="margin-left: auto;">Clear Selection</button>
+        </div>
+
+        <div class="selection-info" id="selectionInfo">
+            Selected: <strong id="selectedName"></strong> ✅
         </div>
 
         <div id="error"></div>
-        <div id="loading">🔄 Loading...</div>
+        <div id="loading">🔄 Loading products...</div>
         <div id="products" class="products"></div>
         <div id="noProducts" class="no-products" style="display: none;">No products found</div>
-        <div id="comparisonSection" class="comparison-section" style="display: none;">
-            <h2 style="color: #f59e0b; margin-bottom: 20px;">⚖️ Comparison</h2>
+
+        <div id="comparisonSection" class="comparison-section">
+            <h2 style="color: #f59e0b; margin-bottom: 20px;">⚖️ Comparison Results</h2>
             <div id="compareContainer"></div>
         </div>
     </div>
@@ -323,8 +362,9 @@
 
     <script>
         const BACKEND = 'https://gymgear-backend5.onrender.com';
-        const BACKEND_API_KEY = '7BlPq02GcNvQfEkwMZRuzrsaA1ixoYmd';
+        const BACKEND_API_KEY = 'YOUR_BACKEND_SECRET_KEY_HERE';
         let allProducts = [];
+        let firstProduct = null;
         let selectedProduct = null;
 
         async function search(category) {
@@ -332,13 +372,14 @@
             const error = document.getElementById('error');
             const products = document.getElementById('products');
             const noProducts = document.getElementById('noProducts');
-            const compareSection = document.getElementById('comparisonSection');
+            const comparisonSection = document.getElementById('comparisonSection');
 
             loading.style.display = 'block';
             error.style.display = 'none';
             products.innerHTML = '';
             noProducts.style.display = 'none';
-            compareSection.style.display = 'none';
+            comparisonSection.classList.remove('show');
+            clearSelection();
 
             try {
                 const response = await fetch(`${BACKEND}/api/search-products`, {
@@ -354,22 +395,26 @@
 
                 if (data.success && data.products) {
                     allProducts = data.products;
-                    updateCompareDropdown();
+                    firstProduct = data.products[0];
                     let html = '';
                     data.products.forEach(product => {
                         const price = product.salePrice || product.regularPrice;
                         html += `
-                            <div class="card">
-                                <img src="${product.image}" alt="${product.name}" class="card-image" onerror="this.src='https://via.placeholder.com/280x200?text=Product+Image'">
+                            <div class="card" onclick="selectProduct('${product.id}', '${product.name}')">
+                                <div class="card-image">
+                                    <img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">
+                                </div>
                                 <h3>${product.name}</h3>
                                 <p><strong>${product.brand}</strong> | ${product.retailer}</p>
                                 <div class="price">$${price.toFixed(2)}</div>
                                 ${product.salePrice && product.salePrice < product.regularPrice ? `
                                     <p style="color: #22c55e;">💰 ${product.discount} off</p>
                                 ` : ''}
-                                <p>Quality: ${product.quality}/10 | ⭐ ${product.rating}/5</p>
-                                <button class="details-btn" onclick="showDetails('${product.id}')">📋 Details</button>
-                                <button class="view-btn" onclick="window.open('${product.url}', '_blank')">🛒 View Deal →</button>
+                                <p class="rating">Quality: ${product.quality}/10 | ⭐ ${product.rating}/5</p>
+                                <div class="button-group">
+                                    <button class="details-btn" onclick="event.stopPropagation(); showDetails('${product.id}')">📋 Details</button>
+                                    <button class="view-btn" onclick="event.stopPropagation(); window.open('${product.url}', '_blank')">🛒 Buy</button>
+                                </div>
                             </div>
                         `;
                     });
@@ -386,64 +431,33 @@
             }
         }
 
-        function updateCompareDropdown() {
-            const dropdown = document.getElementById('compareDropdown');
-            dropdown.innerHTML = '<option value="">Select product to compare...</option>';
-            allProducts.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id;
-                option.textContent = product.name;
-                dropdown.appendChild(option);
-            });
-            dropdown.style.display = 'block';
-            dropdown.onchange = () => {
-                if (dropdown.value) {
-                    selectedProduct = dropdown.value;
-                }
-            };
-        }
+        function selectProduct(productId, productName) {
+            selectedProduct = productId;
+            
+            document.querySelectorAll('.card').forEach(card => card.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            
+            const selectionInfo = document.getElementById('selectionInfo');
+            document.getElementById('selectedName').textContent = productName;
+            selectionInfo.classList.add('show');
 
-        function showDetails(productId) {
-            const product = allProducts.find(p => p.id === productId);
-            if (!product) return;
-
-            const modal = document.getElementById('detailsModal');
-            const modalBody = document.getElementById('modalBody');
-
-            let specsHtml = '';
-            for (let [key, value] of Object.entries(product.specs)) {
-                specsHtml += `<div class="modal-spec"><strong>${key}:</strong> ${value}</div>`;
+            // Show compare button hint
+            if (firstProduct && firstProduct.id !== productId) {
+                compareProducts();
             }
-
-            modalBody.innerHTML = `
-                <img src="${product.image}" alt="${product.name}" class="modal-image" onerror="this.src='https://via.placeholder.com/700x300?text=Product+Image'">
-                <h2>${product.name}</h2>
-                <p style="color: #aaa; margin-bottom: 15px;">${product.brand} | ${product.retailer}</p>
-                <div class="price" style="margin-bottom: 20px;">$${(product.salePrice || product.regularPrice).toFixed(2)}</div>
-                <p style="margin-bottom: 15px;">${product.description}</p>
-                <h3 style="color: #f59e0b; margin-top: 20px; margin-bottom: 15px;">Specifications</h3>
-                ${specsHtml}
-                <h3 style="color: #f59e0b; margin-top: 20px; margin-bottom: 15px;">Key Aspects</h3>
-                <p>${product.keyAspects.join(' • ')}</p>
-                <button class="view-btn" onclick="window.open('${product.url}', '_blank'); closeModal();" style="margin-top: 30px;">Buy on ${product.retailer} →</button>
-            `;
-
-            modal.style.display = 'block';
         }
 
-        function closeModal() {
-            document.getElementById('detailsModal').style.display = 'none';
+        function clearSelection() {
+            selectedProduct = null;
+            firstProduct = null;
+            document.querySelectorAll('.card').forEach(card => card.classList.remove('selected'));
+            document.getElementById('selectionInfo').classList.remove('show');
+            document.getElementById('comparisonSection').classList.remove('show');
         }
 
         async function compareProducts() {
-            if (!selectedProduct) {
-                alert('Please select a product to compare from the dropdown');
-                return;
-            }
-
-            const firstProduct = allProducts[0];
-            if (!firstProduct || firstProduct.id === selectedProduct) {
-                alert('Please select a different product to compare');
+            if (!selectedProduct || !firstProduct) {
+                alert('Please select a product to compare');
                 return;
             }
 
@@ -472,7 +486,7 @@
                     let html = `
                         <div class="comparison-container">
                             <div class="comparison-product">
-                                <img src="${p1.image}" alt="${p1.name}" onerror="this.src='https://via.placeholder.com/400x250?text=Product+Image'">
+                                <img src="${p1.image}" alt="${p1.name}" onerror="this.style.display='none'">
                                 <h2>${p1.name}</h2>
                                 <p>${p1.brand} | ${p1.retailer}</p>
                                 <div class="price">$${(p1.salePrice || p1.regularPrice).toFixed(2)}</div>
@@ -490,7 +504,7 @@
                                 </div>
                             </div>
                             <div class="comparison-product">
-                                <img src="${p2.image}" alt="${p2.name}" onerror="this.src='https://via.placeholder.com/400x250?text=Product+Image'">
+                                <img src="${p2.image}" alt="${p2.name}" onerror="this.style.display='none'">
                                 <h2>${p2.name}</h2>
                                 <p>${p2.brand} | ${p2.retailer}</p>
                                 <div class="price">$${(p2.salePrice || p2.regularPrice).toFixed(2)}</div>
@@ -521,7 +535,7 @@
                         </div>
                     `;
                     compareContainer.innerHTML = html;
-                    compareSection.style.display = 'block';
+                    compareSection.classList.add('show');
                     compareSection.scrollIntoView({ behavior: 'smooth' });
                 }
             } catch (err) {
@@ -530,6 +544,38 @@
             } finally {
                 loading.style.display = 'none';
             }
+        }
+
+        function showDetails(productId) {
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) return;
+
+            const modal = document.getElementById('detailsModal');
+            const modalBody = document.getElementById('modalBody');
+
+            let specsHtml = '';
+            for (let [key, value] of Object.entries(product.specs)) {
+                specsHtml += `<div class="modal-spec"><strong>${key}:</strong> ${value}</div>`;
+            }
+
+            modalBody.innerHTML = `
+                <img src="${product.image}" alt="${product.name}" class="modal-image" onerror="this.style.display='none'">
+                <h2>${product.name}</h2>
+                <p style="color: #aaa; margin-bottom: 15px;">${product.brand} | ${product.retailer}</p>
+                <div class="price" style="margin-bottom: 20px;">$${(product.salePrice || product.regularPrice).toFixed(2)}</div>
+                <p style="margin-bottom: 15px;">${product.description}</p>
+                <h3 style="color: #f59e0b; margin-top: 20px; margin-bottom: 15px;">Specifications</h3>
+                ${specsHtml}
+                <h3 style="color: #f59e0b; margin-top: 20px; margin-bottom: 15px;">Key Aspects</h3>
+                <p>${product.keyAspects.join(' • ')}</p>
+                <button class="view-btn" onclick="window.open('${product.url}', '_blank'); closeModal();" style="margin-top: 30px; width: 100%;">Buy on ${product.retailer} →</button>
+            `;
+
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('detailsModal').style.display = 'none';
         }
 
         window.addEventListener('load', () => search('benches'));
