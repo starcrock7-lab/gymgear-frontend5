@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GymGear Compare</title>
+    <title>GymGear Compare - Smart Gym Equipment Price Comparison</title>
     <style>
         * {
             margin: 0;
@@ -11,173 +11,348 @@
             box-sizing: border-box;
         }
         body {
-            background: #1a1a1a;
-            color: #fff;
-            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 20px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
+        header {
+            margin-bottom: 30px;
+        }
         h1 {
-            color: #f59e0b;
-            margin-bottom: 5px;
-            font-size: 32px;
+            color: #fbbf24;
+            margin-bottom: 8px;
+            font-size: 36px;
         }
         .subtitle {
-            color: #888;
-            margin-bottom: 20px;
+            color: #94a3b8;
+            font-size: 16px;
         }
         .controls {
-            margin-bottom: 20px;
             display: flex;
             gap: 10px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         button {
-            padding: 10px 20px;
-            background: #333;
-            color: #fff;
-            border: none;
+            padding: 12px 20px;
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 2px solid #334155;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 600;
+            transition: all 0.3s;
         }
         button:hover {
-            background: #444;
+            background: #334155;
+            border-color: #64748b;
+        }
+        button.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: #fff;
         }
         button:disabled {
-            background: #666;
+            background: #334155;
             cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #334155;
+        }
+        .tab-btn {
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .tab-btn.active {
+            color: #fbbf24;
+            border-bottom-color: #fbbf24;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        #loading, #error {
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
         }
         #loading {
             display: none;
+            background: #1e293b;
+            color: #94a3b8;
             text-align: center;
-            padding: 40px;
-            color: #888;
-            font-size: 18px;
         }
         #error {
             display: none;
-            background: #2a1a1a;
-            color: #ef4444;
-            padding: 15px;
-            margin-bottom: 20px;
+            background: #7f1d1d;
+            color: #fca5a5;
             border-left: 4px solid #ef4444;
-            border-radius: 4px;
         }
-        .products {
+        .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
+            margin-bottom: 20px;
         }
-        .card {
-            background: #222;
+        .product-card {
+            background: #1e293b;
             padding: 20px;
             border-radius: 8px;
-            border: 1px solid #333;
+            border: 1px solid #334155;
+            transition: all 0.3s;
+            position: relative;
         }
-        .card h3 {
+        .product-card:hover {
+            border-color: #64748b;
+            transform: translateY(-2px);
+        }
+        .product-card.selected {
+            border-color: #3b82f6;
+            background: #1e3a5f;
+        }
+        .checkbox {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .product-card h3 {
             margin-bottom: 8px;
             font-size: 18px;
-            color: #fff;
+            color: #fbbf24;
+            margin-right: 30px;
         }
-        .card p {
-            color: #aaa;
+        .product-card p {
+            color: #cbd5e1;
             font-size: 14px;
-            margin: 5px 0;
+            margin: 4px 0;
+        }
+        .price-section {
+            margin: 15px 0;
         }
         .price {
             font-size: 28px;
             font-weight: bold;
-            color: #f59e0b;
-            margin: 15px 0;
+            color: #3b82f6;
         }
-        .view-btn {
+        .original-price {
+            text-decoration: line-through;
+            color: #64748b;
+            font-size: 14px;
+        }
+        .discount-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .rating-section {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .rating-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-view {
             width: 100%;
             padding: 12px;
             background: #3b82f6;
-            color: #fff;
+            color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
             margin-top: 15px;
         }
-        .view-btn:hover {
+        .btn-view:hover {
             background: #2563eb;
+        }
+        .comparison-table {
+            width: 100%;
+            background: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .comparison-table th {
+            background: #334155;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #fbbf24;
+            border-bottom: 1px solid #475569;
+        }
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+        .comparison-table tr:last-child td {
+            border-bottom: none;
         }
         .no-products {
             text-align: center;
             padding: 40px;
-            color: #888;
+            color: #94a3b8;
+            background: #1e293b;
+            border-radius: 8px;
+        }
+        .recommendations {
+            display: grid;
+            gap: 15px;
+        }
+        .rec-card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        .rec-type {
+            color: #fbbf24;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .rec-product {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+        .rec-reason {
+            color: #cbd5e1;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>⚡ GymGear Compare</h1>
-        <p class="subtitle">🤖 Real-time AI web search • Live prices • Current sales</p>
+        <header>
+            <h1>⚡ GymGear Compare</h1>
+            <p class="subtitle">Smart gym equipment price comparison • Compare • Save • Choose wisely</p>
+        </header>
 
         <div class="controls">
-            <button onclick="search('benches')">🏋️ Bench Racks</button>
+            <button onclick="search('benches')" class="active">🏋️ Bench Racks</button>
             <button onclick="search('weights')">⚙️ Weight Plates</button>
+            <button onclick="showTab('compare')" id="compare-btn" style="display:none;">🔄 Compare Selected</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('browse')">Browse</button>
+            <button class="tab-btn" onclick="showTab('compare')">Compare</button>
+            <button class="tab-btn" onclick="showTab('recommendations')">Recommendations</button>
         </div>
 
         <div id="error"></div>
-        <div id="loading">🔄 Searching the web for products...</div>
-        <div id="products" class="products"></div>
-        <div id="noProducts" class="no-products" style="display: none;">No products found. Try searching again!</div>
+        <div id="loading">🔄 Loading products...</div>
+
+        <!-- Browse Tab -->
+        <div id="browse" class="tab-content active">
+            <div id="products" class="products-grid"></div>
+            <div id="noProducts" class="no-products" style="display: none;">No products found. Try another category!</div>
+        </div>
+
+        <!-- Compare Tab -->
+        <div id="compare" class="tab-content">
+            <div id="compare-results"></div>
+            <div id="compare-empty" class="no-products">Select at least 2 products to compare!</div>
+        </div>
+
+        <!-- Recommendations Tab -->
+        <div id="recommendations" class="tab-content">
+            <div id="recs-list" class="recommendations"></div>
+        </div>
     </div>
 
     <script>
         const BACKEND = 'https://gymgear-backend5.onrender.com';
+        const BACKEND_API_KEY = '024591c7-f793-445a-b69e-4d11a186466c';
+        
+        let allProducts = [];
+        let selectedProducts = [];
+        let currentCategory = 'benches';
 
         async function search(category) {
+            currentCategory = category;
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             const products = document.getElementById('products');
             const noProducts = document.getElementById('noProducts');
+            const compareBtn = document.getElementById('compare-btn');
 
             loading.style.display = 'block';
             error.style.display = 'none';
             products.innerHTML = '';
             noProducts.style.display = 'none';
+            selectedProducts = [];
 
             try {
                 const response = await fetch(`${BACKEND}/api/search-products`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': BACKEND_API_KEY
+                    },
                     body: JSON.stringify({ category: category })
                 });
 
                 const data = await response.json();
 
                 if (data.success && data.products && data.products.length > 0) {
+                    allProducts = data.products;
                     let html = '';
                     data.products.forEach(product => {
                         const price = product.salePrice || product.regularPrice;
                         html += `
-                            <div class="card">
+                            <div class="product-card" id="card_${product.id}">
+                                <input type="checkbox" class="checkbox" onchange="toggleProduct('${product.id}')">
                                 <h3>${product.name}</h3>
-                                <p>${product.brand}</p>
-                                <p>📍 ${product.retailer}</p>
-                                <div class="price">$${price.toFixed(2)}</div>
-                                ${product.salePrice && product.salePrice < product.regularPrice ? `
-                                    <p style="color: #22c55e;">💰 Was $${product.regularPrice.toFixed(2)} - Save ${product.discount}</p>
-                                ` : ''}
-                                ${product.quality ? `<p>Quality: ${product.quality}/10</p>` : ''}
-                                ${product.rating ? `<p>⭐ ${product.rating}/5.0</p>` : ''}
-                                <button class="view-btn" onclick="window.open('${product.url}', '_blank')">View Deal on ${product.retailer} →</button>
+                                <p>${product.brand} • ${product.retailer}</p>
+                                <div class="price-section">
+                                    <div class="price">$${price.toFixed(2)}</div>
+                                    ${product.salePrice ? `<div class="original-price">Was $${product.regularPrice.toFixed(2)}</div>` : ''}
+                                    ${product.discount ? `<div class="discount-badge">${product.discount} OFF</div>` : ''}
+                                </div>
+                                <div class="rating-section">
+                                    <div class="rating-item">⭐ ${product.rating}/5.0</div>
+                                    <div class="rating-item">✓ ${product.quality}/10 quality</div>
+                                </div>
+                                <button class="btn-view" onclick="window.open('${product.url}','_blank')">View on ${product.retailer}</button>
                             </div>
                         `;
                     });
                     products.innerHTML = html;
-                } else if (data.error) {
-                    noProducts.style.display = 'block';
-                    noProducts.textContent = data.error || 'No products found';
+                    compareBtn.style.display = 'inline-block';
                 } else {
                     noProducts.style.display = 'block';
                 }
@@ -189,6 +364,149 @@
             }
         }
 
+        function toggleProduct(productId) {
+            const card = document.getElementById(`card_${productId}`);
+            const index = selectedProducts.indexOf(productId);
+            
+            if (index > -1) {
+                selectedProducts.splice(index, 1);
+                card.classList.remove('selected');
+            } else {
+                selectedProducts.push(productId);
+                card.classList.add('selected');
+            }
+        }
+
+        async function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'compare') {
+                await compareProducts();
+            } else if (tabName === 'recommendations') {
+                await getRecommendations();
+            }
+        }
+
+        async function compareProducts() {
+            const compareResults = document.getElementById('compare-results');
+            const compareEmpty = document.getElementById('compare-empty');
+
+            if (selectedProducts.length < 2) {
+                compareEmpty.style.display = 'block';
+                compareResults.innerHTML = '';
+                return;
+            }
+
+            compareEmpty.style.display = 'none';
+
+            try {
+                const response = await fetch(`${BACKEND}/api/compare-products`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': BACKEND_API_KEY
+                    },
+                    body: JSON.stringify({ productIds: selectedProducts })
+                });
+
+                const data = await response.json();
+
+                let html = '<h2 style="color: #fbbf24; margin-bottom: 20px;">Product Comparison</h2>';
+                html += '<div class="comparison-table"><table>';
+                html += '<tr><th>Attribute</th>';
+                data.products.forEach(p => html += `<th>${p.name}</th>`);
+                html += '</tr>';
+
+                // Price comparison
+                html += '<tr><td><strong>Price</strong></td>';
+                data.products.forEach(p => {
+                    const price = p.salePrice || p.regularPrice;
+                    html += `<td>$${price.toFixed(2)}</td>`;
+                });
+                html += '</tr>';
+
+                // Rating comparison
+                html += '<tr><td><strong>Rating</strong></td>';
+                data.products.forEach(p => html += `<td>${p.rating}/5.0 ⭐</td>`);
+                html += '</tr>';
+
+                // Quality comparison
+                html += '<tr><td><strong>Quality Score</strong></td>';
+                data.products.forEach(p => html += `<td>${p.quality}/10</td>`);
+                html += '</tr>';
+
+                // Retailer
+                html += '<tr><td><strong>Retailer</strong></td>';
+                data.products.forEach(p => html += `<td>${p.retailer}</td>`);
+                html += '</tr>';
+
+                html += '</table></div>';
+
+                // Winner badges
+                html += '<div style="margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">';
+                html += `<div class="rec-card" style="border-left: 4px solid #10b981;">
+                    <div class="rec-type">Cheapest</div>
+                    <div class="rec-product">${data.cheapest.name}</div>
+                    <div class="rec-reason">$${(data.cheapest.salePrice || data.cheapest.regularPrice).toFixed(2)}</div>
+                </div>`;
+                html += `<div class="rec-card" style="border-left: 4px solid #f59e0b;">
+                    <div class="rec-type">Best Rated</div>
+                    <div class="rec-product">${data.bestRated.name}</div>
+                    <div class="rec-reason">${data.bestRated.rating}/5.0 ⭐</div>
+                </div>`;
+                html += `<div class="rec-card" style="border-left: 4px solid #8b5cf6;">
+                    <div class="rec-type">Best Quality</div>
+                    <div class="rec-product">${data.bestQuality.name}</div>
+                    <div class="rec-reason">${data.bestQuality.quality}/10</div>
+                </div>`;
+                html += '</div>';
+
+                compareResults.innerHTML = html;
+            } catch (err) {
+                compareResults.innerHTML = `<div class="no-products">Error loading comparison: ${err.message}</div>`;
+            }
+        }
+
+        async function getRecommendations() {
+            const recsList = document.getElementById('recs-list');
+
+            try {
+                const response = await fetch(`${BACKEND}/api/recommendations`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': BACKEND_API_KEY
+                    },
+                    body: JSON.stringify({ products: allProducts })
+                });
+
+                const data = await response.json();
+
+                if (data.recommendations && data.recommendations.length > 0) {
+                    let html = '';
+                    data.recommendations.forEach(rec => {
+                        html += `
+                            <div class="rec-card">
+                                <div class="rec-type">${rec.type}</div>
+                                <div class="rec-product">${rec.product.name}</div>
+                                <div class="rec-reason">${rec.reason}</div>
+                                <button class="btn-view" onclick="window.open('${rec.product.url}','_blank')" style="margin-top: 10px;">View Deal</button>
+                            </div>
+                        `;
+                    });
+                    recsList.innerHTML = html;
+                } else {
+                    recsList.innerHTML = '<div class="no-products">No recommendations available</div>';
+                }
+            } catch (err) {
+                recsList.innerHTML = `<div class="no-products">Error loading recommendations: ${err.message}</div>`;
+            }
+        }
+
+        // Initial load
         window.addEventListener('load', () => search('benches'));
     </script>
 </body>
