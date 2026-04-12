@@ -401,8 +401,8 @@
                         const price = product.salePrice || product.regularPrice;
                         html += `
                             <div class="card" onclick="selectProduct('${product.id}', '${product.name}')">
-                                <div class="card-image">
-                                    <img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">
+                                <div class="card-image" style="font-size: 60px; color: #f59e0b;">
+                                    ${product.brand.includes('Rogue') ? '🏋️' : product.brand.includes('Titan') ? '⚙️' : product.brand.includes('Rep') ? '💪' : '⚡'}
                                 </div>
                                 <h3>${product.name}</h3>
                                 <p><strong>${product.brand}</strong> | ${product.retailer}</p>
@@ -486,7 +486,9 @@
                     let html = `
                         <div class="comparison-container">
                             <div class="comparison-product">
-                                <img src="${p1.image}" alt="${p1.name}" onerror="this.style.display='none'">
+                                <div class="card-image" style="font-size: 80px; color: #f59e0b; margin-bottom: 15px;">
+                                    ${p1.brand.includes('Rogue') ? '🏋️' : p1.brand.includes('Titan') ? '⚙️' : p1.brand.includes('Rep') ? '💪' : '⚡'}
+                                </div>
                                 <h2>${p1.name}</h2>
                                 <p>${p1.brand} | ${p1.retailer}</p>
                                 <div class="price">$${(p1.salePrice || p1.regularPrice).toFixed(2)}</div>
@@ -504,7 +506,9 @@
                                 </div>
                             </div>
                             <div class="comparison-product">
-                                <img src="${p2.image}" alt="${p2.name}" onerror="this.style.display='none'">
+                                <div class="card-image" style="font-size: 80px; color: #f59e0b; margin-bottom: 15px;">
+                                    ${p2.brand.includes('Rogue') ? '🏋️' : p2.brand.includes('Titan') ? '⚙️' : p2.brand.includes('Rep') ? '💪' : '⚡'}
+                                </div>
                                 <h2>${p2.name}</h2>
                                 <p>${p2.brand} | ${p2.retailer}</p>
                                 <div class="price">$${(p2.salePrice || p2.regularPrice).toFixed(2)}</div>
@@ -559,7 +563,9 @@
             }
 
             modalBody.innerHTML = `
-                <img src="${product.image}" alt="${product.name}" class="modal-image" onerror="this.style.display='none'">
+                <div class="card-image" style="font-size: 80px; color: #f59e0b;">
+                    ${product.brand.includes('Rogue') ? '🏋️' : product.brand.includes('Titan') ? '⚙️' : product.brand.includes('Rep') ? '💪' : '⚡'}
+                </div>
                 <h2>${product.name}</h2>
                 <p style="color: #aaa; margin-bottom: 15px;">${product.brand} | ${product.retailer}</p>
                 <div class="price" style="margin-bottom: 20px;">$${(product.salePrice || product.regularPrice).toFixed(2)}</div>
