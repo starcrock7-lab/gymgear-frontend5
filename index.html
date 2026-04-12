@@ -334,7 +334,8 @@
         <div class="controls">
             <button onclick="search('benches')" class="active">🏋️ Bench Racks</button>
             <button onclick="search('weights')">⚙️ Weight Plates</button>
-            <button onclick="clearSelection()" class="compare-btn" style="margin-left: auto;">Clear Selection</button>
+            <button id="compareButton" onclick="compareProducts()" class="compare-btn" style="margin-left: auto; display: none;">⚖️ Compare Selected</button>
+            <button onclick="clearSelection()" class="compare-btn" style="background: #ef4444;">Clear</button>
         </div>
 
         <div class="selection-info" id="selectionInfo">
@@ -400,7 +401,7 @@
                     data.products.forEach(product => {
                         const price = product.salePrice || product.regularPrice;
                         html += `
-                            <div class="card" onclick="selectProduct('${product.id}', '${product.name}')">
+                            <div class="card" id="card-${product.id}" onclick="selectProduct('${product.id}', '${product.name}')">
                                 <div class="card-image" style="font-size: 60px; color: #f59e0b;">
                                     ${product.brand.includes('Rogue') ? '🏋️' : product.brand.includes('Titan') ? '⚙️' : product.brand.includes('Rep') ? '💪' : '⚡'}
                                 </div>
@@ -413,7 +414,7 @@
                                 <p class="rating">Quality: ${product.quality}/10 | ⭐ ${product.rating}/5</p>
                                 <div class="button-group">
                                     <button class="details-btn" onclick="event.stopPropagation(); showDetails('${product.id}')">📋 Details</button>
-                                    <button class="view-btn" onclick="event.stopPropagation(); window.open('${product.url}', '_blank')">🛒 Buy</button>
+                                    <button class="view-btn" onclick="event.stopPropagation(); window.open('${encodeURI(product.url)}', '_blank')">🛒 Buy</button>
                                 </div>
                             </div>
                         `;
@@ -441,9 +442,10 @@
             document.getElementById('selectedName').textContent = productName;
             selectionInfo.classList.add('show');
 
-            // Show compare button hint
+            // Show compare button if both products selected
+            const compareButton = document.getElementById('compareButton');
             if (firstProduct && firstProduct.id !== productId) {
-                compareProducts();
+                compareButton.style.display = 'block';
             }
         }
 
@@ -453,6 +455,7 @@
             document.querySelectorAll('.card').forEach(card => card.classList.remove('selected'));
             document.getElementById('selectionInfo').classList.remove('show');
             document.getElementById('comparisonSection').classList.remove('show');
+            document.getElementById('compareButton').style.display = 'none';
         }
 
         async function compareProducts() {
@@ -574,7 +577,7 @@
                 ${specsHtml}
                 <h3 style="color: #f59e0b; margin-top: 20px; margin-bottom: 15px;">Key Aspects</h3>
                 <p>${product.keyAspects.join(' • ')}</p>
-                <button class="view-btn" onclick="window.open('${product.url}', '_blank'); closeModal();" style="margin-top: 30px; width: 100%;">Buy on ${product.retailer} →</button>
+                <button class="view-btn" onclick="window.open('${encodeURI(product.url)}', '_blank'); closeModal();" style="margin-top: 30px; width: 100%;">Buy on ${product.retailer} →</button>
             `;
 
             modal.style.display = 'block';
