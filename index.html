@@ -436,16 +436,21 @@
             selectedProduct = productId;
             
             document.querySelectorAll('.card').forEach(card => card.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+            document.getElementById(`card-${productId}`).classList.add('selected');
             
             const selectionInfo = document.getElementById('selectionInfo');
             document.getElementById('selectedName').textContent = productName;
             selectionInfo.classList.add('show');
 
-            // Show compare button if both products selected
+            // Show compare button if we have a first product and this is a different one
             const compareButton = document.getElementById('compareButton');
             if (firstProduct && firstProduct.id !== productId) {
                 compareButton.style.display = 'block';
+                compareButton.style.background = '#22c55e';
+                compareButton.style.color = '#000';
+            } else if (firstProduct && firstProduct.id === productId) {
+                // Clicked the same product, keep it selected but hide compare button
+                compareButton.style.display = 'none';
             }
         }
 
