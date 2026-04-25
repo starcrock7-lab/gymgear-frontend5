@@ -1,140 +1,430 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GymGear Compare Pro - Find Your Perfect Equipment</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-            color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            text-align: center;
-        }
-        .logo {
-            font-size: 80px;
-            margin-bottom: 20px;
-        }
-        h1 {
-            color: #f59e0b;
-            font-size: 48px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        .subtitle {
-            color: #aaa;
-            font-size: 20px;
-            margin-bottom: 40px;
-            line-height: 1.6;
-        }
-        .features {
-            background: #1a1a1a;
-            padding: 40px;
-            border-radius: 12px;
-            margin-bottom: 40px;
-            border: 2px solid #333;
-        }
-        .feature {
-            margin: 20px 0;
-            font-size: 16px;
-            color: #ddd;
-        }
-        .feature-icon {
-            font-size: 30px;
-            margin-right: 15px;
-        }
-        .cta-button {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: #000;
-            border: none;
-            padding: 18px 50px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-block;
-            margin: 10px;
-        }
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
-        }
-        .secondary-button {
-            background: #333;
-            color: #f59e0b;
-            border: 2px solid #f59e0b;
-        }
-        .secondary-button:hover {
-            background: #444;
-        }
-        .footer {
-            color: #666;
-            font-size: 14px;
-            margin-top: 40px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GymGear Compare Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --card: #161616;
+      --border: #222222;
+      --accent: #e8ff47;
+      --accent2: #ff6b2b;
+      --text: #f0f0f0;
+      --muted: #666;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-weight: 400;
+      overflow-x: hidden;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+    }
+    .nav-logo span { color: var(--text); }
+    .nav-cta {
+      background: var(--accent);
+      color: #000;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 10px 24px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      text-transform: uppercase;
+    }
+    .nav-cta:hover { background: #fff; transform: translateY(-1px); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start;
+      padding: 140px 48px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(232,255,71,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,255,71,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    .hero-glow {
+      position: absolute; top: 20%; right: -10%;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(232,255,71,0.3);
+      padding: 6px 14px;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 12vw, 11rem);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s 0.1s ease both;
+      max-width: 900px;
+    }
+    .hero-title .accent { color: var(--accent); }
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+    .hero-actions {
+      display: flex; gap: 16px; align-items: center;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 16px 40px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: #fff; transform: translateY(-2px); }
+    .btn-ghost {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-decoration: none;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+
+    /* STATS STRIP */
+    .stats-strip {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      padding: 0 48px;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+    .stat {
+      padding: 36px 0;
+      border-right: 1px solid var(--border);
+      padding-left: 40px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .stat:first-child { padding-left: 0; }
+    .stat:last-child { border-right: none; }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 6px; letter-spacing: 0.05em; }
+
+    /* FEATURES */
+    .features {
+      padding: 120px 48px;
+    }
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      margin-bottom: 64px;
+      max-width: 600px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2px;
+    }
+    .feature-card {
+      background: var(--card);
+      padding: 40px 32px;
+      border: 1px solid var(--border);
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transition: transform 0.3s;
+      transform-origin: left;
+    }
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-card:hover { border-color: #333; }
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .feature-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 0.03em;
+      margin-bottom: 12px;
+    }
+    .feature-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* HOW IT WORKS */
+    .how {
+      padding: 80px 48px 120px;
+      border-top: 1px solid var(--border);
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin-top: 64px;
+    }
+    .step {
+      padding: 40px;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+    .step:last-child { border-right: none; }
+    .step-num {
+      font-family: var(--font-display);
+      font-size: 5rem;
+      color: var(--border);
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      letter-spacing: 0.03em;
+      margin-bottom: 12px;
+    }
+    .step-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
+
+    /* CTA SECTION */
+    .cta-section {
+      margin: 0 48px 120px;
+      background: var(--accent);
+      padding: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+    }
+    .cta-text .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      color: #000;
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      margin-bottom: 12px;
+    }
+    .cta-text .cta-sub { color: rgba(0,0,0,0.6); font-size: 1rem; }
+    .btn-dark {
+      background: #000;
+      color: var(--accent);
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 18px 44px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+      white-space: nowrap;
+      display: inline-block;
+    }
+    .btn-dark:hover { background: #111; transform: translateY(-2px); }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-logo {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--accent);
+    }
+    .footer-logo span { color: var(--muted); }
+    .footer-copy { font-size: 0.8rem; color: var(--muted); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .hero { padding: 120px 24px 60px; }
+      .stats-strip { grid-template-columns: 1fr; padding: 0 24px; }
+      .stat { border-right: none; border-bottom: 1px solid var(--border); padding-left: 0; }
+      .stat:last-child { border-bottom: none; }
+      .features, .how { padding: 80px 24px; }
+      .steps { grid-template-columns: 1fr; }
+      .step { border-right: none; border-bottom: 1px solid var(--border); }
+      .cta-section { margin: 0 24px 80px; padding: 48px 32px; flex-direction: column; }
+      footer { padding: 32px 24px; flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">⚡</div>
-        <h1>GymGear Compare Pro</h1>
-        <p class="subtitle">
-            Find the perfect gym equipment for your home. Compare prices, quality, and ratings from top retailers in real-time.
-        </p>
 
-        <div class="features">
-            <div class="feature">
-                <span class="feature-icon">🔍</span>
-                Search equipment from Rogue Fitness, Amazon, and Rep Fitness
-            </div>
-            <div class="feature">
-                <span class="feature-icon">⚖️</span>
-                Compare two products side-by-side with AI analysis
-            </div>
-            <div class="feature">
-                <span class="feature-icon">💰</span>
-                See real prices, discounts, and current deals
-            </div>
-            <div class="feature">
-                <span class="feature-icon">⭐</span>
-                Check quality ratings and customer reviews
-            </div>
-            <div class="feature">
-                <span class="feature-icon">🛒</span>
-                Direct links to buy from your preferred retailer
-            </div>
-        </div>
+<nav>
+  <div class="nav-logo">GymGear<span> Compare</span></div>
+  <a href="app.html" class="nav-cta">Start Comparing →</a>
+</nav>
 
-        <button class="cta-button" onclick="goToApp()">🚀 Start Comparing Now</button>
-        <button class="cta-button secondary-button" onclick="scrollToLearnMore()">📚 Learn More</button>
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-tag">AI-Powered Price Comparison</div>
+  <h1 class="hero-title">FIND THE<br><span class="accent">BEST DEAL</span><br>ON GEAR</h1>
+  <p class="hero-sub">Compare gym equipment prices across Rogue, Amazon, and Rep Fitness. Side-by-side specs, AI-powered analysis, and direct buy links.</p>
+  <div class="hero-actions">
+    <a href="app.html" class="btn-primary">Compare Now →</a>
+    <a href="#how" class="btn-ghost">How it works</a>
+  </div>
+</section>
 
-        <div class="footer">
-            <p>GymGear Compare Pro • Compare prices, find deals, make smart purchases</p>
-        </div>
+<div class="stats-strip">
+  <div class="stat">
+    <div class="stat-num">3</div>
+    <div class="stat-label">Major Retailers</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">2</div>
+    <div class="stat-label">Equipment Categories</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">AI</div>
+    <div class="stat-label">Powered Analysis</div>
+  </div>
+</div>
+
+<section class="features">
+  <div class="section-label">What we offer</div>
+  <h2 class="section-title">BUILT TO SAVE YOU MONEY</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">⚖️</span>
+      <div class="feature-title">Side-by-Side Compare</div>
+      <div class="feature-desc">Select any two products and instantly see a detailed spec comparison with an AI-generated verdict on which is the better buy.</div>
     </div>
+    <div class="feature-card">
+      <span class="feature-icon">🤖</span>
+      <div class="feature-title">AI Summary</div>
+      <div class="feature-desc">Our AI analyzes quality scores, price points, and specs to give you a plain-English summary of which product wins and why.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🏷️</span>
+      <div class="feature-title">Real Prices</div>
+      <div class="feature-desc">Product data sourced directly from Rogue Fitness, Amazon, and Rep Fitness. No guesswork — just real current prices.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🛒</span>
+      <div class="feature-title">Direct Buy Links</div>
+      <div class="feature-desc">Found the right gear? Click the buy button and go straight to the retailer's product page — no middleman, no detours.</div>
+    </div>
+  </div>
+</section>
 
-    <script>
-        function goToApp() {
-            window.location.href = 'app.html';
-        }
+<section class="how" id="how">
+  <div class="section-label">The process</div>
+  <h2 class="section-title">HOW IT WORKS</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">PICK A CATEGORY</div>
+      <div class="step-desc">Choose between Bench Racks or Weight Plates using the category dropdown on the compare page.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">SELECT 2 PRODUCTS</div>
+      <div class="step-desc">Click on any two products to highlight them in green. Selecting a third automatically swaps out the oldest pick.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">GET THE VERDICT</div>
+      <div class="step-desc">Hit Compare and get a full side-by-side breakdown with an AI summary telling you exactly which to buy.</div>
+    </div>
+  </div>
+</section>
 
-        function scrollToLearnMore() {
-            alert('🏋️ GymGear Compare Pro helps you find the best gym equipment deals by comparing prices across top retailers!\n\n⚖️ Click "Start Comparing Now" to begin comparing products.');
-        }
-    </script>
+<div class="cta-section">
+  <div class="cta-text">
+    <div class="cta-title">READY TO STOP OVERPAYING?</div>
+    <div class="cta-sub">It takes 30 seconds to find a better deal.</div>
+  </div>
+  <a href="app.html" class="btn-dark">Start Comparing →</a>
+</div>
+
+<footer>
+  <div class="footer-logo">GymGear<span> Compare Pro</span></div>
+  <div class="footer-copy">© 2026 GymGear Compare. All rights reserved.</div>
+</footer>
+
 </body>
 </html>
