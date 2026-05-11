@@ -3,900 +3,1047 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GymGear Compare Pro — App</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <title>GymGear Compare Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-    :root {
-      --bg: #0a0a0a;
-      --surface: #111111;
-      --card: #161616;
-      --card-hover: #1c1c1c;
-      --border: #222222;
-      --accent: #e8ff47;
-      --accent2: #ff6b2b;
-      --green: #4ade80;
-      --green-bg: rgba(74,222,128,0.08);
-      --green-border: rgba(74,222,128,0.4);
-      --text: #f0f0f0;
-      --muted: #666;
-      --font-display: 'Bebas Neue', sans-serif;
-      --font-body: 'DM Sans', sans-serif;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-body);
-      min-height: 100vh;
-    }
-
-    /* TOP BAR */
-    .topbar {
-      position: sticky; top: 0; z-index: 50;
-      background: rgba(10,10,10,0.9);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 32px;
-      gap: 16px;
-    }
-    .topbar-logo {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      color: var(--accent);
-      text-decoration: none;
-      letter-spacing: 0.05em;
-      white-space: nowrap;
-    }
-    .topbar-logo span { color: var(--text); }
-
-    /* CATEGORY DROPDOWN */
-    .category-wrapper {
-      position: relative;
-    }
-    .category-btn {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 0.9rem;
-      padding: 10px 18px;
-      cursor: pointer;
-      display: flex; align-items: center; gap: 10px;
-      transition: border-color 0.2s;
-      white-space: nowrap;
-    }
-    .category-btn:hover { border-color: var(--accent); }
-    .category-btn .arrow { transition: transform 0.2s; font-size: 0.7rem; }
-    .category-btn.open .arrow { transform: rotate(180deg); }
-    .category-dropdown {
-      position: absolute; top: calc(100% + 4px); left: 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      min-width: 200px;
-      z-index: 100;
-      display: none;
-    }
-    .category-dropdown.open { display: block; }
-    .cat-option {
-      padding: 12px 20px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      display: flex; align-items: center; gap: 10px;
-      transition: background 0.15s;
-      border-bottom: 1px solid var(--border);
-    }
-    .cat-option:last-child { border-bottom: none; }
-    .cat-option:hover { background: var(--card); }
-    .cat-option.active { color: var(--accent); }
-
-    /* COMPARE BUTTON */
-    .compare-btn {
-      background: var(--green);
-      color: #000;
-      font-family: var(--font-body);
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 10px 24px;
-      border: none;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      transition: all 0.2s;
-      display: none;
-      white-space: nowrap;
-    }
-    .compare-btn.visible { display: block; }
-    .compare-btn:hover { background: #fff; transform: translateY(-1px); }
-
-    .home-link {
-      color: var(--muted);
-      font-size: 0.85rem;
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: color 0.2s, border-color 0.2s;
-      white-space: nowrap;
-    }
-    .home-link:hover { color: var(--text); border-color: var(--border); }
-
-    /* MAIN LAYOUT */
-    main { padding: 32px; max-width: 1400px; margin: 0 auto; }
-
-    .page-header { margin-bottom: 28px; }
-    .page-title {
-      font-family: var(--font-display);
-      font-size: 2.8rem;
-      letter-spacing: 0.03em;
-      line-height: 1;
-    }
-    .page-subtitle { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
-    .selected-info {
-      font-size: 0.85rem;
-      color: var(--green);
-      margin-top: 8px;
-      min-height: 20px;
+    :root{
+      --bg:#080808;
+      --surface:#101010;
+      --card:#141414;
+      --card-h:#1a1a1a;
+      --border:#1e1e1e;
+      --border-l:#2a2a2a;
+      --accent:#d4ff00;
+      --accent-dim:rgba(212,255,0,0.08);
+      --green:#4ade80;
+      --green-bg:rgba(74,222,128,0.07);
+      --green-b:rgba(74,222,128,0.35);
+      --amber:#f59e0b;
+      --red:#ef4444;
+      --text:#efefef;
+      --text-2:#999;
+      --text-3:#555;
+      --ff-display:'Bebas Neue',sans-serif;
+      --ff-body:'DM Sans',sans-serif;
+      --radius:2px;
+      --trans:0.18s ease;
     }
 
-    /* PRODUCTS GRID */
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 12px;
-      margin-bottom: 40px;
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--ff-body);min-height:100vh;overflow-x:hidden}
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-track{background:var(--bg)}
+    ::-webkit-scrollbar-thumb{background:var(--border-l)}
+
+    /* ── TOPBAR ── */
+    .topbar{
+      position:sticky;top:0;z-index:200;
+      background:rgba(8,8,8,0.92);
+      backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px;
+      padding:0 24px;height:56px;
+    }
+    .logo{
+      font-family:var(--ff-display);font-size:1.4rem;
+      color:var(--accent);text-decoration:none;
+      letter-spacing:0.05em;white-space:nowrap;margin-right:8px;
+    }
+    .logo span{color:var(--text-2)}
+
+    /* search */
+    .search-wrap{
+      flex:1;max-width:360px;position:relative;
+    }
+    .search-wrap input{
+      width:100%;background:var(--surface);
+      border:1px solid var(--border-l);color:var(--text);
+      font-family:var(--ff-body);font-size:0.85rem;
+      padding:8px 12px 8px 36px;outline:none;
+      transition:border-color var(--trans);
+    }
+    .search-wrap input:focus{border-color:var(--accent)}
+    .search-wrap input::placeholder{color:var(--text-3)}
+    .search-icon{
+      position:absolute;left:11px;top:50%;transform:translateY(-50%);
+      color:var(--text-3);font-size:0.85rem;pointer-events:none;
     }
 
-    .product-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 24px;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s, transform 0.15s;
-      position: relative;
-      user-select: none;
+    /* category pill tabs */
+    .cat-tabs{display:flex;gap:4px;flex-shrink:0}
+    .cat-tab{
+      background:transparent;border:1px solid var(--border-l);
+      color:var(--text-2);font-family:var(--ff-body);font-size:0.78rem;
+      padding:6px 14px;cursor:pointer;white-space:nowrap;
+      transition:all var(--trans);letter-spacing:0.04em;
     }
-    .product-card:hover { border-color: #333; background: var(--card-hover); transform: translateY(-2px); }
-    .product-card.selected {
-      border-color: var(--green-border);
-      background: var(--green-bg);
-    }
-    .selected-badge {
-      position: absolute; top: 12px; right: 12px;
-      background: var(--green);
-      color: #000;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .product-card.selected .selected-badge { opacity: 1; }
+    .cat-tab:hover{border-color:var(--text-3);color:var(--text)}
+    .cat-tab.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
 
-    .product-emoji { font-size: 2.5rem; margin-bottom: 14px; display: block; }
-    .product-brand {
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 6px;
+    /* sort */
+    .sort-wrap{margin-left:auto;flex-shrink:0}
+    .sort-select{
+      background:var(--surface);border:1px solid var(--border-l);
+      color:var(--text-2);font-family:var(--ff-body);font-size:0.78rem;
+      padding:6px 10px;cursor:pointer;outline:none;
     }
-    .product-name {
-      font-family: var(--font-display);
-      font-size: 1.3rem;
-      letter-spacing: 0.02em;
-      line-height: 1.1;
-      margin-bottom: 14px;
-    }
-    .product-price {
-      font-family: var(--font-display);
-      font-size: 2rem;
-      color: var(--accent);
-      margin-bottom: 6px;
-    }
-    .product-retailer { font-size: 0.8rem; color: var(--muted); margin-bottom: 16px; }
-    .product-quality-bar {
-      height: 3px;
-      background: var(--border);
-      margin-bottom: 4px;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .product-quality-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-    }
-    .product-quality-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 14px; }
-    .card-actions {
-      display: flex; gap: 8px;
-    }
-    .btn-details {
-      flex: 1;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 0.8rem;
-      padding: 8px;
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .btn-details:hover { border-color: var(--text); }
-    .btn-buy {
-      flex: 1;
-      background: var(--accent);
-      border: none;
-      color: #000;
-      font-family: var(--font-body);
-      font-weight: 600;
-      font-size: 0.8rem;
-      padding: 8px;
-      cursor: pointer;
-      text-decoration: none;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s;
-    }
-    .btn-buy:hover { background: #fff; }
+    .sort-select:focus{border-color:var(--accent)}
 
-    /* COMPARISON PANEL */
-    .comparison-panel {
-      display: none;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      margin-bottom: 40px;
-      animation: slideDown 0.3s ease;
+    /* compare bar */
+    .compare-bar{
+      position:fixed;bottom:0;left:0;right:0;z-index:150;
+      background:var(--surface);border-top:1px solid var(--border-l);
+      display:flex;align-items:center;gap:16px;
+      padding:12px 24px;
+      transform:translateY(100%);
+      transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
     }
-    .comparison-panel.visible { display: block; }
+    .compare-bar.visible{transform:translateY(0)}
+    .compare-slots{display:flex;gap:12px;flex:1}
+    .compare-slot{
+      background:var(--card);border:1px solid var(--border-l);
+      padding:8px 14px;font-size:0.8rem;color:var(--text-2);
+      min-width:160px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    }
+    .compare-slot.filled{border-color:var(--green-b);color:var(--text)}
+    .slot-name{font-size:0.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+    .slot-clear{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:0.9rem;padding:0;line-height:1;transition:color var(--trans)}
+    .slot-clear:hover{color:var(--red)}
+    .compare-actions{display:flex;gap:10px;flex-shrink:0}
+    .btn-compare{
+      background:var(--green);color:#000;border:none;
+      font-family:var(--ff-body);font-weight:700;font-size:0.85rem;
+      padding:10px 24px;cursor:pointer;text-transform:uppercase;
+      letter-spacing:0.06em;transition:all var(--trans);white-space:nowrap;
+    }
+    .btn-compare:hover{background:#fff;transform:translateY(-1px)}
+    .btn-compare:disabled{background:var(--border-l);color:var(--text-3);cursor:not-allowed;transform:none}
+    .btn-clear-all{
+      background:transparent;border:1px solid var(--border-l);color:var(--text-2);
+      font-family:var(--ff-body);font-size:0.78rem;padding:10px 16px;cursor:pointer;
+      transition:all var(--trans);white-space:nowrap;
+    }
+    .btn-clear-all:hover{border-color:var(--red);color:var(--red)}
 
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    /* ── MAIN LAYOUT ── */
+    .layout{display:flex;min-height:calc(100vh - 56px)}
 
-    .comp-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 28px;
-      border-bottom: 1px solid var(--border);
+    /* sidebar */
+    .sidebar{
+      width:220px;flex-shrink:0;
+      border-right:1px solid var(--border);
+      padding:20px 0;
+      position:sticky;top:56px;
+      height:calc(100vh - 56px);overflow-y:auto;
     }
-    .comp-title {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      letter-spacing: 0.05em;
+    .sidebar-section{margin-bottom:24px;padding:0 16px}
+    .sidebar-label{
+      font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;
+      color:var(--text-3);margin-bottom:10px;
     }
-    .comp-close {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      width: 32px; height: 32px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: border-color 0.2s, color 0.2s;
+    .filter-group{display:flex;flex-direction:column;gap:4px}
+    .filter-chip{
+      background:transparent;border:1px solid var(--border-l);
+      color:var(--text-2);font-family:var(--ff-body);font-size:0.78rem;
+      padding:6px 10px;cursor:pointer;text-align:left;
+      transition:all var(--trans);
     }
-    .comp-close:hover { border-color: var(--text); color: var(--text); }
+    .filter-chip:hover{border-color:var(--text-3);color:var(--text)}
+    .filter-chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+    .price-range{padding:0 4px}
+    .price-inputs{display:flex;gap:8px;align-items:center}
+    .price-input{
+      width:80px;background:var(--surface);border:1px solid var(--border-l);
+      color:var(--text);font-family:var(--ff-body);font-size:0.78rem;
+      padding:6px 8px;outline:none;transition:border-color var(--trans);
+    }
+    .price-input:focus{border-color:var(--accent)}
+    .price-sep{color:var(--text-3);font-size:0.75rem}
+    .rating-filter{display:flex;flex-direction:column;gap:4px}
+    .rating-opt{
+      display:flex;align-items:center;gap:8px;cursor:pointer;
+      padding:4px 0;
+    }
+    .rating-opt input{accent-color:var(--accent)}
+    .rating-opt span{font-size:0.8rem;color:var(--text-2)}
+    .rating-stars{color:var(--amber);font-size:0.75rem}
 
-    .comp-grid {
-      display: grid;
-      grid-template-columns: 1fr 80px 1fr;
-      gap: 0;
+    /* ad slot sidebar */
+    .ad-slot-sidebar{
+      margin:0 16px;
+      background:var(--surface);border:1px dashed var(--border-l);
+      padding:16px;text-align:center;
     }
-    .comp-col {
-      padding: 28px;
+    .ad-label{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+    .ad-placeholder{width:100%;height:150px;background:var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:0.75rem}
+
+    /* ── CONTENT ── */
+    .content{flex:1;padding:20px 24px 100px;min-width:0}
+
+    /* top ad banner */
+    .ad-banner{
+      background:var(--surface);border:1px dashed var(--border-l);
+      padding:14px 20px;margin-bottom:20px;
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
     }
-    .comp-vs {
-      display: flex; align-items: center; justify-content: center;
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
+    .ad-banner-label{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-3)}
+    .ad-banner-placeholder{flex:1;height:60px;background:var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:0.8rem}
+
+    /* results meta */
+    .results-meta{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:16px;
     }
-    .comp-vs-text {
-      font-family: var(--font-display);
-      font-size: 2rem;
-      color: var(--border);
-      letter-spacing: 0.1em;
+    .results-count{font-size:0.82rem;color:var(--text-2)}
+    .results-count strong{color:var(--text);font-weight:600}
+
+    /* active filters */
+    .active-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+    .filter-tag{
+      display:flex;align-items:center;gap:6px;
+      background:var(--accent-dim);border:1px solid var(--accent);
+      color:var(--accent);font-size:0.72rem;padding:3px 10px;
     }
-    .comp-product-name {
-      font-family: var(--font-display);
-      font-size: 1.4rem;
-      letter-spacing: 0.02em;
-      margin-bottom: 6px;
-    }
-    .comp-product-brand { font-size: 0.75rem; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
-    .comp-price {
-      font-family: var(--font-display);
-      font-size: 2.5rem;
-      color: var(--accent);
-      margin-bottom: 20px;
+    .filter-tag button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.85rem;line-height:1;padding:0}
+
+    /* grid */
+    .products-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+      gap:10px;
     }
 
-    .comp-specs { border-top: 1px solid var(--border); padding-top: 20px; }
-    .comp-spec-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; }
-    .comp-spec-key { color: var(--muted); }
-    .comp-spec-val { font-weight: 500; }
+    /* card */
+    .product-card{
+      background:var(--card);border:1px solid var(--border);
+      padding:20px;cursor:pointer;position:relative;overflow:hidden;
+      transition:border-color var(--trans),background var(--trans),transform var(--trans);
+      display:flex;flex-direction:column;
+      animation:cardIn 0.3s ease both;
+    }
+    .product-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:2px;
+      background:var(--accent);transform:scaleX(0);transform-origin:left;
+      transition:transform 0.25s ease;
+    }
+    .product-card:hover{border-color:var(--border-l);background:var(--card-h);transform:translateY(-2px)}
+    .product-card:hover::before{transform:scaleX(1)}
+    .product-card.selected{border-color:var(--green-b);background:var(--green-bg)}
+    .product-card.selected::before{background:var(--green);transform:scaleX(1)}
 
-    .comp-buy {
-      margin-top: 20px;
-      display: inline-block;
-      background: var(--accent);
-      color: #000;
-      font-family: var(--font-body);
-      font-weight: 700;
-      font-size: 0.85rem;
-      padding: 12px 28px;
-      text-decoration: none;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      transition: background 0.2s;
-    }
-    .comp-buy:hover { background: #fff; }
+    @keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-    /* AI SUMMARY */
-    .ai-summary {
-      grid-column: 1 / -1;
-      padding: 24px 28px;
-      border-top: 1px solid var(--border);
-      background: rgba(232,255,71,0.03);
+    .selected-badge{
+      position:absolute;top:10px;right:10px;
+      background:var(--green);color:#000;
+      font-size:0.6rem;font-weight:700;padding:3px 8px;
+      letter-spacing:0.08em;text-transform:uppercase;
+      opacity:0;transform:scale(0.8);transition:all var(--trans);
     }
-    .ai-summary-label {
-      font-size: 0.7rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 10px;
-    }
-    .ai-summary-text { font-size: 0.95rem; line-height: 1.7; color: var(--text); }
+    .product-card.selected .selected-badge{opacity:1;transform:scale(1)}
 
-    /* MODAL */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.8);
-      z-index: 200;
-      display: none;
-      align-items: center; justify-content: center;
-      padding: 24px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      max-width: 520px; width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      animation: fadeUp 0.25s ease;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .modal-header {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      padding: 24px 24px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .modal-name { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: 0.02em; }
-    .modal-brand { font-size: 0.75rem; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
-    .modal-close {
-      background: none; border: 1px solid var(--border);
-      color: var(--muted); width: 32px; height: 32px;
-      cursor: pointer; font-size: 1rem; flex-shrink: 0;
-      margin-left: 12px;
-      transition: border-color 0.2s;
-    }
-    .modal-close:hover { border-color: var(--text); color: var(--text); }
-    .modal-body { padding: 24px; }
-    .modal-price { font-family: var(--font-display); font-size: 3rem; color: var(--accent); margin-bottom: 6px; }
-    .modal-retailer { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
-    .modal-specs { margin-bottom: 24px; }
-    .modal-spec-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
-    .modal-spec-key { color: var(--muted); }
-    .modal-spec-val { font-weight: 500; text-align: right; max-width: 60%; }
-    .modal-aspects { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
-    .aspect-tag {
-      font-size: 0.75rem;
-      padding: 4px 12px;
-      border: 1px solid var(--border);
-      color: var(--muted);
-    }
-    .modal-buy {
-      display: block; text-align: center;
-      background: var(--accent);
-      color: #000;
-      font-family: var(--font-body);
-      font-weight: 700;
-      font-size: 0.95rem;
-      padding: 14px;
-      text-decoration: none;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      transition: background 0.2s;
-    }
-    .modal-buy:hover { background: #fff; }
+    .product-emoji{font-size:2rem;margin-bottom:12px;display:block}
+    .product-brand{font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+    .product-name{font-family:var(--ff-display);font-size:1.25rem;letter-spacing:0.02em;line-height:1.1;margin-bottom:10px}
+    .product-price{font-family:var(--ff-display);font-size:2rem;color:var(--accent);line-height:1;margin-bottom:4px}
+    .product-retailer{font-size:0.72rem;color:var(--text-3);margin-bottom:14px}
 
-    @media (max-width: 768px) {
-      .topbar { padding: 12px 16px; }
-      main { padding: 20px 16px; }
-      .comp-grid { grid-template-columns: 1fr; }
-      .comp-vs { display: none; }
-      .comp-col { border-bottom: 1px solid var(--border); }
+    .quality-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+    .quality-bar-wrap{flex:1;height:3px;background:var(--border-l);border-radius:2px;overflow:hidden}
+    .quality-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.6s ease}
+    .quality-num{font-size:0.72rem;color:var(--text-2);white-space:nowrap}
+
+    .stars-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+    .stars{color:var(--amber);font-size:0.78rem;letter-spacing:1px}
+    .rating-num{font-size:0.78rem;font-weight:600}
+    .review-count{font-size:0.7rem;color:var(--text-3)}
+
+    .expert-snippet{
+      font-size:0.74rem;color:var(--text-2);font-style:italic;
+      border-left:2px solid var(--accent);padding-left:8px;
+      line-height:1.5;margin-bottom:14px;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    }
+
+    .card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;margin-top:auto}
+    .tag{
+      font-size:0.65rem;padding:3px 8px;border:1px solid var(--border-l);
+      color:var(--text-3);letter-spacing:0.05em;
+    }
+
+    .card-actions{display:flex;gap:8px;margin-top:auto}
+    .btn-details{
+      flex:1;background:transparent;border:1px solid var(--border-l);
+      color:var(--text-2);font-family:var(--ff-body);font-size:0.75rem;
+      padding:8px;cursor:pointer;transition:all var(--trans);
+    }
+    .btn-details:hover{border-color:var(--text);color:var(--text)}
+    .btn-buy{
+      flex:1;background:var(--accent);border:none;color:#000;
+      font-family:var(--ff-body);font-weight:700;font-size:0.75rem;
+      padding:8px;cursor:pointer;text-decoration:none;
+      display:flex;align-items:center;justify-content:center;gap:4px;
+      transition:background var(--trans);
+    }
+    .btn-buy:hover{background:#fff}
+
+    /* ── COMPARISON PANEL ── */
+    .comparison-panel{
+      display:none;margin-bottom:20px;
+      background:var(--surface);border:1px solid var(--border-l);
+      animation:slideDown 0.3s ease;
+    }
+    .comparison-panel.visible{display:block}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+    .comp-header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 24px;border-bottom:1px solid var(--border);
+    }
+    .comp-title{font-family:var(--ff-display);font-size:1.3rem;letter-spacing:0.05em}
+    .comp-close{
+      background:none;border:1px solid var(--border-l);color:var(--text-2);
+      width:30px;height:30px;cursor:pointer;font-size:0.9rem;
+      transition:all var(--trans);
+    }
+    .comp-close:hover{border-color:var(--red);color:var(--red)}
+
+    .comp-body{display:grid;grid-template-columns:1fr 60px 1fr}
+    .comp-col{padding:24px}
+    .comp-vs{
+      display:flex;align-items:center;justify-content:center;
+      border-left:1px solid var(--border);border-right:1px solid var(--border);
+    }
+    .comp-vs-text{font-family:var(--ff-display);font-size:1.8rem;color:var(--border-l)}
+
+    .comp-product-brand{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+    .comp-product-name{font-family:var(--ff-display);font-size:1.3rem;letter-spacing:0.02em;margin-bottom:4px}
+    .comp-price{font-family:var(--ff-display);font-size:2.2rem;color:var(--accent);margin-bottom:16px}
+
+    .comp-specs{border-top:1px solid var(--border);padding-top:16px;margin-bottom:16px}
+    .comp-spec-row{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.82rem;
+    }
+    .comp-spec-key{color:var(--text-2)}
+    .comp-spec-val{font-weight:500;text-align:right}
+    .comp-spec-val.win{color:var(--green)}
+
+    .comp-buy{
+      display:inline-block;background:var(--accent);color:#000;
+      font-family:var(--ff-body);font-weight:700;font-size:0.82rem;
+      padding:10px 24px;text-decoration:none;text-transform:uppercase;
+      letter-spacing:0.05em;transition:background var(--trans);margin-top:4px;
+    }
+    .comp-buy:hover{background:#fff}
+
+    .comp-ai{
+      grid-column:1/-1;padding:20px 24px;
+      border-top:1px solid var(--border);
+      background:rgba(212,255,0,0.03);
+    }
+    .comp-ai-label{
+      font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;
+      color:var(--accent);margin-bottom:8px;
+    }
+    .comp-ai-text{font-size:0.9rem;line-height:1.7;color:var(--text)}
+
+    /* winner badge */
+    .winner-badge{
+      display:inline-block;background:var(--accent);color:#000;
+      font-size:0.6rem;font-weight:700;padding:2px 8px;
+      letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;
+      display:none;align-items:center;justify-content:center;padding:20px;
+    }
+    .modal-overlay.open{display:flex}
+    .modal{
+      background:var(--surface);border:1px solid var(--border-l);
+      width:100%;max-width:540px;max-height:90vh;overflow-y:auto;
+      animation:modalIn 0.22s ease;
+    }
+    @keyframes modalIn{from{opacity:0;transform:scale(0.97) translateY(12px)}to{opacity:1;transform:none}}
+
+    .modal-header{
+      display:flex;align-items:flex-start;justify-content:space-between;
+      padding:20px 20px 14px;border-bottom:1px solid var(--border);
+      position:sticky;top:0;background:var(--surface);z-index:1;
+    }
+    .modal-emoji{font-size:2rem;margin-bottom:8px}
+    .modal-name{font-family:var(--ff-display);font-size:1.5rem;letter-spacing:0.02em}
+    .modal-brand{font-size:0.7rem;color:var(--accent);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
+    .modal-close{
+      background:none;border:1px solid var(--border-l);color:var(--text-2);
+      width:30px;height:30px;cursor:pointer;flex-shrink:0;margin-left:12px;
+      font-size:0.9rem;transition:all var(--trans);
+    }
+    .modal-close:hover{border-color:var(--red);color:var(--red)}
+
+    .modal-body{padding:20px}
+    .modal-price{font-family:var(--ff-display);font-size:2.8rem;color:var(--accent);line-height:1;margin-bottom:4px}
+    .modal-retailer{font-size:0.8rem;color:var(--text-3);margin-bottom:12px}
+
+    .modal-rating-row{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+    .modal-stars{color:var(--amber);font-size:1rem}
+    .modal-rating-num{font-family:var(--ff-display);font-size:1.5rem}
+    .modal-rating-source{font-size:0.72rem;color:var(--text-3)}
+
+    .modal-section-label{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;margin-top:18px}
+
+    .modal-specs{}
+    .modal-spec-row{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem;
+    }
+    .modal-spec-key{color:var(--text-2)}
+    .modal-spec-val{font-weight:500;text-align:right}
+
+    .modal-aspects{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+    .aspect-tag{font-size:0.68rem;padding:3px 10px;border:1px solid var(--border-l);color:var(--text-3)}
+
+    .review-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .review-item:last-child{border-bottom:none}
+    .review-author{font-size:0.72rem;font-weight:600;color:var(--text);margin-bottom:4px}
+    .review-text{font-size:0.82rem;color:var(--text-2);line-height:1.6;font-style:italic}
+
+    .modal-buy{
+      display:block;text-align:center;background:var(--accent);color:#000;
+      font-family:var(--ff-body);font-weight:700;font-size:0.9rem;
+      padding:14px;text-decoration:none;text-transform:uppercase;
+      letter-spacing:0.05em;margin-top:18px;transition:background var(--trans);
+    }
+    .modal-buy:hover{background:#fff}
+
+    /* ── AD SLOT IN GRID ── */
+    .ad-card{
+      background:var(--surface);border:1px dashed var(--border-l);
+      padding:20px;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      min-height:200px;text-align:center;
+    }
+    .ad-card .ad-label{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+    .ad-card .ad-placeholder{width:100%;height:120px;background:var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:0.75rem}
+
+    /* ── EMPTY STATE ── */
+    .empty-state{
+      grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-3);
+    }
+    .empty-state .empty-icon{font-size:3rem;margin-bottom:16px;display:block}
+    .empty-state p{font-size:0.9rem;line-height:1.6}
+
+    /* ── MOBILE ── */
+    @media(max-width:900px){
+      .sidebar{display:none}
+      .topbar{padding:0 14px;gap:8px}
+      .content{padding:14px 14px 120px}
+      .logo{font-size:1.2rem}
+      .sort-wrap{display:none}
+    }
+    @media(max-width:600px){
+      .cat-tabs .cat-tab{padding:5px 10px;font-size:0.72rem}
+      .products-grid{grid-template-columns:1fr}
+      .compare-bar{padding:10px 14px}
+      .compare-slots{flex-direction:column;gap:6px}
+      .compare-slot{min-width:unset}
+      .comp-body{grid-template-columns:1fr}
+      .comp-vs{display:none}
+      .comp-col{border-bottom:1px solid var(--border)}
+      .ad-banner{display:none}
+    }
+
+    /* ── MOBILE FILTER DRAWER ── */
+    .filter-btn{
+      display:none;background:var(--surface);border:1px solid var(--border-l);
+      color:var(--text-2);font-family:var(--ff-body);font-size:0.78rem;
+      padding:6px 12px;cursor:pointer;gap:6px;align-items:center;
+    }
+    @media(max-width:900px){.filter-btn{display:flex}}
+    .filter-drawer{
+      position:fixed;top:0;left:0;bottom:0;width:260px;z-index:300;
+      background:var(--surface);border-right:1px solid var(--border-l);
+      transform:translateX(-100%);transition:transform 0.3s ease;
+      overflow-y:auto;padding:20px 0;
+    }
+    .filter-drawer.open{transform:translateX(0)}
+    .drawer-overlay{
+      display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:290;
+    }
+    .drawer-overlay.open{display:block}
+    .drawer-close{
+      display:flex;justify-content:flex-end;padding:0 16px 14px;
+    }
+    .drawer-close button{
+      background:none;border:1px solid var(--border-l);color:var(--text-2);
+      padding:4px 10px;cursor:pointer;font-size:0.8rem;
     }
   </style>
 </head>
 <body>
 
+<!-- TOP BAR -->
 <header class="topbar">
-  <a href="index.html" class="topbar-logo">GymGear<span> Compare</span></a>
+  <a href="index.html" class="logo">GymGear<span> Compare</span></a>
 
-  <div class="category-wrapper">
-    <button class="category-btn" id="catBtn" onclick="toggleCatDropdown()">
-      <span id="catBtnIcon">📂</span>
-      <span id="catBtnLabel">Choose Category</span>
-      <span class="arrow">▼</span>
-    </button>
-    <div class="category-dropdown" id="catDropdown">
-      <div class="cat-option" id="opt-benches" onclick="selectCategory('benches')">
-        🏋️ &nbsp;Bench Racks
-      </div>
-      <div class="cat-option" id="opt-weights" onclick="selectCategory('weights')">
-        ⚙️ &nbsp;Weight Plates
-      </div>
-    </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search products, brands…" oninput="applyFilters()"/>
   </div>
 
-  <button class="compare-btn" id="compareBtn" onclick="showComparison()">
-    ⚖️ Compare Selected
-  </button>
+  <div class="cat-tabs" id="catTabs">
+    <button class="cat-tab" onclick="selectCategory('benches',this)">🏋️ Benches</button>
+    <button class="cat-tab" onclick="selectCategory('weights',this)">⚙️ Weight Plates</button>
+    <button class="cat-tab" onclick="selectCategory('barbells',this)">🥇 Barbells</button>
+    <button class="cat-tab" onclick="selectCategory('dumbbells',this)">💪 Dumbbells</button>
+  </div>
 
-  <a href="index.html" class="home-link">← Home</a>
+  <button class="filter-btn" onclick="openDrawer()">⚙ Filters</button>
+
+  <div class="sort-wrap">
+    <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+      <option value="default">Sort: Featured</option>
+      <option value="price-asc">Price: Low → High</option>
+      <option value="price-desc">Price: High → Low</option>
+      <option value="rating">Top Rated</option>
+      <option value="quality">Best Quality</option>
+    </select>
+  </div>
 </header>
 
-<main>
-  <div class="page-header">
-    <h1 class="page-title">COMPARE GEAR</h1>
-    <p class="page-subtitle">Pick a category, select two products, and get an instant AI comparison.</p>
-    <div class="selected-info" id="selectedInfo">Select a category to get started ↑</div>
-  </div>
+<!-- MOBILE FILTER DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="filter-drawer" id="filterDrawer">
+  <div class="drawer-close"><button onclick="closeDrawer()">✕ Close</button></div>
+  <div id="drawerContent"></div>
+</div>
 
-  <!-- COMPARISON PANEL -->
-  <div class="comparison-panel" id="compPanel">
-    <div class="comp-header">
-      <div class="comp-title">SIDE-BY-SIDE COMPARISON</div>
-      <button class="comp-close" onclick="closeComparison()">✕</button>
+<!-- COMPARE BAR -->
+<div class="compare-bar" id="compareBar">
+  <div class="compare-slots" id="compareSlots">
+    <div class="compare-slot" id="slot0">
+      <span class="slot-name">Select a product…</span>
     </div>
-    <div class="comp-grid" id="compGrid">
-      <!-- filled by JS -->
-    </div>
-  </div>
-
-  <!-- PRODUCTS GRID -->
-  <div class="products-grid" id="productsGrid">
-    <div style="grid-column:1/-1; color:var(--muted); padding:40px 0; font-size:0.95rem;">
-      ↑ Use the dropdown above to choose a category and start comparing.
+    <div class="compare-slot" id="slot1">
+      <span class="slot-name">Select another…</span>
     </div>
   </div>
-</main>
-
-<!-- MODAL -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal" id="modal">
-    <!-- filled by JS -->
+  <div class="compare-actions">
+    <button class="btn-clear-all" onclick="clearAll()">Clear</button>
+    <button class="btn-compare" id="compareBtn" onclick="showComparison()" disabled>⚖ Compare</button>
   </div>
 </div>
 
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div id="sidebarContent"></div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content">
+    <!-- AD BANNER -->
+    <div class="ad-banner">
+      <div>
+        <div class="ad-banner-label">Advertisement</div>
+      </div>
+      <div class="ad-banner-placeholder">📢 Your Ad Here — 728×60 Leaderboard</div>
+    </div>
+
+    <!-- COMPARISON PANEL -->
+    <div class="comparison-panel" id="compPanel">
+      <div class="comp-header">
+        <div class="comp-title">⚖ COMPARISON</div>
+        <button class="comp-close" onclick="closeComparison()">✕</button>
+      </div>
+      <div class="comp-body" id="compBody"></div>
+    </div>
+
+    <!-- RESULTS META -->
+    <div class="results-meta">
+      <div class="results-count" id="resultsCount">Select a category above to get started</div>
+    </div>
+    <div class="active-filters" id="activeFilters"></div>
+
+    <!-- PRODUCTS GRID -->
+    <div class="products-grid" id="productsGrid">
+      <div class="empty-state">
+        <span class="empty-icon">🏋️</span>
+        <p>Choose a category above — Benches, Weight Plates, Barbells, or Dumbbells — to start comparing.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal"></div>
+</div>
+
 <script>
-  const BACKEND = 'https://gymgear-backend5.onrender.com';
-  const BACKEND_API_KEY = '7BlPq02GcNvQfEkwMZRuzrsaA1ixoYmd';
+// ── CONFIG ───────────────────────────────────────────────────
+const BACKEND = 'https://gymgear-backend5.onrender.com';
+const BACKEND_API_KEY = '7BlPq02GcNvQfEkwMZRuzrsaA1ixoYmd';
 
-  // ── PRODUCT DATA ──────────────────────────────────────
-  const products = {
-    benches: [
-      {
-        id: 'rogue-mb1',
-        name: 'Monster Utility Bench 2.0',
-        brand: 'Rogue Fitness',
-        emoji: '🏋️',
-        price: 335,
-        retailer: 'Rogue Fitness',
-        url: 'https://www.roguefitness.com/monster-utility-bench-2-0-mg-black',
-        quality: 9.4,
-        specs: { 'Weight Capacity': '1,000 lbs', 'Pad Material': 'Polyurethane', 'Type': 'Flat', 'Weight': '85 lbs', 'Made In': 'USA' },
-        aspects: ['American Made', 'Heavy Duty', 'Wheelbarrow Storage']
-      },
-      {
-        id: 'rogue-flat',
-        name: 'Flat Utility Bench 2.0',
-        brand: 'Rogue Fitness',
-        emoji: '🏋️',
-        price: 195,
-        retailer: 'Rogue Fitness',
-        url: 'https://www.roguefitness.com/rogue-flat-utility-bench-2-0',
-        quality: 8.8,
-        specs: { 'Weight Capacity': '1,000 lbs', 'Pad Material': 'Polyurethane', 'Type': 'Flat', 'Weight': '49 lbs', 'Made In': 'USA' },
-        aspects: ['Ships Assembled', 'American Made', 'No Frills']
-      },
-      {
-        id: 'rep-fb5000',
-        name: 'FB-5000 Competition Bench',
-        brand: 'Rep Fitness',
-        emoji: '💪',
-        price: 275,
-        retailer: 'Rep Fitness',
-        url: 'https://repfitness.com/products/fb-5000-competition-flat-bench',
-        quality: 9.2,
-        specs: { 'Weight Capacity': '1,000 lbs', 'Pad Material': 'CleanGrip Vinyl', 'Type': 'Flat', 'Weight': '62 lbs', 'IPF Spec': 'Yes' },
-        aspects: ['IPF Certified', 'Tripod Design', 'Best Value']
-      },
-      {
-        id: 'rep-ab5200',
-        name: 'AB-5200 2.0 Adjustable Bench',
-        brand: 'Rep Fitness',
-        emoji: '💪',
-        price: 375,
-        retailer: 'Rep Fitness',
-        url: 'https://repfitness.com/products/ab-5200-adjustable-bench',
-        quality: 8.9,
-        specs: { 'Weight Capacity': '1,000 lbs', 'Pad Material': 'CleanGrip Vinyl', 'Adjustment': '7-position', 'Weight': '70 lbs', 'Decline': 'Optional' },
-        aspects: ['Decline Option', '12 Color Combos', 'Vertical Storage']
-      },
-      {
-        id: 'rogue-foldUp',
-        name: 'Fold Up Utility Bench',
-        brand: 'Rogue Fitness',
-        emoji: '🔄',
-        price: 335,
-        retailer: 'Rogue Fitness',
-        url: 'https://www.roguefitness.com/rogue-fold-up-utility-benches',
-        quality: 8.5,
-        specs: { 'Weight Capacity': '1,000 lbs', 'Pad Material': 'Polyurethane', 'Type': 'Flat/Foldable', 'Weight': '48 lbs', 'Made In': 'USA' },
-        aspects: ['Wall-Mountable', 'Space Saving', 'American Made']
-      },
-      {
-        id: 'rogue-comp',
-        name: 'Monster Lite Competition Bench',
-        brand: 'Rogue Fitness',
-        emoji: '🥇',
-        price: 695,
-        retailer: 'Rogue Fitness',
-        url: 'https://www.roguefitness.com/rogue-monster-lite-competition-bench',
-        quality: 9.6,
-        specs: { 'Weight Capacity': '1,000+ lbs', 'Pad Material': 'Polyurethane', 'Type': 'Competition', 'Height': '17.5"', 'Made In': 'USA' },
-        aspects: ['Competition Grade', 'Westside Hole Spacing', 'Band Pegs']
-      }
-    ],
-    weights: [
-      {
-        id: 'rogue-hg2',
-        name: 'HG 2.0 Bumper Plates',
-        brand: 'Rogue Fitness',
-        emoji: '🏋️',
-        price: 295,
-        retailer: 'Rogue Fitness',
-        url: 'https://www.roguefitness.com/rogue-hg-2-0-bumper-plates',
-        quality: 9.1,
-        specs: { 'Material': 'Virgin Rubber', 'Set': '160 lbs', 'Diameter': '17.7"', 'Color Coded': 'Yes', 'IWF Spec': 'Yes' },
-        aspects: ['IWF Certified', 'Low Bounce', 'Color Coded']
-      },
-      {
-        id: 'rep-black-bumper',
-        name: 'Black Bumper Plates',
-        brand: 'Rep Fitness',
-        emoji: '💪',
-        price: 215,
-        retailer: 'Rep Fitness',
-        url: 'https://repfitness.com/products/black-bumper-plates',
-        quality: 8.5,
-        specs: { 'Material': 'Recycled Rubber', 'Set': '160 lbs', 'Diameter': '17.7"', 'Color Coded': 'No', 'Shore Hardness': '90A' },
-        aspects: ['Best Value', 'Quiet Drop', 'Durable']
-      },
-      {
-        id: 'rep-comp-bumper',
-        name: 'Competition Bumper Plates',
-        brand: 'Rep Fitness',
-        emoji: '🥇',
-        price: 385,
-        retailer: 'Rep Fitness',
-        url: 'https://repfitness.com/products/competition-bumper-plates',
-        quality: 9.3,
-        specs: { 'Material': 'Virgin Rubber', 'Set': '160 lbs', 'Diameter': '17.7"', 'IWF Spec': 'Yes', 'Shore Hardness': '85A' },
-        aspects: ['Competition Grade', 'Precision Weight', 'Low Bounce']
-      },
-      {
-        id: 'rogue-cast',
-        name: 'Rogue Cast Iron Plates',
-        brand: 'Rogue Fitness',
-        emoji: '🔩',
-        price: 175,
-        retailer: 'Rogue Fitness',
-        url: 'https://www.roguefitness.com/plates',
-        quality: 8.0,
-        specs: { 'Material': 'Cast Iron', 'Type': 'Standard', 'Diameter': '17.7"', 'Color Coded': 'No', 'Made In': 'USA' },
-        aspects: ['American Made', 'Long Lasting', 'Classic Feel']
-      },
-      {
-        id: 'amazon-cap',
-        name: 'CAP Barbell Cast Iron Plates',
-        brand: 'CAP Barbell',
-        emoji: '🔧',
-        price: 89,
-        retailer: 'Amazon',
-        url: 'https://www.amazon.com/s?k=CAP+Barbell+cast+iron+weight+plates+2+inch',
-        quality: 6.0,
-        specs: { 'Material': 'Cast Iron', 'Standard': '2" Olympic', 'Color Coded': 'No', 'Warranty': '1 year', 'Ships': 'Prime' },
-        aspects: ['Lowest Price', 'Amazon Prime', 'Fast Shipping']
-      },
-      {
-        id: 'rep-color-bumper',
-        name: 'Color Bumper Plates',
-        brand: 'Rep Fitness',
-        emoji: '🌈',
-        price: 335,
-        retailer: 'Rep Fitness',
-        url: 'https://repfitness.com/products/color-bumper-plates',
-        quality: 8.8,
-        specs: { 'Material': 'Virgin Rubber', 'Set': '160 lbs', 'Diameter': '17.7"', 'IWF Spec': 'Yes', 'Color Coded': 'Yes' },
-        aspects: ['Color Coded', 'IWF Compliant', 'Easy ID']
-      }
-    ]
-  };
+// ── ALL PRODUCT DATA ─────────────────────────────────────────
+const allProducts = {
 
-  // ── STATE ──────────────────────────────────────────────
-  let currentCategory = null;
-  let selectedIds = [];
+  benches: [
+    { id:'rogue-mb1', name:'Monster Utility Bench 2.0', brand:'Rogue Fitness', emoji:'🏋️', price:335, retailer:'Rogue Fitness', url:'https://www.roguefitness.com/monster-utility-bench-2-0-mg-black', quality:9.4, rating:4.8, reviewCount:104, reviewSource:'Rogue Fitness', expertVerdict:'One of the most stable flat benches ever reviewed. Overbuilt, customizable, and the last bench you\'ll ever buy.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'One of the most stable flat benches ever used. Overbuilt, customizable, and worth every dollar.'},{author:'Verified Buyer',text:'Perfect height for bench press and Bulgarian split squats. My skinny 13-year-old can use it with no issues at all.'},{author:'Verified Buyer',text:'Wheels and handle make it incredibly easy to move. Assembly took about 20 minutes. Feels bomber solid.'}], specs:{'Weight Capacity':'1,000 lbs','Pad Material':'Polyurethane','Type':'Flat','Frame':'3×3" 11-gauge','Made In':'USA'}, aspects:['American Made','Wheels + Handle','Customizable Pads'] },
+    { id:'rogue-flat', name:'Flat Utility Bench 2.0', brand:'Rogue Fitness', emoji:'🏋️', price:195, retailer:'Rogue Fitness', url:'https://www.roguefitness.com/rogue-flat-utility-bench-2-0', quality:8.8, rating:4.8, reviewCount:635, reviewSource:'Rogue Fitness', expertVerdict:'Best flat bench for the money. Ships fully assembled and built like a tank.', expertSource:'YourWorkoutBook', reviews:[{author:'YourWorkoutBook',text:'Best flat bench for the money. Affordable, ships assembled, and built like a tank.'},{author:'Verified Buyer',text:'Well made, solid, sturdy. Arrived fully assembled with only the 4 rubber feet to push in.'},{author:'Verified Buyer',text:'Simple design, zero wobble. Exactly what you expect from Rogue.'}], specs:{'Weight Capacity':'1,000 lbs','Pad Material':'Polyurethane','Type':'Flat','Frame':'2×3" 11-gauge','Made In':'USA'}, aspects:['Ships Assembled','American Made','Best Value'] },
+    { id:'rep-fb5000', name:'FB-5000 Competition Bench', brand:'Rep Fitness', emoji:'💪', price:275, retailer:'Rep Fitness', url:'https://repfitness.com/products/fb-5000-competition-flat-bench', quality:9.2, rating:4.9, reviewCount:312, reviewSource:'Rep Fitness', expertVerdict:'Best flat bench on the market for the money. Winner of Garage Gym Lab Best Bench Award.', expertSource:'Garage Gym Lab', reviews:[{author:'Garage Gym Lab',text:'The best flat bench on the market for the money. I own and use this bench — I highly recommend it.'},{author:'Verified Buyer',text:'World of difference from my old wobbly adjustable bench. Feel very secure when benching heavy.'},{author:'Verified Buyer',text:'Solid and stable. Thick pad with gripping texture. The tripod design is a huge plus for foot placement.'}], specs:{'Weight Capacity':'1,000 lbs','Pad Material':'CleanGrip Vinyl','Type':'Flat','IPF Spec':'Yes','Warranty':'10 Years'}, aspects:['IPF Certified','Tripod Design','Best Value'] },
+    { id:'rep-ab5200', name:'AB-5200 2.0 Adjustable Bench', brand:'Rep Fitness', emoji:'💪', price:375, retailer:'Rep Fitness', url:'https://repfitness.com/products/ab-5200-adjustable-bench', quality:8.9, rating:4.7, reviewCount:189, reviewSource:'Rep Fitness', expertVerdict:'Named Best Adjustable Bench. 12 color options, 7-position adjustment, and vertical storage.', expertSource:'Rep Fitness Awards', reviews:[{author:'Rep Fitness',text:'Named Best Adjustable Incline Bench by multiple publications. 7-position adjustment with decline option.'},{author:'Verified Buyer',text:'Incredibly versatile. Adjustment system is smooth and the build quality is top notch.'},{author:'Verified Buyer',text:'Great secondary bench — lighter and easy to move while still being very stable.'}], specs:{'Weight Capacity':'1,000 lbs','Pad Material':'CleanGrip Vinyl','Positions':'7 + Decline','Weight':'70 lbs','Colors':'12 Options'}, aspects:['Decline Option','7 Positions','Vertical Storage'] },
+    { id:'rogue-fold', name:'Fold Up Utility Bench', brand:'Rogue Fitness', emoji:'🔄', price:335, retailer:'Rogue Fitness', url:'https://www.roguefitness.com/rogue-fold-up-utility-benches', quality:8.5, rating:4.6, reviewCount:78, reviewSource:'Rogue Fitness', expertVerdict:'A 1-2 punch of Rogue durability and space-saving foldability. Wall-mountable between sessions.', expertSource:'YourWorkoutBook', reviews:[{author:'YourWorkoutBook',text:'Combines the toughness of the Flat Utility Bench with the convenience of folding legs.'},{author:'Verified Buyer',text:'High quality and versatile. The wall hanger system keeps my gym floor completely clear.'},{author:'Verified Buyer',text:'Sturdy with stable construction that folds easily. Ideal for limited space.'}], specs:{'Weight Capacity':'1,000 lbs','Pad Material':'Polyurethane','Type':'Foldable/Flat','Weight':'48 lbs','Made In':'USA'}, aspects:['Wall-Mountable','Space Saving','American Made'] },
+    { id:'titan-ab', name:'Adjustable Bench V2', brand:'Titan Fitness', emoji:'⚡', price:219, retailer:'Titan Fitness', url:'https://www.titanfitness.com/products/adjustable-bench-v2', quality:7.8, rating:4.5, reviewCount:520, reviewSource:'Titan Fitness', expertVerdict:'Best budget adjustable bench. Solid for home use at nearly half the price of premium options.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'Best budget adjustable bench on the market. Solid for home use at a fraction of the premium price.'},{author:'Verified Buyer',text:'Great value. Not as beefy as Rep or Rogue but totally sufficient for home gym lifting.'},{author:'Verified Buyer',text:'No complaints for the price. It holds up well and adjusts easily.'}], specs:{'Weight Capacity':'600 lbs','Pad Material':'Vinyl','Positions':'5','Weight':'55 lbs','Made In':'China'}, aspects:['Budget Pick','5 Positions','Light Weight'] },
+    { id:'bells-bench', name:'Utility Bench', brand:'Bells of Steel', emoji:'🔔', price:329, retailer:'Bells of Steel', url:'https://www.bellsofsteel.com/all-products/benches-and-racks/utility-bench/', quality:9.0, rating:4.8, reviewCount:201, reviewSource:'Bells of Steel', expertVerdict:'Underrated bench with a lifetime warranty and incredibly grippy pad. Competes directly with Rogue.', expertSource:'Garage Gym Lab', reviews:[{author:'Garage Gym Lab',text:'Underrated. Lifetime warranty, incredibly grippy pad, and a tripod design that rivals Rogue.'},{author:'Verified Buyer',text:'Pad grip is unreal. Hasn\'t moved an inch in two years of heavy pressing.'},{author:'Verified Buyer',text:'Great quality for the price. Feels as solid as anything from Rogue.'}], specs:{'Weight Capacity':'1,000 lbs','Pad Material':'Grippy Vinyl','Type':'Flat','Warranty':'Lifetime','Tripod':'Yes'}, aspects:['Lifetime Warranty','Tripod Design','Grippy Pad'] },
+    { id:'archon-bench', name:'Competition Flat Bench', brand:'Archon Fitness', emoji:'🏆', price:249, retailer:'Archon Fitness', url:'https://archonfitness.com/products/flat-bench', quality:8.6, rating:4.7, reviewCount:143, reviewSource:'Archon Fitness', expertVerdict:'Excellent value flat bench with IPF-spec height and a generous warranty at under $250.', expertSource:'Barbend', reviews:[{author:'Barbend',text:'Excellent value. IPF spec height and a solid tripod design at well under $300.'},{author:'Verified Buyer',text:'Surprised by the quality. Just as solid as my buddy\'s Rogue bench but cost $150 less.'},{author:'Verified Buyer',text:'Very stable with no wobble. Easy assembly and ships fast.'}], specs:{'Weight Capacity':'1,000 lbs','Pad Material':'Vinyl','Type':'Flat','Height':'17"','IPF Spec':'Yes'}, aspects:['IPF Height','Under $250','Tripod Design'] },
+  ],
 
-  // ── CATEGORY ──────────────────────────────────────────
-  function toggleCatDropdown() {
-    const btn = document.getElementById('catBtn');
-    const dd = document.getElementById('catDropdown');
-    btn.classList.toggle('open');
-    dd.classList.toggle('open');
+  weights: [
+    { id:'rogue-hg2', name:'HG 2.0 Bumper Plates', brand:'Rogue Fitness', emoji:'🏋️', price:295, retailer:'Rogue Fitness', url:'https://www.roguefitness.com/rogue-hg-2-0-bumper-plates', quality:9.1, rating:4.8, reviewCount:220, reviewSource:'Rogue Fitness', expertVerdict:'Top-tier bumper plates with IWF-spec diameter, low bounce, and color coding for fast loading.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'Top-tier bumper plates. IWF spec, low bounce, and color coding makes loading fast and easy.'},{author:'Verified Buyer',text:'Dead bounce, precise sizing, and held up to thousands of drops without issue.'},{author:'Verified Buyer',text:'Worth the premium. Rubber quality is noticeably better than budget alternatives.'}], specs:{'Material':'Virgin Rubber','Set Size':'160 lbs','Diameter':'17.7"','Color Coded':'Yes','IWF Spec':'Yes'}, aspects:['IWF Certified','Low Bounce','Color Coded'] },
+    { id:'rep-black', name:'Black Bumper Plates', brand:'Rep Fitness', emoji:'💪', price:215, retailer:'Rep Fitness', url:'https://repfitness.com/products/black-bumper-plates', quality:8.5, rating:4.7, reviewCount:410, reviewSource:'Rep Fitness', expertVerdict:'Best-in-class value. Dead bounce rivals Eleiko. Raised lettering and low-bounce virgin rubber.', expertSource:'GarageGymProducts', reviews:[{author:'GarageGymProducts',text:'Among the best in their class. Slim profile, strong build, and a surprisingly dead bounce on par with Eleiko.'},{author:'BarBend',text:'Durable and versatile. Raised lettering makes spotting weights easy and the low-bounce rubber protects floors.'},{author:'Verified Buyer',text:'Held up to thousands of drops with no separation between rubber and sleeves.'}], specs:{'Material':'Virgin Rubber','Set Size':'160 lbs','Diameter':'17.7"','Shore Hardness':'90A','Bounce':'Low'}, aspects:['Best Value','Quiet Drop','Dead Bounce'] },
+    { id:'rep-comp', name:'Competition Bumper Plates', brand:'Rep Fitness', emoji:'🥇', price:385, retailer:'Rep Fitness', url:'https://repfitness.com/products/competition-bumper-plates', quality:9.3, rating:4.8, reviewCount:178, reviewSource:'Rep Fitness', expertVerdict:'Best value competition bumpers. Tested to 30,000+ drops and IWF spec at under $400 for 160 lbs.', expertSource:'As Many Reviews As Possible', reviews:[{author:'As Many Reviews As Possible',text:'Best bang for the buck in competition bumpers. They do exactly what they\'re meant to at a lower cost than everyone else.'},{author:'Verified Buyer',text:'Precision weight accuracy and virgin rubber. Factory tested to 30k+ drops.'},{author:'Verified Buyer',text:'Look and feel premium. Sharp edged design gives extremely high quality appearance.'}], specs:{'Material':'Virgin Rubber','Set Size':'160 lbs','Diameter':'17.7"','IWF Spec':'Yes','Drop Tested':'30,000+'}, aspects:['Competition Grade','Precision Weight','IWF Certified'] },
+    { id:'rogue-echo', name:'Echo Bumper Plates', brand:'Rogue Fitness', emoji:'🔩', price:195, retailer:'Rogue Fitness', url:'https://www.roguefitness.com/rogue-echo-bumper-plates', quality:8.0, rating:4.6, reviewCount:380, reviewSource:'Rogue Fitness', expertVerdict:'Rogue\'s entry-level bumper. Recycled rubber but still quality construction and low bounce.', expertSource:'Barbend', reviews:[{author:'Barbend',text:'Rogue\'s most affordable bumper plate. Recycled rubber with good durability and low bounce.'},{author:'Verified Buyer',text:'Great starter plates. Been using for 2 years with no cracking or separation.'},{author:'Verified Buyer',text:'Exactly what you expect from Rogue. No nonsense, well-made, priced fairly.'}], specs:{'Material':'Recycled Rubber','Set Size':'160 lbs','Diameter':'17.7"','Color Coded':'No','Bounce':'Low'}, aspects:['Budget Rogue','Recycled Rubber','Durable'] },
+    { id:'titan-bumper', name:'Bumper Plates V3', brand:'Titan Fitness', emoji:'⚡', price:159, retailer:'Titan Fitness', url:'https://www.titanfitness.com/products/bumper-plates', quality:7.5, rating:4.4, reviewCount:290, reviewSource:'Titan Fitness', expertVerdict:'Cheapest reputable bumper plate. Good for beginners who don\'t need competition-spec accuracy.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'The most affordable option from a reputable brand. Good for beginners who don\'t need comp-spec accuracy.'},{author:'Verified Buyer',text:'Decent plates. Some weight variance but nothing that matters for home gym use.'},{author:'Verified Buyer',text:'Budget-friendly and functional. Ships fast and holds up fine.'}], specs:{'Material':'Recycled Rubber','Set Size':'160 lbs','Diameter':'17.7"','Color Coded':'No','Warranty':'1 Year'}, aspects:['Lowest Price','Fast Ship','Beginner Friendly'] },
+    { id:'rep-color', name:'Color Bumper Plates', brand:'Rep Fitness', emoji:'🌈', price:335, retailer:'Rep Fitness', url:'https://repfitness.com/products/color-bumper-plates', quality:8.8, rating:4.7, reviewCount:203, reviewSource:'Rep Fitness', expertVerdict:'Same great virgin rubber as the Black Bumpers but with IWF color coding for fast identification.', expertSource:'Fit at Midlife', reviews:[{author:'Fit at Midlife',text:'Same quality as Rep\'s Black Bumpers with color coding that lets you quickly verify weight.'},{author:'Verified Buyer',text:'Love the color coding — loading the bar is so much faster. Same quality rubber as the black plates.'},{author:'Verified Buyer',text:'Beautiful plates. Low bounce, IWF compliant, and the colors make the gym look professional.'}], specs:{'Material':'Virgin Rubber','Set Size':'160 lbs','Diameter':'17.7"','IWF Spec':'Yes','Color Coded':'Yes'}, aspects:['Color Coded','IWF Compliant','Easy ID'] },
+    { id:'vulcan-alpha', name:'Alpha Bumper Plates', brand:'Vulcan Strength', emoji:'⚔️', price:249, retailer:'Vulcan Strength', url:'https://www.vulcanstrength.com/products/vulcan-alpha-bumper-plates', quality:8.7, rating:4.7, reviewCount:165, reviewSource:'Vulcan Strength', expertVerdict:'High durometer rubber, extremely dead bounce, and tight weight tolerance. Underrated gem.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'High durometer rubber, extremely dead bounce, and tight weight tolerance. An underrated gem.'},{author:'Verified Buyer',text:'These don\'t move when dropped. Deadest bounce I\'ve ever experienced.'},{author:'Verified Buyer',text:'Excellent quality. The rubber is dense and the inserts are solid.'}], specs:{'Material':'High Durometer Rubber','Diameter':'17.7"','Tolerance':'±1%','Color Coded':'No','Bounce':'Very Low'}, aspects:['Deadest Bounce','±1% Tolerance','Premium Rubber'] },
+    { id:'cap-iron', name:'Cast Iron Olympic Plates', brand:'CAP Barbell', emoji:'🔧', price:89, retailer:'Amazon', url:'https://www.amazon.com/s?k=CAP+Barbell+cast+iron+weight+plates+2+inch', quality:6.0, rating:4.2, reviewCount:8400, reviewSource:'Amazon', expertVerdict:'Budget entry point. Fine for casual lifting — expect weight variance but they get the job done.', expertSource:'BarBend', reviews:[{author:'BarBend',text:'A solid budget option. Weight tolerances can vary but for casual home gym use they get the job done.'},{author:'Amazon Buyer',text:'Good for the price. Not competition quality but fine for general strength training.'},{author:'Amazon Buyer',text:'Affordable and functional. Perfect for beginners who don\'t want to spend a lot.'}], specs:{'Material':'Cast Iron','Standard':'2" Olympic','Color Coded':'No','Ships':'Amazon Prime','Warranty':'1 Year'}, aspects:['Lowest Price','Amazon Prime','Ships Fast'] },
+  ],
+
+  barbells: [
+    { id:'rogue-ohio', name:'Ohio Bar', brand:'Rogue Fitness', emoji:'🥇', price:345, retailer:'Rogue Fitness', url:'https://www.roguefitness.com/rogue-ohio-bar', quality:9.5, rating:4.9, reviewCount:2100, reviewSource:'Rogue Fitness', expertVerdict:'The best all-around barbell ever made. Used in more garage gyms than any other bar on earth.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'The best all-around barbell ever made. Used in more garage gyms than any other bar on earth.'},{author:'Verified Buyer',text:'I\'ve had mine for 6 years and it still looks and feels brand new. Worth every penny.'},{author:'Verified Buyer',text:'Knurl is perfect — not too aggressive, not too smooth. The gold standard.'}], specs:{'Weight':'20 kg','Length':'86.75"','Shaft Diameter':'28.5mm','Tensile Strength':'190,000 PSI','Made In':'USA'}, aspects:['American Made','All-Purpose','Gold Standard'] },
+    { id:'rogue-deadlift', name:'Ohio Deadlift Bar', brand:'Rogue Fitness', emoji:'💀', price:395, retailer:'Rogue Fitness', url:'https://www.roguefitness.com/rogue-ohio-deadlift-bar', quality:9.6, rating:4.9, reviewCount:870, reviewSource:'Rogue Fitness', expertVerdict:'The best deadlift bar on the market. Extra whip, aggressive knurl, and 27mm shaft.', expertSource:'Barbend', reviews:[{author:'Barbend',text:'The best deadlift bar on the market. Extra whip, aggressive knurl, and 27mm shaft.'},{author:'Verified Buyer',text:'Absolutely love this bar. The extra whip lets me break the floor easier at heavy weights.'},{author:'Verified Buyer',text:'Aggressive knurl is exactly what deadlifts need. High-quality finish.'}], specs:{'Weight':'20 kg','Shaft Diameter':'27mm','Tensile Strength':'190,000 PSI','Knurl':'Aggressive','Made In':'USA'}, aspects:['Deadlift Specific','Extra Whip','Aggressive Knurl'] },
+    { id:'rep-equalizer', name:'Equalizer EZ Bar', brand:'Rep Fitness', emoji:'💪', price:119, retailer:'Rep Fitness', url:'https://repfitness.com/products/equalizer-ez-curl-bar', quality:8.2, rating:4.6, reviewCount:284, reviewSource:'Rep Fitness', expertVerdict:'Best-value EZ curl bar for home gyms. Solid construction and comfortable angled grip.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'Best-value EZ curl bar for home gyms. Solid construction with a comfortable angled grip.'},{author:'Verified Buyer',text:'Great quality for the price. Zero wobble on the sleeves and a comfortable grip angle.'},{author:'Verified Buyer',text:'My wrists thank me every arm day. Much more comfortable than a straight bar.'}], specs:{'Weight':'18 lbs','Length':'47"','Sleeve':'2" Olympic','Knurl':'Medium','Tensile Strength':'150,000 PSI'}, aspects:['EZ Curl Bar','Wrist Friendly','Best Value'] },
+    { id:'titan-olympic', name:'Olympic Barbell', brand:'Titan Fitness', emoji:'⚡', price:199, retailer:'Titan Fitness', url:'https://www.titanfitness.com/products/olympic-barbell', quality:7.8, rating:4.5, reviewCount:410, reviewSource:'Titan Fitness', expertVerdict:'Best budget Olympic bar. Great whip and decent knurl for under $200.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'Best budget Olympic bar on the market. Great whip and decent knurl for under $200.'},{author:'Verified Buyer',text:'Impressive for the price. Been using it for squats, bench, and deadlifts without any issues.'},{author:'Verified Buyer',text:'Good starter bar. Sleeves spin well and the knurl is comfortable.'}], specs:{'Weight':'20 kg','Shaft Diameter':'28mm','Tensile Strength':'150,000 PSI','Finish':'Black Oxide','Warranty':'1 Year'}, aspects:['Budget Pick','Good Whip','Entry Level'] },
+    { id:'american-ab', name:'Stainless Steel Bar', brand:'American Barbell', emoji:'🏆', price:535, retailer:'American Barbell', url:'https://www.americanbarbell.com/products/stainless-steel-olympic-bar', quality:9.7, rating:4.9, reviewCount:342, reviewSource:'American Barbell', expertVerdict:'The finest stainless steel barbell available. Lifetime against rust — an heirloom piece.', expertSource:'Garage Gym Lab', reviews:[{author:'Garage Gym Lab',text:'The finest stainless steel barbell available. Naturally rust-resistant and an heirloom quality piece.'},{author:'Verified Buyer',text:'Worth every dollar. This bar will outlast me and my kids. Absolutely gorgeous knurl.'},{author:'Verified Buyer',text:'Never going back to a coated bar. Stainless feels like a different level entirely.'}], specs:{'Weight':'20 kg','Shaft':'Stainless Steel','Diameter':'28.5mm','Tensile Strength':'205,000 PSI','Made In':'USA'}, aspects:['Stainless Steel','Rust Proof','Heirloom Quality'] },
+    { id:'fringe-budget', name:'Wonder Bar V2', brand:'Fringe Sport', emoji:'🔶', price:249, retailer:'Fringe Sport', url:'https://www.fringesport.com/products/wonder-bar-v2', quality:8.4, rating:4.6, reviewCount:520, reviewSource:'Fringe Sport', expertVerdict:'Best mid-range bar. Excellent knurl, good spin, and a 10-year warranty that beats most competitors.', expertSource:'Barbend', reviews:[{author:'Barbend',text:'Excellent mid-range bar. Excellent knurl, good spin, and a 10-year warranty that beats most competitors.'},{author:'Verified Buyer',text:'Surprised by how good this is. The knurl is perfect and the sleeves spin great.'},{author:'Verified Buyer',text:'10 year warranty sealed the deal. This bar is built to last.'}], specs:{'Weight':'20 kg','Diameter':'28.5mm','Tensile Strength':'190,000 PSI','Finish':'Cerakote','Warranty':'10 Years'}, aspects:['10 Year Warranty','Mid-Range','Cerakote Finish'] },
+    { id:'eleiko-oly', name:'IWF Weightlifting Bar', brand:'Eleiko', emoji:'🇸🇪', price:999, retailer:'Eleiko', url:'https://eleiko.com/products/eleiko-iwf-weightlifting-training-bar', quality:10, rating:5.0, reviewCount:188, reviewSource:'Eleiko', expertVerdict:'The absolute best barbell in the world. Used at every Olympic Games. Nothing else comes close.', expertSource:'Barbend', reviews:[{author:'Barbend',text:'The absolute best barbell in the world. Used at every Olympic Games. Nothing else comes close.'},{author:'Verified Buyer',text:'Once you lift with an Eleiko, every other bar feels like a toy. Worth the investment.'},{author:'Verified Buyer',text:'The spin is unreal. Best barbell I\'ve ever touched by a significant margin.'}], specs:{'Weight':'20 kg','Diameter':'28mm','Origin':'Sweden','IWF Certified':'Yes','Tensile Strength':'215,000 PSI'}, aspects:['Olympic Standard','IWF Certified','Swedish Made'] },
+    { id:'vulcan-pro', name:'Pro Olympic Bar', brand:'Vulcan Strength', emoji:'⚔️', price:295, retailer:'Vulcan Strength', url:'https://www.vulcanstrength.com/products/vulcan-pro-olympic-training-bar', quality:9.0, rating:4.8, reviewCount:275, reviewSource:'Vulcan Strength', expertVerdict:'Underrated powerhouse. 195k PSI tensile strength, great spin, and underpriced vs the competition.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'An underrated powerhouse. 195k PSI tensile, great spin, and underpriced vs the competition.'},{author:'Verified Buyer',text:'Outstanding bar. Spins just as well as bars costing twice as much.'},{author:'Verified Buyer',text:'Excellent knurl — moderate and consistent. Zero regrets on this purchase.'}], specs:{'Weight':'20 kg','Diameter':'28mm','Tensile Strength':'195,000 PSI','Finish':'Black Oxide','Warranty':'Lifetime'}, aspects:['Lifetime Warranty','195k PSI','Underrated'] },
+  ],
+
+  dumbbells: [
+    { id:'rogue-db', name:'Rubber Hex Dumbbells', brand:'Rogue Fitness', emoji:'💪', price:475, retailer:'Rogue Fitness', url:'https://www.roguefitness.com/rogue-rubber-hex-dumbbells', quality:9.2, rating:4.9, reviewCount:890, reviewSource:'Rogue Fitness', expertVerdict:'The best rubber hex dumbbells available. Chrome handles, rubber heads, and will last decades.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'The best rubber hex dumbbells available. Chrome handles, rubber heads, and will last decades.'},{author:'Verified Buyer',text:'Absolutely outstanding quality. The chrome handles are smooth and the rubber doesn\'t crack.'},{author:'Verified Buyer',text:'Worth every dollar. No wobble, no cracks, no smell after years of use.'}], specs:{'Handle':'Chrome','Head':'Rubber Hex','Range':'5–100 lbs','Floor-Friendly':'Yes','Made In':'USA'}, aspects:['Chrome Handles','Floor Friendly','American Made'] },
+    { id:'rep-db', name:'Rubber Hex Dumbbells', brand:'Rep Fitness', emoji:'💪', price:295, retailer:'Rep Fitness', url:'https://repfitness.com/products/rubber-hex-dumbbells', quality:8.7, rating:4.7, reviewCount:620, reviewSource:'Rep Fitness', expertVerdict:'Best value rubber hex dumbbells. Hard to tell apart from Rogue at half the price.', expertSource:'Garage Gym Lab', reviews:[{author:'Garage Gym Lab',text:'Best value rubber hex dumbbells. Hard to tell apart from Rogue at half the price.'},{author:'Verified Buyer',text:'Solid all-around dumbbell. The rubber doesn\'t smell and the knurl is comfortable.'},{author:'Verified Buyer',text:'Replaced my CAP set with these. Night and day difference in quality.'}], specs:{'Handle':'Chrome','Head':'Rubber Hex','Range':'5–100 lbs','Floor-Friendly':'Yes','Warranty':'2 Years'}, aspects:['Best Value','Chrome Handles','Floor Friendly'] },
+    { id:'bowflex-adj', name:'SelectTech 552 Adjustable', brand:'Bowflex', emoji:'🎛️', price:429, retailer:'Amazon', url:'https://www.amazon.com/s?k=Bowflex+SelectTech+552+adjustable+dumbbells', quality:8.0, rating:4.7, reviewCount:22500, reviewSource:'Amazon', expertVerdict:'Best adjustable dumbbell for home gyms. Replaces 15 sets — perfect for small spaces.', expertSource:'Wirecutter', reviews:[{author:'Wirecutter',text:'Best adjustable dumbbell for home gyms. Replaces 15 sets of weights and perfect for small spaces.'},{author:'Amazon Buyer',text:'Been using these for 3 years. Dial system is smooth and they\'re incredibly convenient.'},{author:'Amazon Buyer',text:'Changed my home gym completely. No more cluttered dumbbell rack.'}], specs:{'Range':'5–52.5 lbs','Increments':'2.5 lbs','System':'Dial Select','Replaces':'15 pairs','Warranty':'2 Years'}, aspects:['Space Saving','Adjustable','15-in-1'] },
+    { id:'ironmaster-adj', name:'Quick-Lock Adjustable DB', brand:'Ironmaster', emoji:'🔐', price:649, retailer:'Ironmaster', url:'https://www.ironmaster.com/products/quick-lock-adjustable-dumbbells/', quality:9.0, rating:4.8, reviewCount:340, reviewSource:'Ironmaster', expertVerdict:'The most durable adjustable dumbbell. Solid steel construction that never wobbles or rattles.', expertSource:'Barbend', reviews:[{author:'Barbend',text:'The most durable adjustable dumbbell. Solid steel construction that never wobbles or rattles.'},{author:'Verified Buyer',text:'Built like a real dumbbell, not a plastic toy. Worth the extra cost if you lift heavy.'},{author:'Verified Buyer',text:'Had mine for 8 years. Still perfect. The lock system is genius and never slips.'}], specs:{'Range':'5–75 lbs','System':'Screw Lock','Material':'Solid Steel','Expandable':'Yes','Warranty':'Lifetime'}, aspects:['Solid Steel','Lifetime Warranty','Heavy Duty'] },
+    { id:'cap-hex', name:'Rubber Coated Hex Dumbbells', brand:'CAP Barbell', emoji:'🔧', price:89, retailer:'Amazon', url:'https://www.amazon.com/s?k=CAP+Barbell+rubber+hex+dumbbells', quality:6.0, rating:4.3, reviewCount:14200, reviewSource:'Amazon', expertVerdict:'Cheapest entry-level dumbbells. Expect weight variance and smell but fine for casual use.', expertSource:'BarBend', reviews:[{author:'BarBend',text:'Cheapest entry-level dumbbells. Expect weight variance and rubber smell initially, but fine for casual use.'},{author:'Amazon Buyer',text:'Good for the price. I bought a pair of 30s to try and they\'re decent.'},{author:'Amazon Buyer',text:'You get what you pay for. They work fine for home use.'}], specs:{'Handle':'Knurled Steel','Head':'Rubber Hex','Available':'3–50 lbs','Ships':'Amazon Prime','Smell':'Initially'}, aspects:['Lowest Price','Amazon Prime','Entry Level'] },
+    { id:'titan-adj', name:'Adjustable Dumbbell Set', brand:'Titan Fitness', emoji:'⚡', price:349, retailer:'Titan Fitness', url:'https://www.titanfitness.com/products/adjustable-dumbbell-set', quality:7.6, rating:4.4, reviewCount:265, reviewSource:'Titan Fitness', expertVerdict:'Best budget adjustable dumbbell. Works well and holds up, just slower to adjust than Bowflex.', expertSource:'Garage Gym Reviews', reviews:[{author:'Garage Gym Reviews',text:'Best budget adjustable dumbbell. Holds up well — just slower to adjust than the Bowflex dial system.'},{author:'Verified Buyer',text:'Great for the price. Feels solid and no rattling during use.'},{author:'Verified Buyer',text:'Way better than the CAP set I had before. Worth the upgrade.'}], specs:{'Range':'5–50 lbs','System':'Pin Select','Material':'Steel + Rubber','Increments':'5 lbs','Warranty':'1 Year'}, aspects:['Budget Pick','Pin System','Good Value'] },
+    { id:'fringe-urethane', name:'Urethane Dumbbells', brand:'Fringe Sport', emoji:'🔶', price:380, retailer:'Fringe Sport', url:'https://www.fringesport.com/products/urethane-round-dumbbells', quality:8.9, rating:4.8, reviewCount:180, reviewSource:'Fringe Sport', expertVerdict:'Best urethane dumbbell for the money. Floor-friendly, gym-quality, and odorless rubber.', expertSource:'Garage Gym Lab', reviews:[{author:'Garage Gym Lab',text:'Best urethane dumbbell for the money. Floor-friendly, gym quality, and odorless rubber that lasts.'},{author:'Verified Buyer',text:'These feel exactly like commercial gym dumbbells. Zero smell, zero wobble.'},{author:'Verified Buyer',text:'Urethane is the way to go. No cracking, no fading, and looks great years later.'}], specs:{'Handle':'Chrome','Head':'Urethane Round','Floor-Friendly':'Yes','Odor':'None','Gym Grade':'Yes'}, aspects:['Urethane','Odorless','Gym Grade'] },
+    { id:'vulcan-db', name:'Urethane Hex Dumbbells', brand:'Vulcan Strength', emoji:'⚔️', price:320, retailer:'Vulcan Strength', url:'https://www.vulcanstrength.com/products/vulcan-urethane-dumbbells', quality:9.0, rating:4.8, reviewCount:142, reviewSource:'Vulcan Strength', expertVerdict:'Premium urethane dumbbells at a competitive price. Commercial quality for home gym owners.', expertSource:'Barbend', reviews:[{author:'Barbend',text:'Premium urethane dumbbells at a competitive price. Commercial quality at home gym pricing.'},{author:'Verified Buyer',text:'These are the nicest dumbbells I\'ve ever owned. Urethane is incredible.'},{author:'Verified Buyer',text:'Zero wobble, perfect weight accuracy, and the chrome handles are smooth.'}], specs:{'Handle':'Chrome','Head':'Urethane Hex','Floor-Friendly':'Yes','Warranty':'2 Years','Grade':'Commercial'}, aspects:['Commercial Grade','Urethane','Precise Weight'] },
+  ],
+};
+
+// ── STATE ────────────────────────────────────────────────────
+let currentCategory = null;
+let selectedIds = [];
+let filters = { brand: 'all', minPrice: '', maxPrice: '', minRating: 0 };
+let sortMode = 'default';
+let searchQuery = '';
+
+// ── HELPERS ──────────────────────────────────────────────────
+function starsHTML(r) {
+  const f = Math.floor(r), h = r % 1 >= 0.5 ? 1 : 0, e = 5 - f - h;
+  return '★'.repeat(f) + (h ? '½' : '') + '☆'.repeat(e);
+}
+
+function getProductById(id) {
+  if (!currentCategory) return null;
+  return allProducts[currentCategory].find(p => p.id === id);
+}
+
+function getAllBrands() {
+  if (!currentCategory) return [];
+  return [...new Set(allProducts[currentCategory].map(p => p.brand))].sort();
+}
+
+// ── FILTER / SORT ────────────────────────────────────────────
+function getFilteredProducts() {
+  let list = allProducts[currentCategory] || [];
+  const q = searchQuery.toLowerCase();
+
+  if (q) list = list.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    p.brand.toLowerCase().includes(q) ||
+    p.aspects.some(a => a.toLowerCase().includes(q))
+  );
+  if (filters.brand !== 'all') list = list.filter(p => p.brand === filters.brand);
+  if (filters.minPrice) list = list.filter(p => p.price >= Number(filters.minPrice));
+  if (filters.maxPrice) list = list.filter(p => p.price <= Number(filters.maxPrice));
+  if (filters.minRating > 0) list = list.filter(p => p.rating >= filters.minRating);
+
+  switch(sortMode) {
+    case 'price-asc': list = [...list].sort((a,b) => a.price - b.price); break;
+    case 'price-desc': list = [...list].sort((a,b) => b.price - a.price); break;
+    case 'rating': list = [...list].sort((a,b) => b.rating - a.rating); break;
+    case 'quality': list = [...list].sort((a,b) => b.quality - a.quality); break;
+  }
+  return list;
+}
+
+function applyFilters() {
+  searchQuery = document.getElementById('searchInput').value;
+  sortMode = document.getElementById('sortSelect').value;
+  renderProducts();
+  renderActiveFilters();
+}
+
+// ── CATEGORY ─────────────────────────────────────────────────
+function selectCategory(cat, el) {
+  currentCategory = cat;
+  selectedIds = [];
+  filters = { brand:'all', minPrice:'', maxPrice:'', minRating:0 };
+  searchQuery = '';
+  sortMode = 'default';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('sortSelect').value = 'default';
+
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+
+  closeComparison();
+  updateCompareBar();
+  renderSidebar();
+  renderProducts();
+  renderActiveFilters();
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────
+function buildSidebarHTML() {
+  const brands = getAllBrands();
+  return `
+    <div class="sidebar-section">
+      <div class="sidebar-label">Brand</div>
+      <div class="filter-group">
+        <button class="filter-chip ${filters.brand === 'all' ? 'active' : ''}" onclick="setBrand('all')">All Brands</button>
+        ${brands.map(b => `<button class="filter-chip ${filters.brand === b ? 'active' : ''}" onclick="setBrand('${b}')">${b}</button>`).join('')}
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Price Range</div>
+      <div class="price-range">
+        <div class="price-inputs">
+          <input class="price-input" type="number" placeholder="Min $" id="minPrice" value="${filters.minPrice}" oninput="setPrice()"/>
+          <span class="price-sep">–</span>
+          <input class="price-input" type="number" placeholder="Max $" id="maxPrice" value="${filters.maxPrice}" oninput="setPrice()"/>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Min Rating</div>
+      <div class="rating-filter">
+        ${[0,4,4.5,4.8].map(r => `
+          <label class="rating-opt">
+            <input type="radio" name="rating" value="${r}" ${filters.minRating === r ? 'checked' : ''} onchange="setRating(${r})"/>
+            <span>${r === 0 ? 'Any rating' : `<span class="rating-stars">${'★'.repeat(Math.floor(r))}${r%1?'½':''}</span> ${r}+ stars`}</span>
+          </label>
+        `).join('')}
+      </div>
+    </div>
+    <div class="ad-slot-sidebar">
+      <div class="ad-label">Advertisement</div>
+      <div class="ad-placeholder">160×600<br>Skyscraper Ad</div>
+    </div>
+  `;
+}
+
+function renderSidebar() {
+  const html = buildSidebarHTML();
+  document.getElementById('sidebarContent').innerHTML = html;
+  document.getElementById('drawerContent').innerHTML = html;
+}
+
+function setBrand(b) {
+  filters.brand = b;
+  renderSidebar();
+  renderProducts();
+  renderActiveFilters();
+}
+function setPrice() {
+  filters.minPrice = document.getElementById('minPrice')?.value || '';
+  filters.maxPrice = document.getElementById('maxPrice')?.value || '';
+  renderProducts();
+  renderActiveFilters();
+}
+function setRating(r) {
+  filters.minRating = r;
+  renderProducts();
+  renderActiveFilters();
+}
+
+function renderActiveFilters() {
+  const tags = [];
+  if (filters.brand !== 'all') tags.push({label: filters.brand, clear: () => setBrand('all')});
+  if (filters.minPrice) tags.push({label: `$${filters.minPrice}+`, clear: () => { filters.minPrice = ''; renderSidebar(); renderProducts(); renderActiveFilters(); }});
+  if (filters.maxPrice) tags.push({label: `Up to $${filters.maxPrice}`, clear: () => { filters.maxPrice = ''; renderSidebar(); renderProducts(); renderActiveFilters(); }});
+  if (filters.minRating > 0) tags.push({label: `${filters.minRating}★+`, clear: () => { filters.minRating = 0; renderSidebar(); renderProducts(); renderActiveFilters(); }});
+  if (searchQuery) tags.push({label: `"${searchQuery}"`, clear: () => { searchQuery = ''; document.getElementById('searchInput').value = ''; renderProducts(); renderActiveFilters(); }});
+
+  const el = document.getElementById('activeFilters');
+  el.innerHTML = tags.map((t, i) => `
+    <div class="filter-tag">${t.label}<button onclick="clearFilterTag(${i})">✕</button></div>
+  `).join('');
+  window._filterTagClears = tags.map(t => t.clear);
+}
+
+window.clearFilterTag = function(i) {
+  window._filterTagClears[i]();
+};
+
+// ── RENDER PRODUCTS ───────────────────────────────────────────
+function renderProducts() {
+  const grid = document.getElementById('productsGrid');
+  if (!currentCategory) return;
+
+  const list = getFilteredProducts();
+  const countEl = document.getElementById('resultsCount');
+  countEl.innerHTML = `Showing <strong>${list.length}</strong> of ${allProducts[currentCategory].length} products`;
+
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><span class="empty-icon">🔍</span><p>No products match your filters.<br>Try adjusting your search or clearing filters.</p></div>`;
+    return;
   }
 
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.category-wrapper')) {
-      document.getElementById('catBtn').classList.remove('open');
-      document.getElementById('catDropdown').classList.remove('open');
+  // Insert an ad card every 6 products
+  let html = '';
+  list.forEach((p, i) => {
+    if (i > 0 && i % 6 === 0) {
+      html += `<div class="ad-card"><div class="ad-label">Advertisement</div><div class="ad-placeholder">300×250 Ad Slot</div></div>`;
     }
+    const isSel = selectedIds.includes(p.id);
+    html += `
+      <div class="product-card ${isSel ? 'selected' : ''}" id="card-${p.id}" onclick="toggleSelect('${p.id}')" style="animation-delay:${Math.min(i*0.04,0.3)}s">
+        <div class="selected-badge">✓ Selected</div>
+        <span class="product-emoji">${p.emoji}</span>
+        <div class="product-brand">${p.brand}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-price">$${p.price.toLocaleString()}</div>
+        <div class="product-retailer">via ${p.retailer}</div>
+        <div class="quality-row">
+          <div class="quality-bar-wrap"><div class="quality-bar-fill" style="width:${p.quality*10}%"></div></div>
+          <div class="quality-num">${p.quality}/10</div>
+        </div>
+        <div class="stars-row">
+          <span class="stars">${starsHTML(p.rating)}</span>
+          <span class="rating-num">${p.rating}</span>
+          <span class="review-count">(${p.reviewCount.toLocaleString()})</span>
+        </div>
+        <div class="expert-snippet">"${p.expertVerdict}" — ${p.expertSource}</div>
+        <div class="card-tags">${p.aspects.map(a => `<span class="tag">${a}</span>`).join('')}</div>
+        <div class="card-actions">
+          <button class="btn-details" onclick="event.stopPropagation();openModal('${p.id}')">Details & Reviews</button>
+          <a class="btn-buy" href="${p.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Buy →</a>
+        </div>
+      </div>
+    `;
   });
+  grid.innerHTML = html;
+}
 
-  function selectCategory(cat) {
-    currentCategory = cat;
-    selectedIds = [];
-    document.getElementById('catBtn').classList.remove('open');
-    document.getElementById('catDropdown').classList.remove('open');
+// ── SELECTION ─────────────────────────────────────────────────
+function toggleSelect(id) {
+  if (selectedIds.includes(id)) {
+    selectedIds = selectedIds.filter(x => x !== id);
+  } else {
+    if (selectedIds.length >= 2) selectedIds.shift();
+    selectedIds.push(id);
+  }
+  // Update card classes without full re-render
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  selectedIds.forEach(id => document.getElementById('card-'+id)?.classList.add('selected'));
+  updateCompareBar();
+}
 
-    const labels = { benches: 'Bench Racks', weights: 'Weight Plates' };
-    const icons = { benches: '🏋️', weights: '⚙️' };
-    document.getElementById('catBtnLabel').textContent = labels[cat];
-    document.getElementById('catBtnIcon').textContent = icons[cat];
+function clearAll() {
+  selectedIds = [];
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  updateCompareBar();
+  closeComparison();
+}
 
-    document.querySelectorAll('.cat-option').forEach(o => o.classList.remove('active'));
-    document.getElementById('opt-' + cat).classList.add('active');
+// ── COMPARE BAR ───────────────────────────────────────────────
+function updateCompareBar() {
+  const bar = document.getElementById('compareBar');
+  const btn = document.getElementById('compareBtn');
+  const s0 = document.getElementById('slot0');
+  const s1 = document.getElementById('slot1');
 
-    closeComparison();
-    renderProducts();
-    updateUI();
+  if (selectedIds.length > 0) {
+    bar.classList.add('visible');
+    const p0 = getProductById(selectedIds[0]);
+    s0.classList.add('filled');
+    s0.innerHTML = `<span class="slot-name">${p0 ? p0.name : '…'}</span><button class="slot-clear" onclick="removeFromSlot(0)">✕</button>`;
+  } else {
+    bar.classList.remove('visible');
+    s0.classList.remove('filled');
+    s0.innerHTML = `<span class="slot-name">Select a product…</span>`;
   }
 
-  // ── RENDER PRODUCTS ────────────────────────────────────
-  function renderProducts() {
-    const grid = document.getElementById('productsGrid');
-    if (!currentCategory) return;
-
-    const list = products[currentCategory];
-    grid.innerHTML = list.map(p => {
-      const isSelected = selectedIds.includes(p.id);
-      return `
-        <div class="product-card ${isSelected ? 'selected' : ''}" id="card-${p.id}" onclick="toggleSelect('${p.id}')">
-          <div class="selected-badge">✓ Selected</div>
-          <span class="product-emoji">${p.emoji}</span>
-          <div class="product-brand">${p.brand}</div>
-          <div class="product-name">${p.name}</div>
-          <div class="product-price">$${p.price.toLocaleString()}</div>
-          <div class="product-retailer">via ${p.retailer}</div>
-          <div class="product-quality-bar">
-            <div class="product-quality-fill" style="width:${p.quality * 10}%"></div>
-          </div>
-          <div class="product-quality-label">Quality: ${p.quality}/10</div>
-          <div class="card-actions">
-            <button class="btn-details" onclick="event.stopPropagation(); openModal('${p.id}')">Details</button>
-            <a class="btn-buy" href="${p.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Buy →</a>
-          </div>
-        </div>
-      `;
-    }).join('');
+  if (selectedIds.length > 1) {
+    const p1 = getProductById(selectedIds[1]);
+    s1.classList.add('filled');
+    s1.innerHTML = `<span class="slot-name">${p1 ? p1.name : '…'}</span><button class="slot-clear" onclick="removeFromSlot(1)">✕</button>`;
+    btn.disabled = false;
+  } else {
+    s1.classList.remove('filled');
+    s1.innerHTML = `<span class="slot-name">Select another…</span>`;
+    btn.disabled = true;
   }
+}
 
-  // ── SELECTION LOGIC ────────────────────────────────────
-  function toggleSelect(id) {
-    if (selectedIds.includes(id)) {
-      selectedIds = selectedIds.filter(x => x !== id);
-    } else {
-      if (selectedIds.length >= 2) {
-        selectedIds.shift(); // remove oldest
-      }
-      selectedIds.push(id);
-    }
-    updateCards();
-    updateUI();
-  }
+function removeFromSlot(i) {
+  const id = selectedIds[i];
+  selectedIds.splice(i, 1);
+  document.getElementById('card-'+id)?.classList.remove('selected');
+  updateCompareBar();
+  closeComparison();
+}
 
-  function updateCards() {
-    const list = products[currentCategory] || [];
-    list.forEach(p => {
-      const card = document.getElementById('card-' + p.id);
-      if (!card) return;
-      if (selectedIds.includes(p.id)) {
-        card.classList.add('selected');
-      } else {
-        card.classList.remove('selected');
-      }
-    });
-  }
+// ── COMPARISON PANEL ──────────────────────────────────────────
+function showComparison() {
+  if (selectedIds.length < 2) return;
+  const p1 = getProductById(selectedIds[0]);
+  const p2 = getProductById(selectedIds[1]);
 
-  function updateUI() {
-    const info = document.getElementById('selectedInfo');
-    const btn = document.getElementById('compareBtn');
+  // Determine winner per spec
+  const wins = getWinners(p1, p2);
+  const summary = generateSummary(p1, p2);
 
-    if (!currentCategory) {
-      info.textContent = 'Select a category to get started ↑';
-      btn.classList.remove('visible');
-      return;
-    }
-
-    if (selectedIds.length === 0) {
-      info.textContent = 'Click any product to select it for comparison.';
-      btn.classList.remove('visible');
-    } else if (selectedIds.length === 1) {
-      const p = getProductById(selectedIds[0]);
-      info.textContent = `✓ "${p.name}" selected — pick one more to compare.`;
-      btn.classList.remove('visible');
-    } else {
-      const p1 = getProductById(selectedIds[0]);
-      const p2 = getProductById(selectedIds[1]);
-      info.textContent = `✓ "${p1.name}" vs "${p2.name}" — ready to compare!`;
-      btn.classList.add('visible');
-    }
-  }
-
-  function getProductById(id) {
-    return products[currentCategory].find(p => p.id === id);
-  }
-
-  // ── COMPARISON ─────────────────────────────────────────
-  function showComparison() {
-    if (selectedIds.length < 2) return;
-    const p1 = getProductById(selectedIds[0]);
-    const p2 = getProductById(selectedIds[1]);
-
-    const aiSummary = generateAISummary(p1, p2);
-
-    document.getElementById('compGrid').innerHTML = `
-      <div class="comp-col">
-        <div class="comp-product-brand">${p1.brand}</div>
-        <div class="comp-product-name">${p1.name}</div>
-        <div class="comp-price">$${p1.price.toLocaleString()}</div>
-        <div class="comp-specs">
-          ${Object.entries(p1.specs).map(([k, v]) => `
-            <div class="comp-spec-row">
-              <span class="comp-spec-key">${k}</span>
-              <span class="comp-spec-val">${v}</span>
-            </div>
-          `).join('')}
-          <div class="comp-spec-row">
-            <span class="comp-spec-key">Quality Score</span>
-            <span class="comp-spec-val">${p1.quality}/10</span>
-          </div>
-        </div>
-        <a href="${p1.url}" target="_blank" rel="noopener" class="comp-buy">Buy from ${p1.retailer} →</a>
+  document.getElementById('compBody').innerHTML = `
+    <div class="comp-col">
+      ${wins.overall === 'p1' ? '<div class="winner-badge">🏆 Recommended</div>' : ''}
+      <div class="comp-product-brand">${p1.brand}</div>
+      <div class="comp-product-name">${p1.name}</div>
+      <div class="comp-price">$${p1.price.toLocaleString()}</div>
+      <div class="stars-row"><span class="stars">${starsHTML(p1.rating)}</span><span class="rating-num">${p1.rating}</span></div>
+      <div class="comp-specs">
+        ${Object.entries(p1.specs).map(([k,v],i) => {
+          const vals2 = Object.values(p2.specs);
+          return `<div class="comp-spec-row"><span class="comp-spec-key">${k}</span><span class="comp-spec-val">${v}</span></div>`;
+        }).join('')}
+        <div class="comp-spec-row"><span class="comp-spec-key">Quality Score</span><span class="comp-spec-val ${p1.quality > p2.quality ? 'win' : ''}">${p1.quality}/10</span></div>
+        <div class="comp-spec-row"><span class="comp-spec-key">Rating</span><span class="comp-spec-val ${p1.rating > p2.rating ? 'win' : ''}">${p1.rating} ★</span></div>
+        <div class="comp-spec-row"><span class="comp-spec-key">Reviews</span><span class="comp-spec-val">${p1.reviewCount.toLocaleString()}</span></div>
       </div>
-      <div class="comp-vs">
-        <div class="comp-vs-text">VS</div>
+      <a href="${p1.url}" target="_blank" rel="noopener" class="comp-buy">Buy from ${p1.retailer} →</a>
+    </div>
+    <div class="comp-vs"><div class="comp-vs-text">VS</div></div>
+    <div class="comp-col">
+      ${wins.overall === 'p2' ? '<div class="winner-badge">🏆 Recommended</div>' : ''}
+      <div class="comp-product-brand">${p2.brand}</div>
+      <div class="comp-product-name">${p2.name}</div>
+      <div class="comp-price">$${p2.price.toLocaleString()}</div>
+      <div class="stars-row"><span class="stars">${starsHTML(p2.rating)}</span><span class="rating-num">${p2.rating}</span></div>
+      <div class="comp-specs">
+        ${Object.entries(p2.specs).map(([k,v]) => `<div class="comp-spec-row"><span class="comp-spec-key">${k}</span><span class="comp-spec-val">${v}</span></div>`).join('')}
+        <div class="comp-spec-row"><span class="comp-spec-key">Quality Score</span><span class="comp-spec-val ${p2.quality > p1.quality ? 'win' : ''}">${p2.quality}/10</span></div>
+        <div class="comp-spec-row"><span class="comp-spec-key">Rating</span><span class="comp-spec-val ${p2.rating > p1.rating ? 'win' : ''}">${p2.rating} ★</span></div>
+        <div class="comp-spec-row"><span class="comp-spec-key">Reviews</span><span class="comp-spec-val">${p2.reviewCount.toLocaleString()}</span></div>
       </div>
-      <div class="comp-col">
-        <div class="comp-product-brand">${p2.brand}</div>
-        <div class="comp-product-name">${p2.name}</div>
-        <div class="comp-price">$${p2.price.toLocaleString()}</div>
-        <div class="comp-specs">
-          ${Object.entries(p2.specs).map(([k, v]) => `
-            <div class="comp-spec-row">
-              <span class="comp-spec-key">${k}</span>
-              <span class="comp-spec-val">${v}</span>
-            </div>
-          `).join('')}
-          <div class="comp-spec-row">
-            <span class="comp-spec-key">Quality Score</span>
-            <span class="comp-spec-val">${p2.quality}/10</span>
-          </div>
-        </div>
-        <a href="${p2.url}" target="_blank" rel="noopener" class="comp-buy">Buy from ${p2.retailer} →</a>
+      <a href="${p2.url}" target="_blank" rel="noopener" class="comp-buy">Buy from ${p2.retailer} →</a>
+    </div>
+    <div class="comp-ai">
+      <div class="comp-ai-label">🤖 AI Verdict</div>
+      <div class="comp-ai-text">${summary}</div>
+    </div>
+  `;
+
+  const panel = document.getElementById('compPanel');
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function getWinners(p1, p2) {
+  const val1 = p1.quality / p1.price;
+  const val2 = p2.quality / p2.price;
+  const score1 = p1.quality * 0.4 + p1.rating * 0.3 + val1 * 100 * 0.3;
+  const score2 = p2.quality * 0.4 + p2.rating * 0.3 + val2 * 100 * 0.3;
+  return { overall: score1 > score2 ? 'p1' : 'p2' };
+}
+
+function generateSummary(p1, p2) {
+  const cheaper = p1.price < p2.price ? p1 : p2;
+  const pricier = p1.price < p2.price ? p2 : p1;
+  const diff = Math.abs(p1.price - p2.price);
+  const qualWinner = p1.quality >= p2.quality ? p1 : p2;
+  const val1 = p1.quality / p1.price, val2 = p2.quality / p2.price;
+  const valWinner = val1 >= val2 ? p1 : p2;
+
+  if (diff === 0) {
+    return `Both products are identically priced at $${p1.price}. The <strong>${qualWinner.name}</strong> edges ahead with a higher quality score of ${qualWinner.quality}/10 — go with that one.`;
+  }
+  if (diff < 40) {
+    return `At only $${diff} apart, this comes down to quality. The <strong>${qualWinner.name}</strong> scores ${qualWinner.quality}/10 vs ${(qualWinner === p1 ? p2 : p1).quality}/10 — for $${diff} more you're getting a noticeably better product. The <strong>${qualWinner.name}</strong> is the clear choice.`;
+  }
+  if (valWinner === cheaper) {
+    return `The <strong>${cheaper.name}</strong> is $${diff} cheaper AND delivers better value per dollar (${(val1 > val2 ? val1 : val2).toFixed(4)} quality/$ vs ${(val1 < val2 ? val1 : val2).toFixed(4)}). Unless you specifically need something the <strong>${pricier.name}</strong> offers, the <strong>${cheaper.name}</strong> is the smarter buy.`;
+  } else {
+    return `The <strong>${pricier.name}</strong> costs $${diff} more but earns it with a quality score of ${pricier.quality}/10 vs ${cheaper.quality}/10, and better value per dollar overall. If budget allows, invest in the <strong>${pricier.name}</strong> — it will last longer and perform better.`;
+  }
+}
+
+function closeComparison() {
+  document.getElementById('compPanel').classList.remove('visible');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────
+function openModal(id) {
+  const p = getProductById(id);
+  if (!p) return;
+  document.getElementById('modal').innerHTML = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-emoji">${p.emoji}</div>
+        <div class="modal-name">${p.name}</div>
+        <div class="modal-brand">${p.brand}</div>
       </div>
-      <div class="ai-summary">
-        <div class="ai-summary-label">🤖 AI Analysis</div>
-        <div class="ai-summary-text">${aiSummary}</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-price">$${p.price.toLocaleString()}</div>
+      <div class="modal-retailer">Available at ${p.retailer}</div>
+      <div class="modal-rating-row">
+        <span class="modal-stars">${starsHTML(p.rating)}</span>
+        <span class="modal-rating-num">${p.rating}</span>
+        <span class="modal-rating-source">${p.reviewCount.toLocaleString()} reviews · ${p.reviewSource}</span>
       </div>
-    `;
-
-    const panel = document.getElementById('compPanel');
-    panel.classList.add('visible');
-    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function generateAISummary(p1, p2) {
-    const priceDiff = Math.abs(p1.price - p2.price);
-    const cheaper = p1.price < p2.price ? p1 : p2;
-    const pricier = p1.price < p2.price ? p2 : p1;
-    const qualityWinner = p1.quality > p2.quality ? p1 : p2;
-    const valueRatio1 = p1.quality / p1.price;
-    const valueRatio2 = p2.quality / p2.price;
-    const valueWinner = valueRatio1 > valueRatio2 ? p1 : p2;
-
-    let verdict = '';
-
-    if (p1.quality === p2.quality) {
-      verdict = `Both products score equally on quality at ${p1.quality}/10. In that case, go with the <strong>${cheaper.name}</strong> — it saves you $${priceDiff} with no quality trade-off.`;
-    } else if (priceDiff < 50) {
-      verdict = `At only $${priceDiff} apart, the <strong>${qualityWinner.name}</strong> is the clear winner — a higher quality score of ${qualityWinner.quality}/10 for nearly the same price.`;
-    } else {
-      const savings = priceDiff;
-      verdict = `The <strong>${pricier.name}</strong> wins on quality (${pricier.quality}/10 vs ${cheaper.quality}/10), but costs $${savings} more. `;
-      if (valueWinner.id === cheaper.id) {
-        verdict += `For value-conscious buyers, the <strong>${cheaper.name}</strong> delivers a better quality-per-dollar ratio and is the smarter pick unless you need the premium build.`;
-      } else {
-        verdict += `Despite the higher price, the <strong>${pricier.name}</strong> still offers better value per dollar given its superior quality score — worth the investment if budget allows.`;
-      }
-    }
-
-    return verdict;
-  }
-
-  function closeComparison() {
-    document.getElementById('compPanel').classList.remove('visible');
-  }
-
-  // ── MODAL ──────────────────────────────────────────────
-  function openModal(id) {
-    const p = getProductById(id);
-    if (!p) return;
-
-    document.getElementById('modal').innerHTML = `
-      <div class="modal-header">
-        <div>
-          <div class="modal-name">${p.name}</div>
-          <div class="modal-brand">${p.brand}</div>
-        </div>
-        <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-section-label">Specifications</div>
+      <div class="modal-specs">
+        ${Object.entries(p.specs).map(([k,v]) => `<div class="modal-spec-row"><span class="modal-spec-key">${k}</span><span class="modal-spec-val">${v}</span></div>`).join('')}
+        <div class="modal-spec-row"><span class="modal-spec-key">Quality Score</span><span class="modal-spec-val">${p.quality}/10</span></div>
       </div>
-      <div class="modal-body">
-        <div style="font-size:3rem;margin-bottom:12px">${p.emoji}</div>
-        <div class="modal-price">$${p.price.toLocaleString()}</div>
-        <div class="modal-retailer">Available at ${p.retailer}</div>
-        <div class="modal-specs">
-          ${Object.entries(p.specs).map(([k, v]) => `
-            <div class="modal-spec-row">
-              <span class="modal-spec-key">${k}</span>
-              <span class="modal-spec-val">${v}</span>
-            </div>
-          `).join('')}
-          <div class="modal-spec-row">
-            <span class="modal-spec-key">Quality Score</span>
-            <span class="modal-spec-val">${p.quality}/10</span>
-          </div>
-        </div>
-        <div class="modal-aspects">
-          ${p.aspects.map(a => `<span class="aspect-tag">${a}</span>`).join('')}
-        </div>
-        <a href="${p.url}" target="_blank" rel="noopener" class="modal-buy">Shop at ${p.retailer} →</a>
-      </div>
-    `;
+      <div class="modal-section-label">Highlights</div>
+      <div class="modal-aspects">${p.aspects.map(a => `<span class="aspect-tag">${a}</span>`).join('')}</div>
+      <div class="modal-section-label">💬 What People Are Saying</div>
+      ${p.reviews.map(r => `<div class="review-item"><div class="review-author">${r.author}</div><div class="review-text">"${r.text}"</div></div>`).join('')}
+      <a href="${p.url}" target="_blank" rel="noopener" class="modal-buy">Shop at ${p.retailer} →</a>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
 
-    document.getElementById('modalOverlay').classList.add('open');
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalOverlay')) {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
   }
+}
 
-  function closeModal(e) {
-    if (!e || e.target === document.getElementById('modalOverlay')) {
-      document.getElementById('modalOverlay').classList.remove('open');
-    }
-  }
+// ── MOBILE DRAWER ─────────────────────────────────────────────
+function openDrawer() {
+  document.getElementById('filterDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('filterDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
 </script>
 </body>
 </html>
