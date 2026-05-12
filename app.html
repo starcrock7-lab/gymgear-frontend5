@@ -806,10 +806,16 @@ function generateLocalSummary(p1,p2){
 }
 function closeComparison(){document.getElementById('compPanel').classList.remove('vis');}
 
-// ── MODAL ────────────────────────────────────────────────────
-function openModal(id){
+// ── MODAL — lazy-loads reviews only when opened ───────────────
+// Reviews are NOT fetched during the daily search (saves ~30% tokens).
+// They're fetched here on demand: ~500 tokens per click, cached in memory.
+const reviewCache = {};
+
+async function openModal(id){
   const p=getProduct(id); if(!p) return;
   const buyUrl=p.affiliateUrl||p.url||'#';
+
+  // Render modal immediately with specs — no waiting
   document.getElementById('modal').innerHTML=`
     <div class="mh">
       <div>
@@ -833,11 +839,43 @@ function openModal(id){
       <div class="m-slbl" style="margin-top:12px">Highlights</div>
       <div class="m-aspects">${(p.aspects||[]).map(a=>`<span class="m-asp">${a}</span>`).join('')}</div>
       <div class="m-slbl" style="margin-top:12px">💬 Reviews</div>
-      ${(p.reviews||[]).map(r=>`<div class="rev-item"><div class="rev-auth">${r.author}</div><div class="rev-text">"${r.text}"</div></div>`).join('')}
+      <div id="rev-body" style="color:var(--text-3);font-size:.8rem;padding:10px 0">Loading reviews…</div>
       <a href="${buyUrl}" target="_blank" rel="noopener" class="m-buy">Shop at ${p.retailer} →</a>
     </div>`;
+
   document.getElementById('moverlay').classList.add('open');
   document.body.style.overflow='hidden';
+
+  // Load reviews async — from memory cache if already fetched
+  const revEl = document.getElementById('rev-body');
+  if (!revEl) return;
+
+  if (reviewCache[id]) {
+    renderReviews(revEl, reviewCache[id]); return;
+  }
+
+  try {
+    const r = await fetch(`${BACKEND}/api/reviews`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ productName:p.name, brand:p.brand, url:p.url }),
+    });
+    if (!r.ok) throw new Error('fetch failed');
+    const data = await r.json();
+    reviewCache[id] = data.reviews || [];
+    renderReviews(revEl, reviewCache[id]);
+  } catch {
+    revEl.textContent = 'Reviews unavailable.';
+  }
+}
+
+function renderReviews(el, reviews){
+  if (!reviews || !reviews.length){ el.textContent='No reviews found.'; return; }
+  el.innerHTML = reviews.map(r=>`
+    <div class="rev-item">
+      <div class="rev-auth">${r.author}</div>
+      <div class="rev-text">"${r.text}"</div>
+    </div>`).join('');
 }
 function closeModal(e){
   if(!e||e.target===document.getElementById('moverlay')){
