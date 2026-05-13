@@ -459,8 +459,13 @@ function getBrands() {
 }
 
 // ── FETCH PRODUCTS ───────────────────────────────────────────
+let retryTimers = {};  // track retry timers per category so we can cancel them
+
 async function loadCategory(cat) {
-  // Return from cache if we already have this category loaded
+  // Cancel any pending retry for this cat
+  if (retryTimers[cat]) { clearTimeout(retryTimers[cat]); delete retryTimers[cat]; }
+
+  // Serve from local cache if we have it
   if (productCache[cat]) {
     currentCat = cat;
     applyFilters();
@@ -468,13 +473,8 @@ async function loadCategory(cat) {
     return;
   }
 
-  // Show loading state
   currentCat = cat;
-  document.getElementById('grid').innerHTML = `
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <div class="loading-text">Loading ${CAT_LABELS[cat]} from our AI-powered database…<br><small>First load may take a moment while the server wakes up.</small></div>
-    </div>`;
+  showLoadingSpinner(cat, 'Loading products…', false);
   document.getElementById('metaCount').textContent = 'Loading…';
 
   try {
@@ -486,8 +486,9 @@ async function loadCategory(cat) {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       if (err.loading) {
-        // Server is still doing its initial refresh
-        showLoadingRetry(cat, 'Products are being fetched for the first time. Please wait a moment and try again.');
+        // Server is still doing its initial search — auto-retry every 15s
+        showLoadingSpinner(cat, 'Products are being fetched for the first time.<br>This only happens once and takes about 3–5 minutes.', true);
+        scheduleRetry(cat, 15000);
         return;
       }
       throw new Error(err.error || `HTTP ${res.status}`);
@@ -495,32 +496,55 @@ async function loadCategory(cat) {
 
     const data = await res.json();
     productCache[cat] = data;
-    applyFilters();
-    renderSidebar();
 
-    const age = data.refreshedAt
-      ? `Updated: ${new Date(data.refreshedAt).toLocaleDateString()}`
-      : '';
-    document.getElementById('metaRefresh').textContent = age;
+    // Only render if this is still the active category
+    if (currentCat === cat) {
+      applyFilters();
+      renderSidebar();
+      const age = data.refreshedAt ? `Updated: ${new Date(data.refreshedAt).toLocaleDateString()} · Next: ${new Date(data.nextRefresh).toLocaleDateString()}` : '';
+      document.getElementById('metaRefresh').textContent = age;
+    }
 
   } catch (err) {
     console.error('Load error:', err);
+    if (currentCat !== cat) return; // user switched away, ignore
     document.getElementById('grid').innerHTML = `
       <div class="empty">
         <span class="empty-icon">⚠️</span>
-        <p>Couldn't load products right now.<br><small>${err.message}</small><br><br>
-        <button onclick="loadCategory('${cat}')" style="background:var(--accent);color:#000;border:none;padding:8px 20px;cursor:pointer;font-family:var(--fb);font-weight:600;margin-top:8px">Retry</button></p>
+        <p>Couldn't load products right now.<br><small style="color:var(--text-3)">${err.message}</small><br><br>
+        <button onclick="loadCategory('${cat}')" style="background:var(--accent);color:#000;border:none;padding:8px 20px;cursor:pointer;font-family:var(--fb);font-weight:600">Retry</button></p>
       </div>`;
   }
 }
 
-function showLoadingRetry(cat, msg) {
+function showLoadingSpinner(cat, msg, showCountdown) {
+  if (currentCat !== cat) return;
+  const countdownId = `cd-${cat}`;
   document.getElementById('grid').innerHTML = `
-    <div class="empty">
-      <span class="empty-icon">⏳</span>
-      <p>${msg}<br><br>
-      <button onclick="loadCategory('${cat}')" style="background:var(--accent);color:#000;border:none;padding:8px 20px;cursor:pointer;font-family:var(--fb);font-weight:600;margin-top:8px">Try Again</button></p>
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <div class="loading-text">${msg}</div>
+      ${showCountdown ? `<div id="${countdownId}" style="margin-top:10px;font-size:.78rem;color:var(--text-3)">Checking again in 15s…</div>` : ''}
     </div>`;
+}
+
+function scheduleRetry(cat, delay) {
+  let remaining = Math.round(delay / 1000);
+  const countdownId = `cd-${cat}`;
+
+  // Tick the countdown every second
+  const tick = setInterval(() => {
+    remaining--;
+    const el = document.getElementById(countdownId);
+    if (el) el.textContent = remaining > 0 ? `Checking again in ${remaining}s…` : 'Checking…';
+    if (remaining <= 0) clearInterval(tick);
+  }, 1000);
+
+  retryTimers[cat] = setTimeout(() => {
+    clearInterval(tick);
+    delete retryTimers[cat];
+    if (currentCat === cat) loadCategory(cat);
+  }, delay);
 }
 
 // ── GROUP / CATEGORY NAV ─────────────────────────────────────
