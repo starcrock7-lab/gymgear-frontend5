@@ -142,7 +142,23 @@
     .c-brand{font-family:var(--ff);font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:3px}
     .c-name{font-family:var(--ff);font-weight:700;font-size:0.95rem;color:var(--text);line-height:1.25;margin-bottom:8px}
     .c-price{font-family:var(--ff);font-size:1.55rem;font-weight:700;color:var(--text);line-height:1;margin-bottom:3px}
+    .c-price-wrap{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+    .c-price-sale{font-family:var(--ff);font-size:1.55rem;font-weight:700;color:#dc2626;line-height:1}
+    .c-price-orig{font-size:0.88rem;color:var(--text-3);text-decoration:line-through;font-weight:400}
     .c-ret{font-size:0.68rem;color:var(--text-3);margin-bottom:10px}
+    .best-badge{
+      position:absolute;top:0;left:0;right:0;
+      background:#15803d;color:#fff;
+      font-family:var(--ff);font-size:0.62rem;font-weight:700;
+      padding:5px 10px;letter-spacing:0.08em;text-transform:uppercase;
+      text-align:center;z-index:2;
+    }
+    .disc-badge{
+      position:absolute;bottom:8px;left:8px;
+      background:#dc2626;color:#fff;
+      font-family:var(--ff);font-size:0.68rem;font-weight:700;
+      padding:3px 8px;border-radius:3px;letter-spacing:0.05em;z-index:2;
+    }
 
     .q-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
     .q-bar{flex:1;height:2px;background:var(--light);border-radius:1px;overflow:hidden}
@@ -645,12 +661,16 @@ function renderGrid(){
       <div class="sel-b">Selected</div>
       <div class="c-img">
         <img src="${img}" alt="${p.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=c-img-ph>—</div>'"/>
+        ${p.bestChoice?'<div class="best-badge">Best Choice</div>':''}
+        ${p.discount?`<div class="disc-badge">-${p.discount}% OFF</div>`:''}
         ${p.sponsored?'<div class="spon-b">Sponsored</div>':''}
       </div>
       <div class="c-body">
         <div class="c-brand">${p.brand}</div>
         <div class="c-name">${p.name}</div>
-        <div class="c-price">$${Number(p.price).toLocaleString()}</div>
+        ${p.salePrice
+          ? `<div class="c-price-wrap"><span class="c-price-sale">$${Number(p.salePrice).toLocaleString()}</span><span class="c-price-orig">$${Number(p.price).toLocaleString()}</span></div>`
+          : `<div class="c-price">$${Number(p.price).toLocaleString()}</div>`}
         <div class="c-ret">via ${p.retailer}</div>
         <div class="q-row"><div class="q-bar"><div class="q-fill" style="width:${(p.quality||0)*10}%"></div></div><div class="q-n">${p.quality||'—'}/10</div></div>
         <div class="s-row"><span class="stars">${stars(p.rating)}</span><span class="r-n">${p.rating||'—'}</span><span class="r-c">(${(p.reviewCount||0).toLocaleString()})</span></div>
@@ -749,7 +769,10 @@ async function openModal(id){
       <button class="mc" onclick="closeModal()">✕</button>
     </div>
     <div class="mb">
-      <div class="m-price">$${Number(p.price).toLocaleString()}</div>
+      ${p.bestChoice?'<div style="background:#15803d;color:#fff;font-family:var(--ff);font-size:0.62rem;font-weight:700;padding:5px 12px;letter-spacing:0.08em;text-transform:uppercase;text-align:center;border-radius:4px;margin-bottom:12px">✓ Best Choice in Category</div>':''}
+      ${p.salePrice
+        ? `<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:3px"><span class="m-price" style="color:#dc2626">$${Number(p.salePrice).toLocaleString()}</span><span style="font-size:1rem;color:var(--text-3);text-decoration:line-through">$${Number(p.price).toLocaleString()}</span><span style="background:#dc2626;color:#fff;font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:3px;font-family:var(--ff)">-${p.discount}% OFF</span></div>`
+        : `<div class="m-price">$${Number(p.price).toLocaleString()}</div>`}
       <div class="m-ret">via ${p.retailer}</div>
       <div class="m-rrow"><span class="m-stars">${stars(p.rating||0)}</span><span class="m-rnum">${p.rating||'—'}</span><span class="m-rsrc">${(p.reviewCount||0).toLocaleString()} reviews · ${p.reviewSource||''}</span></div>
       <div class="m-slbl">Specifications</div>
