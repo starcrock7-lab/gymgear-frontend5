@@ -3,499 +3,351 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GymGear Compare Pro — Find the Best Deal on Gym Equipment</title>
-  <meta name="description" content="Compare gym equipment, clothing, and supplements from top brands. Side-by-side comparisons with real prices and expert reviews."/>
+  <title>GymGear Compare Pro — Find the Best Gym Gear at the Lowest Price</title>
+  <meta name="description" content="Compare gym equipment, clothing, and supplements side by side. Real prices, real reviews, instant AI verdict."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --white:#ffffff;
-      --off:#f9f8f6;
-      --light:#f2f0ec;
-      --border:#e8e4de;
-      --border-d:#cec8be;
-      --text:#18160f;
-      --text-2:#6e6a62;
-      --text-3:#b0aa9e;
-      --accent:#e8542a;
-      --accent-l:#fff4f0;
-      --navy:#0f1f3d;
-      --shadow-sm:0 1px 2px rgba(0,0,0,0.06),0 2px 8px rgba(0,0,0,0.05);
-      --shadow:0 2px 8px rgba(0,0,0,0.07),0 8px 24px rgba(0,0,0,0.07);
-      --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
-      --ff:'Syne',sans-serif;
-      --fb:'DM Sans',sans-serif;
-      --ease:0.2s ease;
-      --radius:4px;
+      --white:#fff;--off:#f8f7f5;--light:#f0ede8;
+      --border:#e6e1da;--border-d:#cdc6bc;
+      --text:#161410;--text-2:#706b63;--text-3:#aca59b;
+      --accent:#e8542a;--navy:#0d1b35;
+      --green:#15803d;
+      --ff:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+      --ease:.2s ease;
     }
     html{scroll-behavior:smooth}
-    body{background:var(--white);color:var(--text);font-family:var(--fb);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-    img{display:block;max-width:100%}
-    a{text-decoration:none}
+    body{background:var(--white);color:var(--text);font-family:var(--fb);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    img{display:block}
+    a{text-decoration:none;color:inherit}
 
-    /* ── NAV ── */
+    /* NAV */
     nav{
-      position:sticky;top:0;z-index:200;height:58px;
-      background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);
-      border-bottom:1px solid var(--border);
-      display:flex;align-items:center;gap:0;
-      padding:0 40px;
+      height:56px;display:flex;align-items:center;justify-content:space-between;
+      padding:0 32px;border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:100;
+      background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);
     }
-    .nav-logo{
-      font-family:var(--ff);font-size:1.05rem;font-weight:700;
-      color:var(--text);letter-spacing:0.01em;margin-right:48px;
-      white-space:nowrap;
-    }
-    .nav-logo strong{color:var(--accent)}
-    .nav-links{display:flex;align-items:center;gap:0;flex:1}
-    .nav-links a{
-      color:var(--text-2);font-size:0.84rem;font-weight:500;padding:0 16px;
-      height:58px;display:flex;align-items:center;
-      border-bottom:2px solid transparent;
-      transition:color var(--ease),border-color var(--ease);
-    }
-    .nav-links a:hover{color:var(--text);border-bottom-color:var(--text)}
-    .nav-right{display:flex;align-items:center;gap:12px;margin-left:auto}
-    .nav-cta{
-      background:var(--accent);color:#fff;font-family:var(--ff);
-      font-weight:600;font-size:0.82rem;padding:8px 20px;
-      letter-spacing:0.03em;
-      transition:all var(--ease);border-radius:var(--radius);
-    }
-    .nav-cta:hover{background:#d4421a;transform:translateY(-1px);box-shadow:0 4px 14px rgba(232,84,42,0.35)}
-    .nav-mob{display:none;background:none;border:none;cursor:pointer;width:36px;height:36px;flex-direction:column;align-items:center;justify-content:center;gap:5px}
-    .nav-mob span{width:20px;height:1.5px;background:var(--text);display:block;transition:all .3s}
+    .n-logo{font-family:var(--ff);font-size:1rem;font-weight:700;color:var(--text)}
+    .n-logo b{color:var(--accent)}
+    .n-links{display:flex;align-items:center;gap:28px}
+    .n-links a{font-size:0.84rem;color:var(--text-2);font-weight:500;transition:color var(--ease)}
+    .n-links a:hover{color:var(--text)}
+    .n-cta{background:var(--accent);color:#fff;font-family:var(--ff);font-weight:700;font-size:0.8rem;padding:8px 20px;border-radius:4px;letter-spacing:0.03em;transition:all var(--ease)}
+    .n-cta:hover{background:#d4421a;transform:translateY(-1px)}
+    .n-mob{display:none;background:none;border:none;cursor:pointer;padding:4px;flex-direction:column;gap:5px}
+    .n-mob span{width:20px;height:1.5px;background:var(--text);display:block}
 
-    /* ── HERO ── */
+    /* HERO */
     .hero{
-      display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 58px);
-      max-height:720px;
+      padding:72px 32px 60px;
+      max-width:860px;margin:0 auto;text-align:center;
     }
-    .hero-left{
-      padding:72px 56px;display:flex;flex-direction:column;justify-content:center;
-      background:var(--navy);position:relative;overflow:hidden;
-    }
-    .hero-left::before{
-      content:'';position:absolute;inset:0;
-      background:url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=60') center/cover no-repeat;
-      opacity:0.18;
-    }
-    .hero-content{position:relative;z-index:1}
-    .hero-eyebrow{
-      font-family:var(--ff);font-size:0.7rem;font-weight:600;
-      letter-spacing:0.18em;text-transform:uppercase;
-      color:var(--accent);margin-bottom:20px;
+    .hero-tag{
+      display:inline-block;background:var(--off);border:1px solid var(--border);
+      font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+      color:var(--text-2);padding:5px 14px;border-radius:100px;margin-bottom:24px;
     }
     .hero-title{
-      font-family:var(--ff);font-size:clamp(2.6rem,4.5vw,3.8rem);
-      font-weight:800;line-height:1.05;letter-spacing:-0.02em;
-      color:#fff;margin-bottom:18px;
+      font-family:var(--ff);font-size:clamp(2.4rem,6vw,4rem);font-weight:800;
+      line-height:1.05;letter-spacing:-0.025em;color:var(--text);margin-bottom:18px;
     }
+    .hero-title span{color:var(--accent)}
     .hero-sub{
-      font-size:1rem;color:rgba(255,255,255,0.6);line-height:1.7;
-      margin-bottom:36px;max-width:400px;font-weight:300;
+      font-size:1.05rem;color:var(--text-2);line-height:1.75;
+      max-width:520px;margin:0 auto 32px;font-weight:400;
     }
-    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
-    .btn-hero{
+    .hero-btn{
+      display:inline-flex;align-items:center;gap:8px;
       background:var(--accent);color:#fff;font-family:var(--ff);
-      font-weight:600;font-size:0.9rem;padding:13px 28px;
-      border-radius:var(--radius);letter-spacing:0.02em;
-      transition:all var(--ease);
+      font-weight:700;font-size:1rem;padding:15px 36px;border-radius:6px;
+      letter-spacing:0.02em;transition:all var(--ease);
     }
-    .btn-hero:hover{background:#d4421a;transform:translateY(-2px);box-shadow:0 6px 20px rgba(232,84,42,0.4)}
-    .btn-ghost{
-      color:rgba(255,255,255,0.7);font-size:0.88rem;font-weight:400;
-      padding:13px 24px;border:1px solid rgba(255,255,255,0.15);
-      border-radius:var(--radius);transition:all var(--ease);
-    }
-    .btn-ghost:hover{color:#fff;border-color:rgba(255,255,255,0.4)}
-    .hero-stats{display:flex;gap:32px;padding-top:32px;border-top:1px solid rgba(255,255,255,0.1)}
-    .hstat-num{font-family:var(--ff);font-size:1.5rem;font-weight:700;color:#fff;line-height:1}
-    .hstat-lbl{font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:3px;letter-spacing:0.04em}
+    .hero-btn:hover{background:#d4421a;transform:translateY(-2px);box-shadow:0 8px 24px rgba(232,84,42,0.35)}
+    .hero-note{font-size:0.78rem;color:var(--text-3);margin-top:12px}
 
-    /* hero right — photo mosaic */
-    .hero-right{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;background:#000}
-    .hmosaic{overflow:hidden;position:relative}
-    .hmosaic:first-child{grid-column:1;grid-row:1/3}
-    .hmosaic img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;display:block}
-    .hmosaic:hover img{transform:scale(1.04)}
-    .hmosaic-label{
-      position:absolute;bottom:0;left:0;right:0;
-      background:linear-gradient(transparent,rgba(0,0,0,0.65));
-      padding:24px 16px 12px;
-      font-family:var(--ff);font-size:0.72rem;font-weight:600;
-      color:rgba(255,255,255,0.9);letter-spacing:0.1em;text-transform:uppercase;
+    /* WHY NOT AI */
+    .why-ai{
+      background:var(--navy);padding:40px 32px;
+      display:flex;align-items:center;gap:24px;
+      flex-wrap:wrap;justify-content:center;
     }
-
-    /* ── TICKER ── */
-    .ticker{
-      background:var(--accent);color:#fff;height:36px;
-      display:flex;align-items:center;overflow:hidden;
-      font-family:var(--ff);font-size:0.72rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
+    .why-ai-q{
+      font-family:var(--ff);font-size:1rem;font-weight:700;color:rgba(255,255,255,0.5);
+      font-style:italic;
     }
-    .ticker-track{
-      display:flex;gap:0;animation:tick 28s linear infinite;white-space:nowrap;
+    .why-ai-a{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+    .why-point{
+      display:flex;align-items:center;gap:8px;
+      background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);
+      border-radius:100px;padding:8px 16px;
+      font-size:0.8rem;color:#fff;font-weight:500;
     }
-    .ticker-item{padding:0 32px;border-right:1px solid rgba(255,255,255,0.3)}
-    @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    .why-point::before{content:'✓';color:#4ade80;font-weight:700;font-size:0.75rem}
 
-    /* ── SECTIONS ── */
-    .sec{padding:80px 40px;max-width:1280px;margin:0 auto}
-    .sec-eyebrow{font-family:var(--ff);font-size:0.68rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
-    .sec-title{font-family:var(--ff);font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;letter-spacing:-0.02em;line-height:1.15;margin-bottom:14px}
-    .sec-sub{font-size:0.95rem;color:var(--text-2);max-width:500px;line-height:1.75;font-weight:400}
-
-    /* ── CATEGORY GRID ── */
-    .cat-section{background:var(--off);padding:80px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-    .cat-inner{max-width:1280px;margin:0 auto;padding:0 40px}
-    .group-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:36px}
-    .gbar-btn{
-      background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;
-      font-family:var(--ff);font-size:0.8rem;font-weight:600;letter-spacing:0.04em;
-      color:var(--text-2);padding:10px 20px;cursor:pointer;transition:all var(--ease);
+    /* HOW */
+    .how{
+      padding:72px 32px;max-width:900px;margin:0 auto;
+      display:grid;grid-template-columns:repeat(3,1fr);gap:40px;
+      border-bottom:1px solid var(--border);
     }
-    .gbar-btn:hover{color:var(--text)}
-    .gbar-btn.on{color:var(--text);border-bottom-color:var(--text)}
-
-    .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-    .cat-card{
-      background:var(--white);border:1px solid var(--border);border-radius:6px;
-      overflow:hidden;cursor:pointer;transition:all var(--ease);
-      box-shadow:var(--shadow-sm);
+    .how-step{}
+    .how-n{
+      font-family:var(--ff);font-size:2.5rem;font-weight:800;
+      color:var(--border-d);line-height:1;margin-bottom:14px;
     }
-    .cat-card:hover{border-color:var(--accent);box-shadow:var(--shadow);transform:translateY(-3px)}
-    .cat-photo{height:130px;overflow:hidden;background:var(--light);position:relative}
-    .cat-photo img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
-    .cat-card:hover .cat-photo img{transform:scale(1.07)}
-    .cat-info{padding:12px 14px}
-    .cat-grp{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-3);font-weight:600;margin-bottom:3px}
-    .cat-name{font-family:var(--ff);font-weight:700;font-size:0.9rem;color:var(--text)}
-    .cat-cnt{font-size:0.72rem;color:var(--text-3);margin-top:2px}
+    .how-title{font-family:var(--ff);font-size:1.05rem;font-weight:700;margin-bottom:8px}
+    .how-desc{font-size:0.88rem;color:var(--text-2);line-height:1.7}
 
-    /* ── FEATURES ── */
-    .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:48px}
-    .feat-block{
-      padding:36px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+    /* CATEGORIES */
+    .cats{padding:64px 32px;max-width:1100px;margin:0 auto}
+    .cats-title{font-family:var(--ff);font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:8px}
+    .cats-sub{font-size:0.9rem;color:var(--text-2);text-align:center;margin-bottom:36px}
+
+    .cat-groups{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+    .cat-group-card{
+      border-radius:10px;overflow:hidden;position:relative;cursor:pointer;
+      transition:transform var(--ease),box-shadow var(--ease);
+      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+      text-decoration:none;display:block;
+    }
+    .cat-group-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,0,0,0.14)}
+    .cat-group-img{height:220px;overflow:hidden}
+    .cat-group-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease;display:block}
+    .cat-group-card:hover .cat-group-img img{transform:scale(1.05)}
+    .cat-group-overlay{
+      position:absolute;inset:0;
+      background:linear-gradient(to top,rgba(13,27,53,0.85) 0%,rgba(13,27,53,0.2) 60%,transparent 100%);
+      display:flex;flex-direction:column;justify-content:flex-end;padding:20px;
+    }
+    .cat-group-name{font-family:var(--ff);font-size:1.2rem;font-weight:700;color:#fff;margin-bottom:4px}
+    .cat-group-count{font-size:0.76rem;color:rgba(255,255,255,0.65)}
+    .cat-group-arrow{
+      position:absolute;top:14px;right:14px;
+      width:30px;height:30px;background:rgba(255,255,255,0.15);
+      border-radius:50%;display:flex;align-items:center;justify-content:center;
+      color:#fff;font-size:0.8rem;
       transition:background var(--ease);
     }
-    .feat-block:nth-child(even){border-right:none}
-    .feat-block:nth-child(3),.feat-block:nth-child(4){border-bottom:none}
-    .feat-block:hover{background:var(--off)}
-    .feat-num{font-family:var(--ff);font-size:2rem;font-weight:800;color:var(--border-d);margin-bottom:12px;line-height:1}
-    .feat-title{font-family:var(--ff);font-size:1.1rem;font-weight:700;margin-bottom:8px}
-    .feat-desc{font-size:0.88rem;color:var(--text-2);line-height:1.7}
+    .cat-group-card:hover .cat-group-arrow{background:var(--accent)}
 
-    /* ── EDITORIAL FEATURED ── */
-    .editorial{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:16px}
-    .ed-card{background:var(--white);overflow:hidden;cursor:pointer;transition:background var(--ease)}
-    .ed-card:hover{background:var(--off)}
-    .ed-img{height:200px;overflow:hidden}
-    .ed-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
-    .ed-card:hover .ed-img img{transform:scale(1.04)}
-    .ed-body{padding:20px}
-    .ed-cat{font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:6px}
-    .ed-name{font-family:var(--ff);font-size:1rem;font-weight:700;line-height:1.3;margin-bottom:6px}
-    .ed-brand{font-size:0.78rem;color:var(--text-2)}
-    .ed-price{font-family:var(--ff);font-size:1.2rem;font-weight:700;margin-top:8px}
-    .ed-rating{font-size:0.75rem;color:var(--text-2);margin-top:4px}
-    .ed-stars{color:#d97706}
+    .sub-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+    .sub-cat{
+      background:var(--off);border:1px solid var(--border);border-radius:8px;
+      padding:14px 14px;cursor:pointer;text-decoration:none;
+      transition:all var(--ease);display:flex;align-items:center;gap:10px;
+    }
+    .sub-cat:hover{border-color:var(--accent);background:var(--white);transform:translateY(-2px)}
+    .sub-cat-img{width:38px;height:38px;border-radius:6px;overflow:hidden;flex-shrink:0;background:var(--light)}
+    .sub-cat-img img{width:100%;height:100%;object-fit:cover}
+    .sub-cat-name{font-size:0.82rem;font-weight:600;color:var(--text);line-height:1.3}
 
-    /* ── BRANDS ── */
-    .brands-section{background:var(--off);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-    .brands-scroll{
-      display:flex;gap:0;overflow-x:auto;scrollbar-width:none;
-      padding:0 40px;border-bottom:1px solid var(--border);
-    }
-    .brands-scroll::-webkit-scrollbar{display:none}
-    .brand-pill{
-      flex-shrink:0;padding:18px 24px;border-right:1px solid var(--border);
-      font-family:var(--ff);font-size:0.82rem;font-weight:700;
-      color:var(--text-2);cursor:default;white-space:nowrap;
-      transition:color var(--ease),background var(--ease);
-    }
-    .brand-pill:hover{color:var(--text);background:var(--white)}
-    .brand-pill.highlight{color:var(--accent)}
-
-    /* ── AD SLOTS ── */
-    .ad-row{padding:20px 40px;background:var(--white)}
-    .ad-slot{
-      background:var(--off);border:1px dashed var(--border-d);border-radius:4px;
-      padding:16px 20px;display:flex;align-items:center;gap:16px;max-width:1280px;margin:0 auto;
-    }
+    /* AD */
+    .ad-row{padding:0 32px 32px;max-width:1100px;margin:0 auto}
+    .ad-slot{background:var(--off);border:1px dashed var(--border-d);border-radius:6px;padding:14px 20px;display:flex;align-items:center;gap:14px}
     .ad-tag{font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-3);flex-shrink:0;font-weight:600}
-    .ad-fill{flex:1;height:70px;background:var(--light);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:0.78rem}
+    .ad-fill{flex:1;height:64px;background:var(--light);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:0.76rem}
 
-    /* ── CTA ── */
-    .cta-section{
-      background:var(--navy);padding:80px 40px;text-align:center;
-      position:relative;overflow:hidden;
+    /* SPONSOR CTA */
+    .sponsor-cta{
+      background:var(--off);border-top:1px solid var(--border);
+      padding:48px 32px;display:flex;align-items:center;
+      justify-content:space-between;gap:24px;flex-wrap:wrap;
     }
-    .cta-section::before{
-      content:'';position:absolute;inset:0;
-      background:url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&q=40') center/cover;
-      opacity:0.08;
+    .sponsor-cta-text h3{font-family:var(--ff);font-size:1.2rem;font-weight:700;margin-bottom:4px}
+    .sponsor-cta-text p{font-size:0.88rem;color:var(--text-2)}
+    .btn-outline{
+      background:var(--white);color:var(--text);border:1.5px solid var(--border-d);
+      font-family:var(--ff);font-weight:700;font-size:0.84rem;
+      padding:11px 24px;border-radius:4px;letter-spacing:0.02em;
+      transition:all var(--ease);white-space:nowrap;
     }
-    .cta-inner{position:relative;z-index:1;max-width:560px;margin:0 auto}
-    .cta-title{font-family:var(--ff);font-size:clamp(2rem,4vw,3rem);font-weight:800;color:#fff;letter-spacing:-0.02em;line-height:1.1;margin-bottom:14px}
-    .cta-sub{color:rgba(255,255,255,0.55);font-size:1rem;line-height:1.7;margin-bottom:32px;font-weight:300}
-    .btn-cta{
-      background:var(--accent);color:#fff;font-family:var(--ff);
-      font-weight:700;font-size:0.92rem;padding:15px 36px;
-      letter-spacing:0.03em;border-radius:var(--radius);
-      transition:all var(--ease);display:inline-block;
-    }
-    .btn-cta:hover{background:#d4421a;transform:translateY(-2px);box-shadow:0 8px 24px rgba(232,84,42,0.4)}
+    .btn-outline:hover{border-color:var(--text);background:var(--text);color:#fff}
 
-    /* ── FOOTER ── */
-    footer{background:var(--text);padding:60px 40px 32px}
-    .foot-top{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr;gap:48px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,0.08)}
-    .foot-brand{font-family:var(--ff);font-size:1rem;font-weight:700;color:#fff;margin-bottom:10px}
-    .foot-brand strong{color:var(--accent)}
-    .foot-desc{font-size:0.82rem;color:rgba(255,255,255,0.35);line-height:1.75;max-width:260px}
-    .foot-col-t{font-family:var(--ff);font-size:0.65rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:16px}
-    .foot-links{display:flex;flex-direction:column;gap:9px}
-    .foot-links a{font-size:0.82rem;color:rgba(255,255,255,0.45);transition:color var(--ease)}
+    /* FOOTER */
+    footer{background:var(--navy);padding:40px 32px 24px}
+    .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:32px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.08)}
+    .foot-logo{font-family:var(--ff);font-size:1rem;font-weight:700;color:#fff;margin-bottom:8px}
+    .foot-logo b{color:var(--accent)}
+    .foot-desc{font-size:0.8rem;color:rgba(255,255,255,0.35);line-height:1.7}
+    .foot-col-t{font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:12px;font-family:var(--ff)}
+    .foot-links{display:flex;flex-direction:column;gap:8px}
+    .foot-links a{font-size:0.8rem;color:rgba(255,255,255,0.45);transition:color var(--ease)}
     .foot-links a:hover{color:#fff}
-    .foot-bottom{max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:28px}
-    .foot-copy{font-size:0.75rem;color:rgba(255,255,255,0.25)}
-    .foot-disc{font-size:0.7rem;color:rgba(255,255,255,0.15);max-width:480px;line-height:1.6}
+    .foot-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    .foot-copy{font-size:0.72rem;color:rgba(255,255,255,0.2)}
+    .foot-disc{font-size:0.68rem;color:rgba(255,255,255,0.15);max-width:440px;line-height:1.5}
 
-    /* ── MOBILE ── */
-    .mob-nav{display:none;position:fixed;inset:0;background:#fff;z-index:300;flex-direction:column;padding:0}
-    .mob-nav.open{display:flex}
-    .mob-nav-head{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--border)}
-    .mob-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text)}
-    .mob-links{flex:1;overflow-y:auto;padding:8px 0}
-    .mob-links a{display:block;font-family:var(--ff);font-size:1rem;font-weight:600;color:var(--text);padding:16px 24px;border-bottom:1px solid var(--border)}
+    /* MOBILE MENU */
+    .mob-menu{display:none;position:fixed;inset:0;background:#fff;z-index:300;flex-direction:column}
+    .mob-menu.open{display:flex}
+    .mob-head{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}
+    .mob-close{background:none;border:none;font-size:1.3rem;cursor:pointer}
+    .mob-links{padding:8px 0}
+    .mob-links a{display:block;font-family:var(--ff);font-size:1rem;font-weight:700;color:var(--text);padding:14px 24px;border-bottom:1px solid var(--border)}
     .mob-foot{padding:20px 24px}
 
-    @media(max-width:1024px){
+    @media(max-width:768px){
       nav{padding:0 20px}
-      .nav-links{display:none}
-      .nav-mob{display:flex}
-      .hero{grid-template-columns:1fr;max-height:none}
-      .hero-right{height:300px}
-      .hero-left{padding:52px 28px}
-      .sec{padding:52px 20px}
-      .cat-inner{padding:0 20px}
-      .foot-top{grid-template-columns:1fr 1fr;gap:28px}
-      .ad-row{padding:16px 20px}
-      .editorial{grid-template-columns:1fr}
-      .features-grid{grid-template-columns:1fr}
-      .feat-block{border-right:none}
+      .n-links{display:none}
+      .n-mob{display:flex}
+      .hero{padding:52px 20px 48px}
+      .why-ai{padding:28px 20px;gap:16px}
+      .how{grid-template-columns:1fr;padding:52px 20px;gap:28px}
+      .cats{padding:48px 20px}
+      .cat-groups{grid-template-columns:1fr;gap:12px}
+      .cat-group-img{height:180px}
+      .foot-grid{grid-template-columns:1fr;gap:24px}
+      .sponsor-cta{padding:36px 20px}
+      footer{padding:32px 20px 20px}
+      .ad-row{padding:0 20px 24px}
     }
-    @media(max-width:600px){
-      .hero-right{display:none}
-      .brands-scroll{padding:0 20px}
-      .cta-section{padding:52px 20px}
-      footer{padding:40px 20px 24px}
-      .foot-top{grid-template-columns:1fr}
-      .foot-bottom{flex-direction:column;align-items:flex-start}
+    @media(max-width:480px){
+      .sub-cats{grid-template-columns:repeat(2,1fr)}
+      .why-ai-a{gap:8px}
     }
   </style>
 </head>
 <body>
 
 <nav>
-  <a href="index.html" class="nav-logo">GymGear <strong>Compare</strong> Pro</a>
-  <div class="nav-links">
+  <a href="index.html" class="n-logo">GymGear <b>Compare</b> Pro</a>
+  <div class="n-links">
     <a href="app.html">Compare</a>
-    <a href="app.html">Equipment</a>
-    <a href="app.html">Clothing</a>
-    <a href="app.html">Supplements</a>
     <a href="sponsors.html">For Brands</a>
+    <a href="app.html" class="n-cta">Start Comparing →</a>
   </div>
-  <div class="nav-right">
-    <a href="sponsors.html" style="font-size:0.82rem;color:var(--text-2);font-weight:500;display:none" class="nav-sponsor-link">Partner With Us</a>
-    <a href="app.html" class="nav-cta">Start Comparing</a>
-    <button class="nav-mob" onclick="document.getElementById('mobNav').classList.add('open');document.body.style.overflow='hidden'" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
+  <button class="n-mob" onclick="openMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
-<!-- MOBILE NAV -->
-<div class="mob-nav" id="mobNav">
-  <div class="mob-nav-head">
-    <span style="font-family:var(--ff);font-weight:700;font-size:1rem">GymGear Compare Pro</span>
-    <button class="mob-close" onclick="document.getElementById('mobNav').classList.remove('open');document.body.style.overflow=''">✕</button>
+<div class="mob-menu" id="mobMenu">
+  <div class="mob-head">
+    <span style="font-family:var(--ff);font-weight:700">GymGear Compare Pro</span>
+    <button class="mob-close" onclick="closeMenu()">✕</button>
   </div>
   <div class="mob-links">
-    <a href="app.html">Compare Products</a>
-    <a href="app.html">Equipment</a>
-    <a href="app.html">Clothing</a>
-    <a href="app.html">Supplements</a>
-    <a href="sponsors.html">For Brands &amp; Sponsors</a>
+    <a href="app.html" onclick="closeMenu()">Compare Products</a>
+    <a href="sponsors.html" onclick="closeMenu()">For Brands & Sponsors</a>
   </div>
   <div class="mob-foot">
-    <a href="app.html" class="btn-hero" style="display:block;text-align:center">Start Comparing →</a>
+    <a href="app.html" class="hero-btn" style="justify-content:center">Start Comparing →</a>
   </div>
 </div>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-left">
-    <div class="hero-content">
-      <div class="hero-eyebrow">Gym Equipment · Clothing · Supplements</div>
-      <h1 class="hero-title">Find the Best Deal on Any Gym Product</h1>
-      <p class="hero-sub">Side-by-side comparisons across the top brands. Real prices, expert reviews, and AI-powered recommendations — free, always.</p>
-      <div class="hero-actions">
-        <a href="app.html" class="btn-hero">Start Comparing →</a>
-        <a href="#categories" class="btn-ghost">Browse Categories</a>
-      </div>
-      <div class="hero-stats">
-        <div>
-          <div class="hstat-num">112+</div>
-          <div class="hstat-lbl">Products</div>
-        </div>
-        <div>
-          <div class="hstat-num">20</div>
-          <div class="hstat-lbl">Categories</div>
-        </div>
-        <div>
-          <div class="hstat-num">30+</div>
-          <div class="hstat-lbl">Brands</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="hero-right">
-    <div class="hmosaic">
-      <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=700&q=80" alt="Gym equipment" loading="eager"/>
-      <div class="hmosaic-label">Equipment</div>
-    </div>
-    <div class="hmosaic">
-      <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=500&q=75" alt="Training" loading="eager"/>
-      <div class="hmosaic-label">Clothing</div>
-    </div>
-    <div class="hmosaic">
-      <img src="https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=500&q=75" alt="Supplements" loading="eager"/>
-      <div class="hmosaic-label">Supplements</div>
-    </div>
-  </div>
+  <div class="hero-tag">Free · No Sign-Up · Instant Results</div>
+  <h1 class="hero-title">Stop Overpaying<br>for <span>Gym Gear</span></h1>
+  <p class="hero-sub">Pick any two products — benches, barbells, protein, hoodies — and get a side-by-side breakdown with real prices and an honest verdict on which to buy.</p>
+  <a href="app.html" class="hero-btn">Start Comparing Free →</a>
+  <div class="hero-note">No account needed. Takes 30 seconds.</div>
 </section>
 
-<!-- TICKER -->
-<div class="ticker">
-  <div class="ticker-track" id="ticker"></div>
-</div>
-
-<!-- AD ROW -->
-<div class="ad-row">
-  <div class="ad-slot">
-    <span class="ad-tag">Ad</span>
-    <div class="ad-fill">728×90 Leaderboard — Paste your Google AdSense or affiliate banner code here</div>
-  </div>
-</div>
-
-<!-- CATEGORIES -->
-<div class="cat-section" id="categories">
-  <div class="cat-inner">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
-      <div>
-        <div class="sec-eyebrow">Browse by Category</div>
-        <h2 class="sec-title" style="margin-bottom:0">Everything You Need</h2>
-      </div>
-      <a href="app.html" style="font-size:0.84rem;font-weight:600;color:var(--accent)">View All →</a>
-    </div>
-    <div class="group-bar" id="groupBar">
-      <button class="gbar-btn on" onclick="filterCats('all',this)">All</button>
-      <button class="gbar-btn" onclick="filterCats('equipment',this)">Equipment</button>
-      <button class="gbar-btn" onclick="filterCats('clothing',this)">Clothing</button>
-      <button class="gbar-btn" onclick="filterCats('supplements',this)">Supplements</button>
-    </div>
-    <div class="cat-grid" id="catGrid"></div>
+<!-- WHY NOT JUST ASK AI -->
+<div class="why-ai">
+  <div class="why-ai-q">"Why not just ask ChatGPT?"</div>
+  <div class="why-ai-a">
+    <div class="why-point">Real current prices</div>
+    <div class="why-point">Direct buy links</div>
+    <div class="why-point">Side-by-side specs</div>
+    <div class="why-point">No hallucinated products</div>
+    <div class="why-point">Updated weekly</div>
   </div>
 </div>
 
 <!-- HOW IT WORKS -->
-<div style="padding:80px 0;border-bottom:1px solid var(--border)">
-  <div class="sec">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
-      <div>
-        <div class="sec-eyebrow">How It Works</div>
-        <h2 class="sec-title">Three Steps to the Right Buy</h2>
-        <p class="sec-sub">No sign-up required. No ads disguised as results. Just clean, side-by-side comparisons.</p>
-      </div>
-      <div class="features-grid">
-        <div class="feat-block">
-          <div class="feat-num">01</div>
-          <div class="feat-title">Pick a Category</div>
-          <div class="feat-desc">Choose from Equipment, Clothing, or Supplements — then narrow down to Barbells, Protein, Gym Shorts, and more.</div>
-        </div>
-        <div class="feat-block">
-          <div class="feat-num">02</div>
-          <div class="feat-title">Select Two Products</div>
-          <div class="feat-desc">Tap any two products to add them to your comparison. The bar at the bottom tracks your picks.</div>
-        </div>
-        <div class="feat-block">
-          <div class="feat-num">03</div>
-          <div class="feat-title">Get the Verdict</div>
-          <div class="feat-desc">See a full spec breakdown plus an AI-generated recommendation on which product is the better buy for the money.</div>
-        </div>
-        <div class="feat-block">
-          <div class="feat-num">04</div>
-          <div class="feat-title">Buy Direct</div>
-          <div class="feat-desc">Every product links directly to the retailer. No middleman, no markups. The price you see is the price you pay.</div>
-        </div>
-      </div>
-    </div>
+<div class="how">
+  <div class="how-step">
+    <div class="how-n">01</div>
+    <div class="how-title">Pick a Category</div>
+    <div class="how-desc">Choose from Equipment, Clothing, or Supplements. Then narrow down — Barbells, Protein, Gym Shorts, whatever you're shopping for.</div>
+  </div>
+  <div class="how-step">
+    <div class="how-n">02</div>
+    <div class="how-title">Tap Two Products</div>
+    <div class="how-desc">Click on any two products to select them. A comparison bar appears at the bottom tracking your picks.</div>
+  </div>
+  <div class="how-step">
+    <div class="how-n">03</div>
+    <div class="how-title">Get the Verdict</div>
+    <div class="how-desc">See a full spec breakdown with prices, ratings, and a plain-English AI recommendation on which is the smarter buy.</div>
   </div>
 </div>
 
-<!-- FEATURED -->
-<div style="padding:80px 0;border-bottom:1px solid var(--border)">
-  <div class="sec">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
-      <div>
-        <div class="sec-eyebrow">Editor's Picks</div>
-        <h2 class="sec-title" style="margin-bottom:0">Top Rated This Month</h2>
-      </div>
-      <a href="app.html" style="font-size:0.84rem;font-weight:600;color:var(--accent)">See All Products →</a>
-    </div>
-    <div class="editorial" id="editorialGrid"></div>
-  </div>
-</div>
+<!-- CATEGORIES -->
+<section class="cats">
+  <h2 class="cats-title">What do you want to compare?</h2>
+  <p class="cats-sub">Tap a group or jump straight to a subcategory</p>
 
-<!-- AD ROW 2 -->
-<div class="ad-row" style="background:var(--off);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="cat-groups">
+    <a href="app.html?cat=benches" class="cat-group-card">
+      <div class="cat-group-img">
+        <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=700&q=80" alt="Equipment" loading="lazy"/>
+      </div>
+      <div class="cat-group-overlay">
+        <div class="cat-group-name">Equipment</div>
+        <div class="cat-group-count">Benches · Barbells · Racks · Dumbbells · More</div>
+      </div>
+      <div class="cat-group-arrow">→</div>
+    </a>
+    <a href="app.html?cat=shorts" class="cat-group-card">
+      <div class="cat-group-img">
+        <img src="https://images.unsplash.com/photo-1483721310020-03333e577078?w=700&q=80" alt="Clothing" loading="lazy"/>
+      </div>
+      <div class="cat-group-overlay">
+        <div class="cat-group-name">Clothing</div>
+        <div class="cat-group-count">Shorts · Hoodies · Footwear · Compression · More</div>
+      </div>
+      <div class="cat-group-arrow">→</div>
+    </a>
+    <a href="app.html?cat=preworkout" class="cat-group-card">
+      <div class="cat-group-img">
+        <img src="https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=700&q=80" alt="Supplements" loading="lazy"/>
+      </div>
+      <div class="cat-group-overlay">
+        <div class="cat-group-name">Supplements</div>
+        <div class="cat-group-count">Protein · Pre-Workout · Creatine · Recovery · More</div>
+      </div>
+      <div class="cat-group-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="sub-cats" id="subCats"></div>
+</section>
+
+<!-- AD -->
+<div class="ad-row">
   <div class="ad-slot">
-    <span class="ad-tag">Sponsored</span>
-    <div class="ad-fill">728×90 — Sponsored Brand Placement</div>
+    <span class="ad-tag">Ad</span>
+    <div class="ad-fill">728×90 — Paste your Google AdSense or affiliate banner code here</div>
   </div>
 </div>
 
-<!-- BRANDS -->
-<div class="brands-section" style="padding:48px 0">
-  <div style="max-width:1280px;margin:0 auto;padding:0 40px 28px">
-    <div class="sec-eyebrow">Brands We Cover</div>
-    <h2 class="sec-title">The Best Names in Fitness</h2>
+<!-- SPONSOR CTA -->
+<div class="sponsor-cta">
+  <div class="sponsor-cta-text">
+    <h3>Got a fitness brand?</h3>
+    <p>Get your products in front of buyers who are actively comparing and ready to purchase.</p>
   </div>
-  <div class="brands-scroll" id="brandsBar"></div>
-</div>
-
-<!-- CTA -->
-<div class="cta-section">
-  <div class="cta-inner">
-    <h2 class="cta-title">Want to Reach Gym-Goers Who Are Ready to Buy?</h2>
-    <p class="cta-sub">Partner with GymGear Compare Pro and get your brand in front of buyers actively researching their next purchase.</p>
-    <a href="sponsors.html" class="btn-cta">View Partnership Options →</a>
-  </div>
+  <a href="sponsors.html" class="btn-outline">View Partnership Options →</a>
 </div>
 
 <footer>
-  <div class="foot-top">
+  <div class="foot-grid">
     <div>
-      <div class="foot-brand">GymGear <strong>Compare</strong> Pro</div>
-      <p class="foot-desc">The smartest way to compare gym equipment, clothing, and supplements. Side-by-side specs, real prices, and AI recommendations.</p>
+      <div class="foot-logo">GymGear <b>Compare</b> Pro</div>
+      <p class="foot-desc">Side-by-side comparisons across gym equipment, clothing, and supplements. Real prices, real reviews, honest verdicts.</p>
     </div>
     <div>
       <div class="foot-col-t">Compare</div>
       <div class="foot-links">
-        <a href="app.html">Equipment</a>
-        <a href="app.html">Clothing</a>
-        <a href="app.html">Supplements</a>
+        <a href="app.html?cat=benches">Equipment</a>
+        <a href="app.html?cat=shorts">Clothing</a>
+        <a href="app.html?cat=preworkout">Supplements</a>
         <a href="app.html">All Products</a>
       </div>
     </div>
@@ -503,106 +355,45 @@
       <div class="foot-col-t">Company</div>
       <div class="foot-links">
         <a href="sponsors.html">For Brands</a>
-        <a href="sponsors.html">Advertise</a>
+        <a href="sponsors.html#contact">Advertise</a>
         <a href="sponsors.html#contact">Contact</a>
-      </div>
-    </div>
-    <div>
-      <div class="foot-col-t">Top Brands</div>
-      <div class="foot-links">
-        <a href="app.html">Rogue Fitness</a>
-        <a href="app.html">Transparent Labs</a>
-        <a href="app.html">Young LA</a>
-        <a href="app.html">Ghost</a>
-        <a href="app.html">Gymshark</a>
       </div>
     </div>
   </div>
   <div class="foot-bottom">
-    <div class="foot-copy">© 2026 GymGear Compare Pro. All rights reserved.</div>
-    <div class="foot-disc">Some links on this site are affiliate links. We may earn a commission when you click through and buy, at no extra cost to you.</div>
+    <div class="foot-copy">© 2026 GymGear Compare Pro</div>
+    <div class="foot-disc">Some links are affiliate links. We may earn a commission at no extra cost to you.</div>
   </div>
 </footer>
 
 <script>
-const CATS = [
-  {key:'benches',    label:'Benches',         group:'equipment',   count:8, img:'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=70'},
-  {key:'barbells',   label:'Barbells',         group:'equipment',   count:8, img:'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=400&q=70'},
-  {key:'dumbbells',  label:'Dumbbells',        group:'equipment',   count:8, img:'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=70'},
-  {key:'plates',     label:'Weight Plates',    group:'equipment',   count:8, img:'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&q=70'},
-  {key:'racks',      label:'Racks & Rigs',     group:'equipment',   count:8, img:'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=400&q=70'},
-  {key:'cardio',     label:'Cardio',           group:'equipment',   count:8, img:'https://images.unsplash.com/photo-1520877880798-5ee004e3f11e?w=400&q=70'},
-  {key:'kettlebells',label:'Kettlebells',       group:'equipment',   count:8, img:'https://images.unsplash.com/photo-1578762560042-46ad127c95ea?w=400&q=70'},
-  {key:'bands',      label:'Resistance Bands', group:'equipment',   count:8, img:'https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=400&q=70'},
-  {key:'shorts',     label:'Gym Shorts',       group:'clothing',    count:8, img:'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400&q=70'},
-  {key:'compression',label:'Compression',      group:'clothing',    count:8, img:'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?w=400&q=70'},
-  {key:'tanks',      label:'Tank Tops',        group:'clothing',    count:8, img:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=400&q=70'},
-  {key:'hoodies',    label:'Hoodies',          group:'clothing',    count:8, img:'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&q=70'},
-  {key:'footwear',   label:'Footwear',         group:'clothing',    count:8, img:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=70'},
-  {key:'sportsbras', label:'Sports Bras',      group:'clothing',    count:8, img:'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=70'},
-  {key:'preworkout', label:'Pre-Workout',      group:'supplements', count:8, img:'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=400&q=70'},
-  {key:'protein',    label:'Protein',          group:'supplements', count:8, img:'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&q=70'},
-  {key:'creatine',   label:'Creatine',         group:'supplements', count:8, img:'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=70'},
-  {key:'recovery',   label:'Recovery',         group:'supplements', count:8, img:'https://images.unsplash.com/photo-1611073615830-9b691a1f9a9e?w=400&q=70'},
-  {key:'vitamins',   label:'Vitamins',         group:'supplements', count:8, img:'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=70'},
-  {key:'fatburners', label:'Fat Burners',      group:'supplements', count:8, img:'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&q=70'},
+const SUB_CATS = [
+  {key:'benches',     label:'Benches',         img:'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=80&q=70'},
+  {key:'barbells',    label:'Barbells',         img:'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=80&q=70'},
+  {key:'dumbbells',   label:'Dumbbells',        img:'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=80&q=70'},
+  {key:'racks',       label:'Racks',            img:'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=80&q=70'},
+  {key:'cardio',      label:'Cardio',           img:'https://images.unsplash.com/photo-1520877880798-5ee004e3f11e?w=80&q=70'},
+  {key:'kettlebells', label:'Kettlebells',       img:'https://images.unsplash.com/photo-1578762560042-46ad127c95ea?w=80&q=70'},
+  {key:'shorts',      label:'Gym Shorts',       img:'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=80&q=70'},
+  {key:'hoodies',     label:'Hoodies',          img:'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=80&q=70'},
+  {key:'footwear',    label:'Footwear',         img:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=80&q=70'},
+  {key:'compression', label:'Compression',      img:'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?w=80&q=70'},
+  {key:'preworkout',  label:'Pre-Workout',      img:'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=80&q=70'},
+  {key:'protein',     label:'Protein',          img:'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=80&q=70'},
+  {key:'creatine',    label:'Creatine',         img:'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=80&q=70'},
+  {key:'recovery',    label:'Recovery',         img:'https://images.unsplash.com/photo-1611073615830-9b691a1f9a9e?w=80&q=70'},
 ];
-const EDITORIAL = [
-  {name:'Ohio Bar', brand:'Rogue Fitness', price:345, rating:4.9, rcount:'2,100', cat:'barbells', badge:'Top Rated', img:'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=500&q=75'},
-  {name:'Ghost Legend Pre-Workout', brand:'Ghost', price:49, rating:4.8, rcount:'14,200', cat:'preworkout', badge:'Best Seller', img:'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=500&q=75'},
-  {name:'215 Gotta Go Shorts', brand:'Young LA', price:42, rating:4.8, rcount:'3,200', cat:'shorts', badge:'Trending', img:'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=500&q=75'},
-];
-const BRANDS = ['Rogue Fitness','Rep Fitness','Titan Fitness','Eleiko','Bells of Steel','Young LA','Gymshark','NOBULL','Alphalete','Lululemon','Ghost','Transparent Labs','Gorilla Mind','Legion','Optimum Nutrition','American Barbell','Vulcan Strength','Fringe Sport','Concept2','Assault Fitness','Better Bodies','GASP','Ironmaster','Bowflex','Thorne','Momentous','Nike','Adidas','Under Armour','Inov-8'];
-const TICKER_ITEMS = ['Rogue Fitness','Rep Fitness','Young LA','Ghost','Transparent Labs','Gymshark','NOBULL','Eleiko','Concept2','Alphalete','Gorilla Mind','American Barbell'];
 
-let activeG = 'all';
-
-// Ticker
-const t=document.getElementById('ticker');
-const items=[...TICKER_ITEMS,...TICKER_ITEMS].map(i=>`<span class="ticker-item">${i}</span>`).join('');
-t.innerHTML=items+items;
-
-// Categories
-function filterCats(g,el){
-  activeG=g;
-  document.querySelectorAll('.gbar-btn').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on');
-  renderCats();
-}
-function renderCats(){
-  const list=activeG==='all'?CATS:CATS.filter(c=>c.group===activeG);
-  document.getElementById('catGrid').innerHTML=list.map(c=>`
-    <a href="app.html?cat=${c.key}" class="cat-card">
-      <div class="cat-photo">
-        <img src="${c.img}" alt="${c.label}" loading="lazy" onerror="this.style.display='none'"/>
-      </div>
-      <div class="cat-info">
-        <div class="cat-grp">${c.group}</div>
-        <div class="cat-name">${c.label}</div>
-        <div class="cat-cnt">${c.count} products</div>
-      </div>
-    </a>`).join('');
-}
-
-// Editorial
-document.getElementById('editorialGrid').innerHTML=EDITORIAL.map(p=>`
-  <a href="app.html?cat=${p.cat}" class="ed-card">
-    <div class="ed-img">
-      <img src="${p.img}" alt="${p.name}" loading="lazy"/>
+document.getElementById('subCats').innerHTML = SUB_CATS.map(c => `
+  <a href="app.html?cat=${c.key}" class="sub-cat">
+    <div class="sub-cat-img">
+      <img src="${c.img}" alt="${c.label}" loading="lazy" onerror="this.style.display='none'"/>
     </div>
-    <div class="ed-body">
-      <div class="ed-cat">${p.badge}</div>
-      <div class="ed-name">${p.name}</div>
-      <div class="ed-brand">${p.brand}</div>
-      <div class="ed-price">$${p.price}</div>
-      <div class="ed-rating"><span class="ed-stars">${'★'.repeat(Math.floor(p.rating))}</span> ${p.rating} · ${p.rcount} reviews</div>
-    </div>
+    <span class="sub-cat-name">${c.label}</span>
   </a>`).join('');
 
-// Brands
-document.getElementById('brandsBar').innerHTML=BRANDS.map((b,i)=>`<div class="brand-pill${i<4?' highlight':''}">${b}</div>`).join('');
-
-renderCats();
+function openMenu(){document.getElementById('mobMenu').classList.add('open');document.body.style.overflow='hidden'}
+function closeMenu(){document.getElementById('mobMenu').classList.remove('open');document.body.style.overflow=''}
 </script>
 </body>
 </html>
