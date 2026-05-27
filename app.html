@@ -148,17 +148,23 @@
     .c-ret{font-size:0.68rem;color:var(--text-3);margin-bottom:10px}
     .best-badge{
       position:absolute;top:0;left:0;right:0;
-      background:#15803d;color:#fff;
-      font-family:var(--ff);font-size:0.62rem;font-weight:700;
-      padding:5px 10px;letter-spacing:0.08em;text-transform:uppercase;
+      background:linear-gradient(135deg,#15803d,#16a34a);color:#fff;
+      font-family:var(--ff);font-size:0.65rem;font-weight:700;
+      padding:6px 10px;letter-spacing:0.1em;text-transform:uppercase;
       text-align:center;z-index:2;
+      display:flex;align-items:center;justify-content:center;gap:6px;
     }
+    .best-badge::before{content:'★';font-size:0.7rem}
     .disc-badge{
-      position:absolute;bottom:8px;left:8px;
-      background:#dc2626;color:#fff;
-      font-family:var(--ff);font-size:0.68rem;font-weight:700;
-      padding:3px 8px;border-radius:3px;letter-spacing:0.05em;z-index:2;
+      position:absolute;bottom:0;left:0;
+      background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;
+      font-family:var(--ff);font-size:0.78rem;font-weight:700;
+      padding:5px 12px 5px 10px;
+      clip-path:polygon(0 0,100% 0,88% 100%,0 100%);
+      letter-spacing:0.06em;z-index:2;
+      animation:pulse-disc 2s ease-in-out infinite;
     }
+    @keyframes pulse-disc{0%,100%{opacity:1}50%{opacity:0.85}}
 
     .q-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
     .q-bar{flex:1;height:2px;background:var(--light);border-radius:1px;overflow:hidden}
@@ -381,11 +387,216 @@
 <script>
 const BACKEND='https://gymgear-backend5.onrender.com';
 
-// Per-product images — specific photos for each product, not just category shots
-// Using Unsplash photos that match the actual product type closely
+// Product images — varied photos per product, matched to product type
+// Format: Unsplash photo IDs selected to visually match each product
 const PROD_IMGS = {
-  // Benches
+  // Benches — flat benches, adjustable benches, padded benches
   'rogue-mb2':      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+  'rogue-flat2':    'https://images.unsplash.com/photo-1652363723078-52f1ff6e4ef8?w=600&q=80',
+  'rep-fb5000':     'https://images.unsplash.com/photo-1627483297886-49710ae1fc22?w=600&q=80',
+  'rep-ab5200':     'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80',
+  'titan-ab':       'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+  'bells-bench':    'https://images.unsplash.com/photo-1652363723078-52f1ff6e4ef8?w=600&q=80',
+  'archon-bench':   'https://images.unsplash.com/photo-1627483297886-49710ae1fc22?w=600&q=80',
+  'rogue-fold':     'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+  // Barbells — close-up barbell shots
+  'rogue-ohio':     'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=600&q=80',
+  'rogue-deadlift': 'https://images.unsplash.com/photo-1584466977773-e625c37cdd50?w=600&q=80',
+  'eleiko-iwf':     'https://images.unsplash.com/photo-1617854818583-09e7f077a156?w=600&q=80',
+  'american-ss':    'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=600&q=80',
+  'titan-olympic':  'https://images.unsplash.com/photo-1584466977773-e625c37cdd50?w=600&q=80',
+  'fringe-wonder':  'https://images.unsplash.com/photo-1617854818583-09e7f077a156?w=600&q=80',
+  'vulcan-pro':     'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=600&q=80',
+  'rep-equalizer':  'https://images.unsplash.com/photo-1584466977773-e625c37cdd50?w=600&q=80',
+  // Dumbbells — dumbbell rack, hex dumbbells, adjustable
+  'rogue-hex':      'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80',
+  'rep-hex':        'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&q=80',
+  'bowflex-552':    'https://images.unsplash.com/photo-1638536532686-d610adfc8e5c?w=600&q=80',
+  'ironmaster-ql':  'https://images.unsplash.com/photo-1638536532686-d610adfc8e5c?w=600&q=80',
+  'fringe-urethane':'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80',
+  'vulcan-db':      'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&q=80',
+  'titan-adj':      'https://images.unsplash.com/photo-1638536532686-d610adfc8e5c?w=600&q=80',
+  'cap-hex':        'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80',
+  // Plates — weight plates stacked, bumpers
+  'rogue-hg2':      'https://images.unsplash.com/photo-1616803689943-5601631c7fec?w=600&q=80',
+  'rep-black':      'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80',
+  'rep-comp':       'https://images.unsplash.com/photo-1616803689943-5601631c7fec?w=600&q=80',
+  'rogue-echo':     'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80',
+  'vulcan-alpha':   'https://images.unsplash.com/photo-1616803689943-5601631c7fec?w=600&q=80',
+  'rep-color':      'https://images.unsplash.com/photo-1517963879433-6ad2a56fcd82?w=600&q=80',
+  'titan-bumper':   'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80',
+  'cap-iron':       'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80',
+  // Racks — power racks, squat stands
+  'rogue-rm6':      'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&q=80',
+  'rogue-r3':       'https://images.unsplash.com/photo-1534438097545-a2c22c57f2ad?w=600&q=80',
+  'rep-pr5000':     'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&q=80',
+  'titan-x3':       'https://images.unsplash.com/photo-1534438097545-a2c22c57f2ad?w=600&q=80',
+  'rep-hr100':      'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&q=80',
+  'bells-squat':    'https://images.unsplash.com/photo-1534438097545-a2c22c57f2ad?w=600&q=80',
+  'rogue-squat':    'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&q=80',
+  'titan-t2':       'https://images.unsplash.com/photo-1534438097545-a2c22c57f2ad?w=600&q=80',
+  // Cardio — rower, bike, treadmill
+  'concept2-rower': 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600&q=80',
+  'assault-bike':   'https://images.unsplash.com/photo-1520877880798-5ee004e3f11e?w=600&q=80',
+  'concept2-ski':   'https://images.unsplash.com/photo-1607962837359-5e7e89f86776?w=600&q=80',
+  'rogue-echo-bike':'https://images.unsplash.com/photo-1520877880798-5ee004e3f11e?w=600&q=80',
+  'nordictrack-1750':'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=600&q=80',
+  'peloton-bike':   'https://images.unsplash.com/photo-1520877880798-5ee004e3f11e?w=600&q=80',
+  'assault-runner': 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=600&q=80',
+  'concept2-bikeerg':'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600&q=80',
+  // Kettlebells — kettlebell close-ups
+  'rogue-kb':       'https://images.unsplash.com/photo-1578762560042-46ad127c95ea?w=600&q=80',
+  'rep-kb':         'https://images.unsplash.com/photo-1535743686920-55e4145369b9?w=600&q=80',
+  'onnit-kb':       'https://images.unsplash.com/photo-1578762560042-46ad127c95ea?w=600&q=80',
+  'dragon-door-kb': 'https://images.unsplash.com/photo-1535743686920-55e4145369b9?w=600&q=80',
+  'titan-kb':       'https://images.unsplash.com/photo-1578762560042-46ad127c95ea?w=600&q=80',
+  'vulcan-kb':      'https://images.unsplash.com/photo-1535743686920-55e4145369b9?w=600&q=80',
+  'cap-kb':         'https://images.unsplash.com/photo-1578762560042-46ad127c95ea?w=600&q=80',
+  'yes4all-kb':     'https://images.unsplash.com/photo-1535743686920-55e4145369b9?w=600&q=80',
+  // Resistance Bands
+  'rogue-bands':    'https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=600&q=80',
+  'rep-bands':      'https://images.unsplash.com/photo-1556817411-58c45dd94e8c?w=600&q=80',
+  'elitefts-bands': 'https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=600&q=80',
+  'wodfitters-bands':'https://images.unsplash.com/photo-1556817411-58c45dd94e8c?w=600&q=80',
+  'fit-simplify-bands':'https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=600&q=80',
+  'ironbull-bands': 'https://images.unsplash.com/photo-1556817411-58c45dd94e8c?w=600&q=80',
+  'perform-better-mini':'https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=600&q=80',
+  'amazon-bands':   'https://images.unsplash.com/photo-1556817411-58c45dd94e8c?w=600&q=80',
+  // Shorts — athletic shorts
+  'youngla-shorts': 'https://images.unsplash.com/photo-1591195853828-11db59a44f43?w=600&q=80',
+  'gymshark-arrival':'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=600&q=80',
+  'nobull-shorts':  'https://images.unsplash.com/photo-1591195853828-11db59a44f43?w=600&q=80',
+  'alphalete-shorts':'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=600&q=80',
+  'lululemon-shorts':'https://images.unsplash.com/photo-1591195853828-11db59a44f43?w=600&q=80',
+  'nike-dri-fit':   'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=600&q=80',
+  'adidas-shorts':  'https://images.unsplash.com/photo-1591195853828-11db59a44f43?w=600&q=80',
+  'better-bodies-shorts':'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=600&q=80',
+  // Compression leggings
+  'gymshark-vital': 'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=600&q=80',
+  'lululemon-align':'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?w=600&q=80',
+  'alphalete-surge':'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=600&q=80',
+  'youngla-joggers':'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?w=600&q=80',
+  'nike-pro':       'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=600&q=80',
+  'under-armour-leggings':'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?w=600&q=80',
+  'better-bodies-tights':'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=600&q=80',
+  'gasp-tights':    'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?w=600&q=80',
+  // Tank tops — sleeveless shirts
+  'youngla-tank':   'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=600&q=80',
+  'gymshark-tank':  'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=80',
+  'gasp-stringer':  'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=600&q=80',
+  'better-bodies-tank':'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=80',
+  'alphalete-tank': 'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=600&q=80',
+  'nike-dri-fit-tank':'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=80',
+  'under-armour-tank':'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=600&q=80',
+  'nobull-tank':    'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=80',
+  // Hoodies
+  'youngla-hoodie': 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&q=80',
+  'gymshark-critical':'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80',
+  'alphalete-hoodie':'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&q=80',
+  'nike-club-hoodie':'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80',
+  'adidas-essentials':'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&q=80',
+  'better-bodies-hoodie':'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80',
+  'gasp-hoodie':    'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&q=80',
+  'lululemon-scuba':'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80',
+  // Footwear — training shoes
+  'nobull-trainer': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80',
+  'nike-metcon-9':  'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&q=80',
+  'adidas-adipower':'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80',
+  'reebok-nano':    'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&q=80',
+  'converse-chuck': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80',
+  'inov8-bare':     'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&q=80',
+  'new-balance-minimus':'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80',
+  'nobull-lifter':  'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&q=80',
+  // Sports bras
+  'lululemon-energy':'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80',
+  'gymshark-flex-bra':'https://images.unsplash.com/photo-1518459031867-a89b944bffe4?w=600&q=80',
+  'nike-indy-bra':  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80',
+  'alphalete-sports-bra':'https://images.unsplash.com/photo-1518459031867-a89b944bffe4?w=600&q=80',
+  'ua-infinity-bra':'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80',
+  'nobull-sports-bra':'https://images.unsplash.com/photo-1518459031867-a89b944bffe4?w=600&q=80',
+  'adidas-bra':     'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80',
+  'youngla-sports-bra':'https://images.unsplash.com/photo-1518459031867-a89b944bffe4?w=600&q=80',
+  // Pre-workout — supplement tubs/bottles/powder
+  'ghost-legend':   'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=80',
+  'transparent-stim':'https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=600&q=80',
+  'gorilla-mind':   'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=80',
+  'c4-original':    'https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=600&q=80',
+  'legion-pulse':   'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=80',
+  'alani-pre':      'https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=600&q=80',
+  'bucked-up':      'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=80',
+  'gorilla-mind-smooth':'https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=600&q=80',
+  // Protein — powder scoops, shaker bottles, tubs
+  'on-gold-standard':'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&q=80',
+  'transparent-whey':'https://images.unsplash.com/photo-1612197527762-8cfb4b634a12?w=600&q=80',
+  'ghost-whey':     'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&q=80',
+  'dymatize-iso100':'https://images.unsplash.com/photo-1612197527762-8cfb4b634a12?w=600&q=80',
+  'legion-whey':    'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&q=80',
+  'thorne-whey':    'https://images.unsplash.com/photo-1612197527762-8cfb4b634a12?w=600&q=80',
+  'nutricost-whey': 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&q=80',
+  'on-casein':      'https://images.unsplash.com/photo-1612197527762-8cfb4b634a12?w=600&q=80',
+  // Creatine — supplement capsules/powder
+  'transparent-creatine':'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&q=80',
+  'on-creatine':    'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=600&q=80',
+  'thorne-creatine':'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&q=80',
+  'legion-recharge':'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=600&q=80',
+  'nutricost-creatine':'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&q=80',
+  'momentous-creatine':'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=600&q=80',
+  'klean-creatine': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&q=80',
+  'con-cret-creatine':'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=600&q=80',
+  // Recovery — sleep/recovery supplements
+  'transparent-sleep':'https://images.unsplash.com/photo-1611073615830-9b691a1f9a9e?w=600&q=80',
+  'legion-lunar':   'https://images.unsplash.com/photo-1550572017-edd951b55104?w=600&q=80',
+  'thorne-amino':   'https://images.unsplash.com/photo-1611073615830-9b691a1f9a9e?w=600&q=80',
+  'momentous-recovery':'https://images.unsplash.com/photo-1550572017-edd951b55104?w=600&q=80',
+  'on-bcaa':        'https://images.unsplash.com/photo-1611073615830-9b691a1f9a9e?w=600&q=80',
+  'ghost-bcaa':     'https://images.unsplash.com/photo-1550572017-edd951b55104?w=600&q=80',
+  'klean-bcaa':     'https://images.unsplash.com/photo-1611073615830-9b691a1f9a9e?w=600&q=80',
+  'nutricost-glutamine':'https://images.unsplash.com/photo-1550572017-edd951b55104?w=600&q=80',
+  // Vitamins
+  'thorne-basics':  'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&q=80',
+  'ag1':            'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&q=80',
+  'legion-triumph': 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&q=80',
+  'momentous-omega3':'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&q=80',
+  'garden-of-life-mv':'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&q=80',
+  'opti-men':       'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&q=80',
+  'ritual-men':     'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&q=80',
+  'klean-mv':       'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&q=80',
+  // Fat burners
+  'transparent-fat':'https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=600&q=80',
+  'ghost-burn':     'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=80',
+  'jym-shred':      'https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=600&q=80',
+  'legion-phoenix': 'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=80',
+  'evl-engn-shred': 'https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=600&q=80',
+  'cellucor-clk':   'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=80',
+  'animal-cuts':    'https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=600&q=80',
+  'mhp-thyro-slim': 'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=80',
+};
+
+// Fallback category images
+const CAT_IMGS={
+  benches:'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=75',
+  barbells:'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=600&q=75',
+  dumbbells:'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=75',
+  plates:'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=75',
+  racks:'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&q=75',
+  cardio:'https://images.unsplash.com/photo-1520877880798-5ee004e3f11e?w=600&q=75',
+  kettlebells:'https://images.unsplash.com/photo-1578762560042-46ad127c95ea?w=600&q=75',
+  bands:'https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=600&q=75',
+  shorts:'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=600&q=75',
+  compression:'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?w=600&q=75',
+  tanks:'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=600&q=75',
+  hoodies:'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=75',
+  footwear:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=75',
+  sportsbras:'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=75',
+  preworkout:'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=75',
+  protein:'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600&q=75',
+  creatine:'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&q=75',
+  recovery:'https://images.unsplash.com/photo-1611073615830-9b691a1f9a9e?w=600&q=75',
+  vitamins:'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&q=75',
+  fatburners:'https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=600&q=75',
+};
+
+function getProdImg(id){return PROD_IMGS[id]||CAT_IMGS[cat]||''}
   'rogue-flat2':    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
   'rep-fb5000':     'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80',
   'rep-ab5200':     'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80',
