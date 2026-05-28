@@ -392,6 +392,14 @@
 
 <script>
 const BACKEND='https://gymgear-backend5.onrender.com';
+const SITE_KEY='ggcp-2026-xK9m'; // Must match SITE_KEY env var on Render
+
+// Authenticated fetch — sends secret key with every request
+async function apiFetch(path, options={}) {
+  const headers = {'Content-Type':'application/json','X-Site-Key':SITE_KEY,...(options.headers||{})};
+  const res = await fetch(BACKEND+path, {...options, headers});
+  return res;
+}
 
 const PROD_IMGS={
   'rogue-mb2':'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
@@ -603,7 +611,7 @@ async function loadCat(c){
   document.getElementById('grid').innerHTML=`<div class="loading-s"><div class="spinner"></div><div class="load-t">Loading ${CAT_LABELS[c]}…</div></div>`;
   document.getElementById('metaC').textContent='Loading…';
   try{
-    const res=await fetch(`${BACKEND}/api/products/${c}`);
+    const res=await apiFetch(`/api/products/${c}`);
     if(!res.ok){const e=await res.json().catch(()=>({}));if(e.loading){showRetry(c);return}throw new Error(e.error||`HTTP ${res.status}`)}
     const data=await res.json();
     cache[c]=data;
@@ -756,7 +764,7 @@ async function showComparison(){
   if(selIds.length<2)return;
   const p1=getP(selIds[0]),p2=getP(selIds[1]);
   let summary=localSum(p1,p2);
-  try{const r=await fetch(`${BACKEND}/api/compare`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p1,p2})});if(r.ok){const d=await r.json();if(d.summary)summary=d.summary}}catch{}
+  try{const r=await apiFetch(`/api/compare`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p1,p2})});if(r.ok){const d=await r.json();if(d.summary)summary=d.summary}}catch{}
   const win=p1.quality>=p2.quality?'p1':'p2';
   const img1=CAT_IMGS[cat]||'',img2=CAT_IMGS[cat]||'';
   document.getElementById('cpBody').innerHTML=`
@@ -830,7 +838,7 @@ async function openModal(id){
   document.body.style.overflow='hidden';
   const el=document.getElementById('rev-area');
   if(revCache[id]){renderRevs(el,revCache[id]);return}
-  try{const r=await fetch(`${BACKEND}/api/reviews`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productName:p.name,brand:p.brand,url:p.url})});const d=await r.json();revCache[id]=d.reviews||[];renderRevs(el,revCache[id])}catch{el.textContent='Reviews unavailable.'}
+  try{const r=await apiFetch(`/api/reviews`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productName:p.name,brand:p.brand,url:p.url})});const d=await r.json();revCache[id]=d.reviews||[];renderRevs(el,revCache[id])}catch{el.textContent='Reviews unavailable.'}
 }
 function renderRevs(el,revs){if(!revs||!revs.length){el.textContent='No reviews found.';return}el.innerHTML=revs.map(r=>`<div class="rev-item"><div class="rev-auth">${r.author}</div><div class="rev-text">"${r.text}"</div></div>`).join('')}
 function closeModal(e){if(!e||e.target===document.getElementById('moverlay')){document.getElementById('moverlay').classList.remove('open');document.body.style.overflow=''}}
