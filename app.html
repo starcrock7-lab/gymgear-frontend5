@@ -49,19 +49,63 @@
     .home-l:hover{color:var(--text)}
     .flt-b{display:none;background:var(--light);border:1px solid var(--border);color:var(--text-2);font-family:var(--fb);font-size:0.78rem;padding:6px 12px;border-radius:6px;cursor:pointer;flex-shrink:0}
 
-    /* GROUP NAV */
-    .gnav{background:var(--white);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 20px}
-    .gnav::-webkit-scrollbar{display:none}
-    .gnav-btn{flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--ff);font-size:0.78rem;font-weight:700;letter-spacing:0.03em;color:var(--text-2);padding:11px 16px;cursor:pointer;transition:all var(--ease);white-space:nowrap}
-    .gnav-btn:hover{color:var(--text)}
-    .gnav-btn.on{color:var(--text);border-bottom-color:var(--text)}
+    /* DRILL-DOWN NAV */
+    .drill-nav{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:52px;z-index:190}
+    .drill-groups{display:flex;align-items:stretch}
+    .drill-group{
+      flex:1;position:relative;cursor:pointer;
+      border-right:1px solid var(--border);
+      transition:background var(--ease);
+    }
+    .drill-group:last-child{border-right:none}
+    .drill-group:hover,.drill-group.open{background:var(--off)}
+    .drill-group-inner{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      padding:14px 20px;
+    }
+    .dg-label{
+      font-family:var(--ff);font-size:0.9rem;font-weight:700;
+      color:var(--text);letter-spacing:0.01em;
+    }
+    .drill-group.open .dg-label{color:var(--accent)}
+    .dg-arrow{
+      font-size:1.1rem;color:var(--text-3);
+      transition:transform .2s ease;display:inline-block;
+    }
+    .drill-group.open .dg-arrow{transform:rotate(90deg);color:var(--accent)}
 
-    /* CAT STRIP */
-    .cstrip{background:var(--white);border-bottom:1px solid var(--border);display:flex;gap:6px;padding:9px 20px;overflow-x:auto;scrollbar-width:none}
-    .cstrip::-webkit-scrollbar{display:none}
-    .ctab{flex-shrink:0;background:var(--off);border:1px solid var(--border);color:var(--text-2);font-family:var(--fb);font-size:0.76rem;font-weight:500;padding:5px 14px;border-radius:100px;cursor:pointer;transition:all var(--ease);white-space:nowrap}
-    .ctab:hover{border-color:var(--border-d);color:var(--text)}
-    .ctab.on{background:var(--text);border-color:var(--text);color:#fff}
+    /* Subcategory dropdown */
+    .drill-sub{
+      display:none;position:absolute;top:100%;left:0;
+      background:var(--white);border:1px solid var(--border);
+      border-top:2px solid var(--accent);
+      min-width:180px;z-index:200;
+      box-shadow:0 8px 24px rgba(0,0,0,0.1);
+      padding:8px 0;
+    }
+    .drill-group.open .drill-sub{display:block}
+    .drill-sub button{
+      display:block;width:100%;text-align:left;
+      background:none;border:none;
+      font-family:var(--fb);font-size:0.86rem;font-weight:500;
+      color:var(--text-2);padding:10px 20px;cursor:pointer;
+      transition:all var(--ease);
+    }
+    .drill-sub button:hover{background:var(--off);color:var(--accent);padding-left:26px}
+    .drill-sub button.active{color:var(--accent);font-weight:700;background:var(--accent-l)}
+
+    /* Breadcrumb */
+    .drill-crumb{
+      background:var(--off);border-top:1px solid var(--border);
+      padding:8px 16px;display:flex;align-items:center;justify-content:space-between;
+      font-size:0.78rem;color:var(--text-2);
+    }
+    .drill-crumb span{font-weight:600;color:var(--text)}
+    .drill-crumb button{
+      background:none;border:none;color:var(--text-3);
+      font-size:0.75rem;cursor:pointer;transition:color var(--ease);
+    }
+    .drill-crumb button:hover{color:var(--accent)}
 
     /* LAYOUT */
     .layout{display:flex;min-height:calc(100vh - 104px)}
@@ -226,25 +270,22 @@
     .cpanel{display:none;background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;box-shadow:var(--shadow);animation:sdn .24s ease}
     .cpanel.vis{display:block}
     @keyframes sdn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
-    .cp-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
-    .cp-title{font-family:var(--ff);font-size:1rem;font-weight:700}
-    .cp-cl{background:var(--off);border:1px solid var(--border);color:var(--text-2);width:28px;height:28px;border-radius:5px;cursor:pointer;font-size:0.84rem;transition:all var(--ease)}
-    .cp-cl:hover{border-color:var(--accent);color:var(--accent)}
-    .cp-body{display:grid;grid-template-columns:1fr 48px 1fr}
-    .cp-col{padding:18px}
-    .cp-vs{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);border-right:1px solid var(--border)}
-    .cp-vs-t{font-family:var(--ff);font-size:1.2rem;font-weight:800;color:var(--border-d)}
-    .win-b{display:inline-block;background:var(--green);color:#fff;font-family:var(--ff);font-size:0.58rem;font-weight:700;padding:3px 9px;border-radius:100px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
-    .cp-brand{font-family:var(--ff);font-size:0.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:3px}
-    .cp-name{font-family:var(--ff);font-size:1.05rem;font-weight:700;margin-bottom:4px}
-    .cp-price{font-family:var(--ff);font-size:1.7rem;font-weight:700;margin-bottom:10px}
-    .cp-specs{border-top:1px solid var(--border);padding-top:10px;margin-bottom:10px}
-    .cp-spec{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--off);font-size:0.78rem}
-    .cp-sk{color:var(--text-2)}
-    .cp-sv{font-weight:600;text-align:right}
-    .cp-sv.win{color:var(--green)}
-    .cp-buy{display:inline-block;background:var(--accent);color:#fff;font-family:var(--ff);font-weight:700;font-size:0.76rem;padding:9px 20px;text-decoration:none;border-radius:var(--r);transition:all var(--ease);margin-top:4px;letter-spacing:0.03em}
-    .cp-buy:hover{background:#d4421a}
+    .cp-matrix{overflow-x:auto}
+    .cp-matrix-head{display:grid;grid-template-columns:140px 1fr 1fr;border-bottom:2px solid var(--border);background:var(--off)}
+    .cm-spec-col{padding:14px 12px;display:flex;align-items:flex-end}
+    .cm-prod-col{padding:16px;border-left:1px solid var(--border)}
+    .cm-prod-col.cm-winner{background:rgba(21,128,61,0.04);border-top:3px solid var(--green)}
+    .cm-brand{font-size:0.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);font-weight:700;margin-bottom:3px}
+    .cm-name{font-family:var(--ff);font-size:0.95rem;font-weight:700;margin-bottom:10px}
+    .cm-buy{background:var(--accent);color:#fff;border:none;font-family:var(--ff);font-weight:700;font-size:0.72rem;padding:7px 14px;border-radius:var(--r);cursor:pointer;letter-spacing:.03em;transition:all var(--ease)}
+    .cm-buy:hover{background:#d4421a}
+    .spec-matrix{width:100%;border-collapse:collapse;font-size:0.82rem}
+    .spec-matrix tr{border-bottom:1px solid var(--off)}
+    .spec-matrix tr:hover{background:var(--off)}
+    .sm-k{padding:9px 12px;color:var(--text-2);font-weight:500;width:140px;white-space:nowrap;border-right:1px solid var(--border)}
+    .sm-v{padding:9px 16px;border-left:1px solid var(--border);vertical-align:middle}
+    .sm-v.win{color:var(--green);font-weight:700}
+    .sm-v.same{color:var(--text-3)}
     .cp-ai{grid-column:1/-1;padding:14px 18px;border-top:1px solid var(--border);background:var(--off);border-radius:0 0 7px 7px}
     .cp-ai-l{font-family:var(--ff);font-size:0.6rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
     .cp-ai-t{font-size:0.86rem;line-height:1.7;color:var(--text-2)}
@@ -315,7 +356,36 @@
 <body>
 
 <header class="topbar">
-  <a href="index.html" class="logo">GymGear <strong>Compare</strong></a>
+  <a href="index.html" class="logo" style="display:flex;align-items:center;gap:8px;text-decoration:none">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 165" style="height:32px;width:auto;display:block">
+      <defs>
+        <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f5a623"/><stop offset="100%" style="stop-color:#e8542a"/></linearGradient>
+        <clipPath id="lc"><polygon points="0,0 168,0 156,162 0,162"/></clipPath>
+        <clipPath id="rc"><polygon points="168,0 320,0 320,162 156,162"/></clipPath>
+      </defs>
+      <g clip-path="url(#lc)">
+        <rect x="2" y="8" width="34" height="148" rx="6" fill="url(#lg1)"/>
+        <rect x="36" y="30" width="16" height="104" rx="3" fill="url(#lg1)"/>
+        <rect x="51" y="69" width="218" height="26" fill="url(#lg1)"/>
+        <rect x="34" y="44" width="12" height="2" rx="1" fill="#d4481f"/><rect x="34" y="52" width="12" height="2" rx="1" fill="#d4481f"/>
+        <rect x="34" y="60" width="12" height="2" rx="1" fill="#d4481f"/><rect x="34" y="68" width="12" height="2" rx="1" fill="#d4481f"/>
+        <rect x="34" y="76" width="12" height="2" rx="1" fill="#d4481f"/><rect x="34" y="84" width="12" height="2" rx="1" fill="#d4481f"/>
+        <rect x="34" y="92" width="12" height="2" rx="1" fill="#d4481f"/><rect x="34" y="100" width="12" height="2" rx="1" fill="#d4481f"/>
+        <rect x="34" y="108" width="12" height="2" rx="1" fill="#d4481f"/>
+      </g>
+      <g clip-path="url(#rc)">
+        <rect x="51" y="69" width="218" height="26" fill="#c94020"/>
+        <rect x="269" y="30" width="16" height="104" rx="3" fill="#c94020"/>
+        <rect x="284" y="8" width="34" height="148" rx="6" fill="#c94020"/>
+        <rect x="274" y="44" width="12" height="2" rx="1" fill="#b53818"/><rect x="274" y="52" width="12" height="2" rx="1" fill="#b53818"/>
+        <rect x="274" y="60" width="12" height="2" rx="1" fill="#b53818"/><rect x="274" y="68" width="12" height="2" rx="1" fill="#b53818"/>
+        <rect x="274" y="76" width="12" height="2" rx="1" fill="#b53818"/><rect x="274" y="84" width="12" height="2" rx="1" fill="#b53818"/>
+        <rect x="274" y="92" width="12" height="2" rx="1" fill="#b53818"/><rect x="274" y="100" width="12" height="2" rx="1" fill="#b53818"/>
+        <rect x="274" y="108" width="12" height="2" rx="1" fill="#b53818"/>
+      </g>
+    </svg>
+    <span style="font-family:var(--ff);font-size:1rem;font-weight:700;color:var(--text)">GymGear <strong style="color:var(--accent)">Compare</strong></span>
+  </a>
   <div class="sw">
     <span class="sw-i">⌕</span>
     <input type="text" id="searchInput" placeholder="Search brands, products…" oninput="applyFilters()"/>
@@ -331,12 +401,64 @@
   <a href="index.html" class="home-l">← Home</a>
 </header>
 
-<nav class="gnav" id="gnav">
-  <button class="gnav-btn on" onclick="switchGroup('equipment',this)">Equipment</button>
-  <button class="gnav-btn" onclick="switchGroup('clothing',this)">Clothing</button>
-  <button class="gnav-btn" onclick="switchGroup('supplements',this)">Supplements</button>
+<!-- HOLLISTER-STYLE DRILL-DOWN NAV -->
+<nav class="drill-nav" id="drillNav">
+  <div class="drill-groups">
+
+    <div class="drill-group" id="dg-equipment" onclick="toggleDrill('equipment')">
+      <div class="drill-group-inner">
+        <span class="dg-label">Equipment</span>
+        <span class="dg-arrow" id="darr-equipment">›</span>
+      </div>
+      <div class="drill-sub" id="ds-equipment">
+        <button onclick="drillSelect('benches',event)">Benches</button>
+        <button onclick="drillSelect('barbells',event)">Barbells</button>
+        <button onclick="drillSelect('dumbbells',event)">Dumbbells</button>
+        <button onclick="drillSelect('plates',event)">Weight Plates</button>
+        <button onclick="drillSelect('racks',event)">Racks &amp; Rigs</button>
+        <button onclick="drillSelect('cardio',event)">Cardio</button>
+        <button onclick="drillSelect('kettlebells',event)">Kettlebells</button>
+        <button onclick="drillSelect('bands',event)">Resistance Bands</button>
+      </div>
+    </div>
+
+    <div class="drill-group" id="dg-clothing" onclick="toggleDrill('clothing')">
+      <div class="drill-group-inner">
+        <span class="dg-label">Clothing</span>
+        <span class="dg-arrow" id="darr-clothing">›</span>
+      </div>
+      <div class="drill-sub" id="ds-clothing">
+        <button onclick="drillSelect('shorts',event)">Gym Shorts</button>
+        <button onclick="drillSelect('compression',event)">Compression</button>
+        <button onclick="drillSelect('tanks',event)">Tank Tops</button>
+        <button onclick="drillSelect('hoodies',event)">Hoodies</button>
+        <button onclick="drillSelect('footwear',event)">Footwear</button>
+        <button onclick="drillSelect('sportsbras',event)">Sports Bras</button>
+      </div>
+    </div>
+
+    <div class="drill-group" id="dg-supplements" onclick="toggleDrill('supplements')">
+      <div class="drill-group-inner">
+        <span class="dg-label">Supplements</span>
+        <span class="dg-arrow" id="darr-supplements">›</span>
+      </div>
+      <div class="drill-sub" id="ds-supplements">
+        <button onclick="drillSelect('preworkout',event)">Pre-Workout</button>
+        <button onclick="drillSelect('protein',event)">Protein</button>
+        <button onclick="drillSelect('creatine',event)">Creatine</button>
+        <button onclick="drillSelect('recovery',event)">Recovery</button>
+        <button onclick="drillSelect('vitamins',event)">Vitamins</button>
+        <button onclick="drillSelect('fatburners',event)">Fat Burners</button>
+      </div>
+    </div>
+
+  </div>
+  <!-- Active breadcrumb -->
+  <div class="drill-crumb" id="drillCrumb" style="display:none">
+    <span id="crumbText"></span>
+    <button onclick="clearDrill()">✕ Clear</button>
+  </div>
 </nav>
-<div class="cstrip" id="catStrip"></div>
 
 <div class="drw-bg" id="drwBg" onclick="closeDrawer()"></div>
 <div class="drw" id="drw">
@@ -596,8 +718,55 @@ const GROUPS={
 };
 const CAT_LABELS={benches:'Benches',barbells:'Barbells',dumbbells:'Dumbbells',plates:'Weight Plates',racks:'Racks & Rigs',cardio:'Cardio',kettlebells:'Kettlebells',bands:'Resistance Bands',shorts:'Gym Shorts',compression:'Compression',tanks:'Tank Tops',hoodies:'Hoodies',footwear:'Footwear',sportsbras:'Sports Bras',preworkout:'Pre-Workout',protein:'Protein',creatine:'Creatine',recovery:'Recovery',vitamins:'Vitamins',fatburners:'Fat Burners'};
 
-let grp='equipment',cat=null,cache={},selIds=[],filters={brand:'all',minP:'',maxP:'',minR:0},sort='',q='',retryT={};
+let grp='equipment',cat=null,cache={},selIds=[],filters={brand:'all',minP:'',maxP:'',minR:0,onSale:false,clearance:false},sort='',q='',retryT={};
 const revCache={};
+
+// ── DRILL-DOWN NAV ────────────────────────────────────────────
+let openDrill=null;
+
+function toggleDrill(group){
+  if(openDrill===group){closeDrill();return;}
+  if(openDrill) closeDrill();
+  openDrill=group;
+  document.getElementById('dg-'+group).classList.add('open');
+  // Close on outside click
+  setTimeout(()=>document.addEventListener('click',closeDrillOutside),10);
+}
+
+function closeDrill(){
+  if(openDrill){
+    document.getElementById('dg-'+openDrill).classList.remove('open');
+    openDrill=null;
+  }
+  document.removeEventListener('click',closeDrillOutside);
+}
+
+function closeDrillOutside(e){
+  if(!e.target.closest('.drill-group')) closeDrill();
+}
+
+function drillSelect(catKey, e){
+  e.stopPropagation();
+  closeDrill();
+  // Highlight active button
+  document.querySelectorAll('.drill-sub button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  // Show breadcrumb
+  const crumb=document.getElementById('drillCrumb');
+  crumb.style.display='flex';
+  document.getElementById('crumbText').textContent=CAT_LABELS[catKey];
+  // Load category
+  selectCat(catKey);
+}
+
+function clearDrill(){
+  document.querySelectorAll('.drill-sub button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('drillCrumb').style.display='none';
+  cat=null;
+  document.getElementById('grid').innerHTML='<div class="empty"><span class="empty-i">—</span><p>Select a category above to start comparing.</p></div>';
+  document.getElementById('metaC').textContent='';
+  clearAll();
+}
 
 function stars(r){const f=Math.floor(r||0),h=(r||0)%1>=.5?1:0,e=5-f-h;return'★'.repeat(f)+(h?'½':'')+'☆'.repeat(e)}
 function getP(id){return(cache[cat]?.products||[]).find(p=>p.id===id)}
@@ -660,10 +829,12 @@ function getFiltered(){
     if(filters.minP&&p.price<Number(filters.minP))return false;
     if(filters.maxP&&p.price>Number(filters.maxP))return false;
     if(filters.minR>0&&p.rating<filters.minR)return false;
+    if(filters.onSale&&!p.salePrice)return false;
+    if(filters.clearance&&(!p.salePrice||p.discount<20))return false;
     return true;
   });
-  if(sort==='price-asc')out.sort((a,b)=>a.price-b.price);
-  else if(sort==='price-desc')out.sort((a,b)=>b.price-a.price);
+  if(sort==='price-asc')out.sort((a,b)=>(a.salePrice||a.price)-(b.salePrice||b.price));
+  else if(sort==='price-desc')out.sort((a,b)=>(b.salePrice||b.price)-(a.salePrice||a.price));
   else if(sort==='rating')out.sort((a,b)=>b.rating-a.rating);
   else if(sort==='quality')out.sort((a,b)=>b.quality-a.quality);
   return out;
@@ -673,19 +844,60 @@ function applyFilters(){q=document.getElementById('searchInput').value;sort=docu
 // SIDEBAR
 function sbHTML(){
   const brands=getBrands();
-  return`<div class="sb-s"><div class="sb-l">Brand</div><div class="fchips"><button class="fchip ${filters.brand==='all'?'on':''}" onclick="setBrand('all')">All Brands</button>${brands.map(b=>`<button class="fchip ${filters.brand===b?'on':''}" onclick="setBrand('${b.replace(/'/g,"\\'")}')">${b}</button>`).join('')}</div></div>
-<div class="sb-s"><div class="sb-l">Price</div><div class="p-is"><input class="p-i" type="number" placeholder="Min" id="pMin" value="${filters.minP}" oninput="setPF()"/><span class="p-sep">–</span><input class="p-i" type="number" placeholder="Max" id="pMax" value="${filters.maxP}" oninput="setPF()"/></div></div>
-<div class="sb-s"><div class="sb-l">Min Rating</div><div class="ro">${[0,4,4.5,4.8].map(r=>`<label class="ro-item"><input type="radio" name="minR" value="${r}" ${filters.minR===r?'checked':''} onchange="setR(${r})"/><span>${r===0?'Any':'<span class="ro-stars">'+'★'.repeat(Math.floor(r))+(r%1?'½':'')+'</span> '+r+'+'}</span></label>`).join('')}</div></div>
-<div class="sb-ad"><div class="ad-l">Ad</div><div class="ad-p">160×600</div></div>`;
+  return`
+    <div class="sb-s">
+      <div class="sb-l">Sort Price</div>
+      <div class="fchips">
+        <button class="fchip ${sort==='price-asc'?'on':''}"  onclick="setSort('price-asc')">Low → High</button>
+        <button class="fchip ${sort==='price-desc'?'on':''}" onclick="setSort('price-desc')">High → Low</button>
+      </div>
+    </div>
+    <div class="sb-s">
+      <div class="sb-l">Deals</div>
+      <div class="fchips">
+        <button class="fchip ${filters.onSale?'on':''}"    onclick="toggleSale()">On Sale</button>
+        <button class="fchip ${filters.clearance?'on':''}" onclick="toggleClearance()">Clearance</button>
+      </div>
+    </div>
+    <div class="sb-s">
+      <div class="sb-l">Price Range</div>
+      <div class="p-is">
+        <input class="p-i" type="number" placeholder="Low $" id="pMin" value="${filters.minP}" oninput="setPF()"/>
+        <span class="p-sep">–</span>
+        <input class="p-i" type="number" placeholder="High $" id="pMax" value="${filters.maxP}" oninput="setPF()"/>
+      </div>
+    </div>
+    <div class="sb-s">
+      <div class="sb-l">Brand</div>
+      <div class="fchips">
+        <button class="fchip ${filters.brand==='all'?'on':''}" onclick="setBrand('all')">All Brands</button>
+        ${brands.map(b=>`<button class="fchip ${filters.brand===b?'on':''}" onclick="setBrand('${b.replace(/'/g,"\\'")}')"> ${b}</button>`).join('')}
+      </div>
+    </div>
+    <div class="sb-s">
+      <div class="sb-l">Min Rating</div>
+      <div class="ro">${[0,4,4.5,4.8].map(r=>`
+        <label class="ro-item">
+          <input type="radio" name="minR" value="${r}" ${filters.minR===r?'checked':''} onchange="setR(${r})"/>
+          <span>${r===0?'Any':'<span class="ro-stars">'+'★'.repeat(Math.floor(r))+(r%1?'½':'')+'</span> '+r+'+'}</span>
+        </label>`).join('')}
+      </div>
+    </div>
+    <div class="sb-ad"><div class="ad-l">Ad</div><div class="ad-p">160×600</div></div>`;
 }
 function renderSidebar(){const h=sbHTML();document.getElementById('sidebarInner').innerHTML=h;document.getElementById('drwContent').innerHTML=h}
 function setBrand(b){filters.brand=b;renderSidebar();renderGrid();renderTags()}
+function setSort(s){sort=s;document.getElementById('sortSel').value=s;renderSidebar();renderGrid()}
+function toggleSale(){filters.onSale=!filters.onSale;filters.clearance=false;renderSidebar();renderGrid();renderTags()}
+function toggleClearance(){filters.clearance=!filters.clearance;filters.onSale=false;renderSidebar();renderGrid();renderTags()}
 function setPF(){filters.minP=document.getElementById('pMin')?.value||'';filters.maxP=document.getElementById('pMax')?.value||'';renderGrid();renderTags()}
 function setR(r){filters.minR=r;renderGrid();renderTags()}
 
 function renderTags(){
   const tags=[];
   if(filters.brand!=='all')tags.push({l:filters.brand,c:()=>setBrand('all')});
+  if(filters.onSale)tags.push({l:'On Sale',c:()=>{filters.onSale=false;renderSidebar();renderGrid();renderTags()}});
+  if(filters.clearance)tags.push({l:'Clearance',c:()=>{filters.clearance=false;renderSidebar();renderGrid();renderTags()}});
   if(filters.minP)tags.push({l:`$${filters.minP}+`,c:()=>{filters.minP='';renderSidebar();renderGrid();renderTags()}});
   if(filters.maxP)tags.push({l:`Up to $${filters.maxP}`,c:()=>{filters.maxP='';renderSidebar();renderGrid();renderTags()}});
   if(filters.minR>0)tags.push({l:`${filters.minR}★+`,c:()=>{filters.minR=0;renderSidebar();renderGrid();renderTags()}});
@@ -763,41 +975,55 @@ function rmSlot(i){const id=selIds[i];selIds.splice(i,1);document.getElementById
 async function showComparison(){
   if(selIds.length<2)return;
   const p1=getP(selIds[0]),p2=getP(selIds[1]);
-  let summary=localSum(p1,p2);
-  try{const r=await apiFetch(`/api/compare`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p1,p2})});if(r.ok){const d=await r.json();if(d.summary)summary=d.summary}}catch{}
+
+  // Unified spec matrix — every key from both products, show '—' if missing
+  const allKeys=[...new Set([...Object.keys(p1.specs||{}),...Object.keys(p2.specs||{})])];
+  const specRows=allKeys.map(k=>{
+    const v1=p1.specs?.[k]??'—'; const v2=p2.specs?.[k]??'—';
+    return`<tr><td class="sm-k">${k}</td><td class="sm-v">${v1}</td><td class="sm-v">${v2}</td></tr>`;
+  }).join('');
+
   const win=p1.quality>=p2.quality?'p1':'p2';
-  const img1=CAT_IMGS[cat]||'',img2=CAT_IMGS[cat]||'';
+  const p1price=p1.salePrice?`<span style="color:#dc2626;font-weight:700">$${p1.salePrice}</span> <s style="color:var(--text-3);font-size:.8em">$${p1.price}</s>`:'$'+Number(p1.price).toLocaleString();
+  const p2price=p2.salePrice?`<span style="color:#dc2626;font-weight:700">$${p2.salePrice}</span> <s style="color:var(--text-3);font-size:.8em">$${p2.price}</s>`:'$'+Number(p2.price).toLocaleString();
+
   document.getElementById('cpBody').innerHTML=`
-    <div class="cp-col">
-      ${win==='p1'?'<div class="win-b">Recommended</div>':''}
-      <div class="cp-brand">${p1.brand}</div><div class="cp-name">${p1.name}</div>
-      <div class="cp-price">$${Number(p1.price).toLocaleString()}</div>
-      <div class="s-row"><span class="stars">${stars(p1.rating)}</span><span class="r-n">${p1.rating}</span></div>
-      <div class="cp-specs">
-        ${Object.entries(p1.specs||{}).map(([k,v])=>`<div class="cp-spec"><span class="cp-sk">${k}</span><span class="cp-sv">${v}</span></div>`).join('')}
-        <div class="cp-spec"><span class="cp-sk">Quality</span><span class="cp-sv ${p1.quality>p2.quality?'win':''}">${p1.quality}/10</span></div>
-        <div class="cp-spec"><span class="cp-sk">Rating</span><span class="cp-sv ${p1.rating>p2.rating?'win':''}">${p1.rating}★</span></div>
+    <div class="cp-matrix">
+      <div class="cp-matrix-head">
+        <div class="cm-spec-col"><span style="font-size:0.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.1em">Spec</span></div>
+        <div class="cm-prod-col ${win==='p1'?'cm-winner':''}">
+          ${win==='p1'?'<div class="win-b">🏆 Recommended</div>':''}
+          <div class="cm-brand">${p1.brand}</div>
+          <div class="cm-name">${p1.name}</div>
+          <button onclick="window.open('${(p1.affiliateUrl||p1.url||'').replace(/'/g,"\\'")}','_blank')" class="cm-buy">Buy from ${p1.retailer} →</button>
+        </div>
+        <div class="cm-prod-col ${win==='p2'?'cm-winner':''}">
+          ${win==='p2'?'<div class="win-b">🏆 Recommended</div>':''}
+          <div class="cm-brand">${p2.brand}</div>
+          <div class="cm-name">${p2.name}</div>
+          <button onclick="window.open('${(p2.affiliateUrl||p2.url||'').replace(/'/g,"\\'")}','_blank')" class="cm-buy">Buy from ${p2.retailer} →</button>
+        </div>
       </div>
-      <a href="${p1.affiliateUrl||p1.url}" target="_blank" rel="noopener" class="cp-buy">Buy from ${p1.retailer} →</a>
-    </div>
-    <div class="cp-vs"><div class="cp-vs-t">VS</div></div>
-    <div class="cp-col">
-      ${win==='p2'?'<div class="win-b">Recommended</div>':''}
-      <div class="cp-brand">${p2.brand}</div><div class="cp-name">${p2.name}</div>
-      <div class="cp-price">$${Number(p2.price).toLocaleString()}</div>
-      <div class="s-row"><span class="stars">${stars(p2.rating)}</span><span class="r-n">${p2.rating}</span></div>
-      <div class="cp-specs">
-        ${Object.entries(p2.specs||{}).map(([k,v])=>`<div class="cp-spec"><span class="cp-sk">${k}</span><span class="cp-sv">${v}</span></div>`).join('')}
-        <div class="cp-spec"><span class="cp-sk">Quality</span><span class="cp-sv ${p2.quality>p1.quality?'win':''}">${p2.quality}/10</span></div>
-        <div class="cp-spec"><span class="cp-sk">Rating</span><span class="cp-sv ${p2.rating>p1.rating?'win':''}">${p2.rating}★</span></div>
-      </div>
-      <a href="${p2.affiliateUrl||p2.url}" target="_blank" rel="noopener" class="cp-buy">Buy from ${p2.retailer} →</a>
+      <table class="spec-matrix">
+        <tr><td class="sm-k">Price</td><td class="sm-v">${p1price}</td><td class="sm-v">${p2price}</td></tr>
+        <tr><td class="sm-k">Quality Score</td><td class="sm-v ${p1.quality>p2.quality?'win':''}">${p1.quality}/10</td><td class="sm-v ${p2.quality>p1.quality?'win':''}">${p2.quality}/10</td></tr>
+        <tr><td class="sm-k">Rating</td><td class="sm-v ${p1.rating>p2.rating?'win':''}">${p1.rating}★ (${(p1.reviewCount||0).toLocaleString()})</td><td class="sm-v ${p2.rating>p1.rating?'win':''}">${p2.rating}★ (${(p2.reviewCount||0).toLocaleString()})</td></tr>
+        ${specRows}
+      </table>
     </div>
     <div class="cp-ai">
       <div class="cp-ai-l">AI Verdict</div>
-      <div class="cp-ai-t">${summary}</div>
+      <div class="cp-ai-t" id="aiVerdictText">Analyzing…</div>
     </div>`;
-  const panel=document.getElementById('cpanel');panel.classList.add('vis');panel.scrollIntoView({behavior:'smooth',block:'start'});
+
+  const panel=document.getElementById('cpanel');
+  panel.classList.add('vis');
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+
+  try{
+    const r=await apiFetch(`/api/compare`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p1,p2})});
+    if(r.ok){const d=await r.json();if(d.summary)document.getElementById('aiVerdictText').innerHTML=d.summary;}
+  }catch{document.getElementById('aiVerdictText').innerHTML=localSum(p1,p2);}
 }
 function localSum(p1,p2){
   const d=Math.abs(p1.price-p2.price),qw=p1.quality>=p2.quality?p1:p2,cheap=p1.price<=p2.price?p1:p2,pricey=cheap.id===p1.id?p2:p1,vw=(p1.quality/p1.price)>=(p2.quality/p2.price)?p1:p2;
@@ -847,11 +1073,16 @@ function closeModal(e){if(!e||e.target===document.getElementById('moverlay')){do
 function openDrawer(){document.getElementById('drw').classList.add('open');document.getElementById('drwBg').classList.add('open')}
 function closeDrawer(){document.getElementById('drw').classList.remove('open');document.getElementById('drwBg').classList.remove('open')}
 
-// URL PARAMS
+// URL PARAMS — if ?cat=barbells, auto-open that category
 (function(){
   const p=new URLSearchParams(window.location.search),c=p.get('cat');
-  if(c){for(const[g,d]of Object.entries(GROUPS)){if(d.cats.includes(c)){grp=g;document.querySelectorAll('.gnav-btn').forEach((b,i)=>{b.classList.toggle('on',Object.keys(GROUPS)[i]===g)});break}}}
-  renderCatStrip();selectCat(c&&GROUPS[grp].cats.includes(c)?c:GROUPS[grp].cats[0]);
+  if(c&&CAT_LABELS[c]){
+    selectCat(c);
+    // Show breadcrumb
+    const crumb=document.getElementById('drillCrumb');
+    crumb.style.display='flex';
+    document.getElementById('crumbText').textContent=CAT_LABELS[c];
+  }
 })();
 </script>
 </body>
