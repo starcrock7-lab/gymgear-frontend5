@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GymGear Compare — Find the Best Deal on Gym Gear</title>
   <meta name="description" content="Compare gym equipment, clothing, and supplements side by side. Real prices, real reviews, instant AI verdict. Free, always."/>
+  <link rel="icon" type="image/svg+xml" href="logo.svg"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
@@ -43,33 +44,58 @@
     .n-mob span{width:20px;height:1.5px;background:var(--text);display:block}
 
     /* HERO */
+    .hero-wrap{
+      background:linear-gradient(180deg,#fff 0%,var(--off) 100%);
+      border-bottom:1px solid var(--border);
+      position:relative;overflow:hidden;
+    }
+    .hero-wrap::before{
+      content:'';position:absolute;top:-120px;right:-100px;
+      width:480px;height:480px;border-radius:50%;
+      background:radial-gradient(circle,rgba(232,84,42,0.07) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    .hero-wrap::after{
+      content:'';position:absolute;bottom:-80px;left:-80px;
+      width:320px;height:320px;border-radius:50%;
+      background:radial-gradient(circle,rgba(232,84,42,0.05) 0%,transparent 70%);
+      pointer-events:none;
+    }
     .hero{
-      padding:80px 32px 64px;
+      padding:88px 32px 72px;
       max-width:760px;margin:0 auto;text-align:center;
+      position:relative;z-index:1;
     }
     .hero-tag{
-      display:inline-block;background:var(--off);border:1px solid var(--border);
-      font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
-      color:var(--text-2);padding:5px 14px;border-radius:100px;margin-bottom:24px;
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(232,84,42,0.06);border:1px solid rgba(232,84,42,0.18);
+      font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+      color:var(--accent);padding:6px 16px;border-radius:100px;margin-bottom:28px;
     }
+    .hero-tag::before{content:'●';font-size:0.4rem;color:var(--accent)}
     .hero-title{
-      font-family:var(--ff);font-size:clamp(2.6rem,6vw,4.2rem);font-weight:800;
-      line-height:1.04;letter-spacing:-0.028em;color:var(--text);margin-bottom:18px;
+      font-family:var(--ff);font-size:clamp(2.8rem,6.5vw,4.6rem);font-weight:800;
+      line-height:1.02;letter-spacing:-0.032em;color:var(--text);margin-bottom:20px;
     }
-    .hero-title span{color:var(--accent)}
+    .hero-title span{
+      color:var(--accent);
+      background:linear-gradient(135deg,#e8542a,#f07340);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
     .hero-sub{
-      font-size:1.05rem;color:var(--text-2);line-height:1.75;
-      max-width:500px;margin:0 auto 32px;font-weight:400;
+      font-size:1.08rem;color:var(--text-2);line-height:1.8;
+      max-width:480px;margin:0 auto 36px;font-weight:400;
     }
     .hero-actions{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
     .btn-primary{
       display:inline-flex;align-items:center;gap:8px;
-      background:var(--accent);color:#fff;font-family:var(--ff);
-      font-weight:700;font-size:1rem;padding:15px 36px;border-radius:6px;
-      letter-spacing:0.02em;transition:all var(--ease);
+      background:linear-gradient(135deg,#e8542a,#d4421a);color:#fff;font-family:var(--ff);
+      font-weight:700;font-size:1rem;padding:16px 40px;border-radius:8px;
+      letter-spacing:0.02em;transition:all .22s ease;
+      box-shadow:0 4px 20px rgba(232,84,42,0.25);
     }
-    .btn-primary:hover{background:#d4421a;transform:translateY(-2px);box-shadow:0 8px 24px rgba(232,84,42,0.3)}
-    .hero-note{font-size:0.76rem;color:var(--text-3);margin-top:10px}
+    .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(232,84,42,0.38)}
+    .hero-note{font-size:0.76rem;color:var(--text-3);margin-top:14px}
 
     /* WHY NOT AI */
     .why-bar{
@@ -87,13 +113,25 @@
 
     /* HOW */
     .how{
-      padding:64px 32px;max-width:860px;margin:0 auto;
-      display:grid;grid-template-columns:repeat(3,1fr);gap:40px;
+      padding:72px 32px;max-width:960px;margin:0 auto;
+      display:grid;grid-template-columns:repeat(3,1fr);gap:0;
       border-bottom:1px solid var(--border);
     }
-    .how-n{font-family:var(--ff);font-size:2.2rem;font-weight:800;color:var(--border-d);margin-bottom:12px}
-    .how-title{font-family:var(--ff);font-size:1rem;font-weight:700;margin-bottom:7px}
-    .how-desc{font-size:0.86rem;color:var(--text-2);line-height:1.7}
+    .how-step{
+      padding:0 32px;border-right:1px solid var(--border);
+    }
+    .how-step:first-child{padding-left:0}
+    .how-step:last-child{border-right:none;padding-right:0}
+    .how-n{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:36px;height:36px;border-radius:8px;
+      background:linear-gradient(135deg,rgba(232,84,42,0.1),rgba(232,84,42,0.05));
+      border:1px solid rgba(232,84,42,0.15);
+      font-family:var(--ff);font-size:0.8rem;font-weight:800;color:var(--accent);
+      margin-bottom:16px;letter-spacing:0.02em;
+    }
+    .how-title{font-family:var(--ff);font-size:1.05rem;font-weight:700;margin-bottom:8px}
+    .how-desc{font-size:0.86rem;color:var(--text-2);line-height:1.75}
 
     /* CATEGORIES — 3 big cards */
     .cats{padding:64px 32px;max-width:1100px;margin:0 auto}
@@ -102,30 +140,33 @@
 
     .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
     .cat-card{
-      border-radius:12px;overflow:hidden;position:relative;cursor:pointer;
-      transition:transform var(--ease),box-shadow var(--ease);
-      box-shadow:0 2px 8px rgba(0,0,0,0.08);display:block;
+      border-radius:14px;overflow:hidden;position:relative;cursor:pointer;
+      transition:transform .26s ease,box-shadow .26s ease;
+      box-shadow:0 2px 8px rgba(0,0,0,0.07),0 0 0 1.5px var(--border);display:block;
     }
-    .cat-card:hover{transform:translateY(-5px);box-shadow:0 12px 32px rgba(0,0,0,0.15)}
-    .cat-img{height:260px;overflow:hidden;position:relative}
-    .cat-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease;display:block}
-    .cat-card:hover .cat-img img{transform:scale(1.04)}
+    .cat-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,0.16),0 0 0 1.5px rgba(232,84,42,0.25)}
+    .cat-img{height:280px;overflow:hidden;position:relative}
+    .cat-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;display:block;filter:brightness(0.95)}
+    .cat-card:hover .cat-img img{transform:scale(1.05);filter:brightness(1)}
     .cat-overlay{
       position:absolute;inset:0;
-      background:linear-gradient(to top,rgba(13,27,53,0.9) 0%,rgba(13,27,53,0.3) 50%,transparent 100%);
-      display:flex;flex-direction:column;justify-content:flex-end;padding:24px;
+      background:linear-gradient(to top,rgba(10,20,40,0.92) 0%,rgba(10,20,40,0.4) 45%,transparent 100%);
+      display:flex;flex-direction:column;justify-content:flex-end;padding:28px;
+      transition:background .26s ease;
     }
-    .cat-label{font-size:0.65rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:5px}
-    .cat-name{font-family:var(--ff);font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.01em}
-    .cat-items{font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:14px}
+    .cat-card:hover .cat-overlay{background:linear-gradient(to top,rgba(10,20,40,0.95) 0%,rgba(10,20,40,0.45) 50%,transparent 100%)}
+    .cat-label{font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px}
+    .cat-name{font-family:var(--ff);font-size:1.65rem;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.02em}
+    .cat-items{font-size:0.78rem;color:rgba(255,255,255,0.55);margin-bottom:18px;line-height:1.5}
     .cat-btn{
-      display:inline-flex;align-items:center;gap:6px;
+      display:inline-flex;align-items:center;gap:8px;
       background:var(--accent);color:#fff;
       font-family:var(--ff);font-size:0.78rem;font-weight:700;
-      padding:8px 18px;border-radius:4px;letter-spacing:0.04em;
-      transition:all var(--ease);width:fit-content;
+      padding:9px 20px;border-radius:6px;letter-spacing:0.04em;
+      transition:all .22s ease;width:fit-content;
+      box-shadow:0 4px 14px rgba(232,84,42,0.35);
     }
-    .cat-card:hover .cat-btn{background:#d4421a}
+    .cat-card:hover .cat-btn{background:#d4421a;transform:translateX(3px)}
 
     /* AD SLOT */
     .ad-wrap{padding:0 32px 40px;max-width:1100px;margin:0 auto}
@@ -182,7 +223,9 @@
       .n-mob{display:flex}
       .hero{padding:56px 20px 48px}
       .why-bar{padding:24px 20px}
-      .how{grid-template-columns:1fr;padding:48px 20px;gap:24px}
+      .how{grid-template-columns:1fr;padding:48px 20px;gap:0}
+      .how-step{padding:24px 0;border-right:none;border-bottom:1px solid var(--border)}
+      .how-step:last-child{border-bottom:none}
       .cats{padding:48px 20px}
       .cat-grid{grid-template-columns:1fr;gap:16px}
       .cat-img{height:200px}
@@ -237,6 +280,7 @@
 </div>
 
 <!-- HERO -->
+<div class="hero-wrap">
 <section class="hero">
   <div class="hero-tag">Free · No Sign-Up · Instant Results</div>
   <h1 class="hero-title">Stop Overpaying<br>for <span>Gym Gear</span></h1>
@@ -246,6 +290,7 @@
   </div>
   <div class="hero-note">No account needed. Takes 30 seconds.</div>
 </section>
+</div>
 
 <!-- WHY NOT AI -->
 <div class="why-bar">
@@ -261,17 +306,17 @@
 
 <!-- HOW IT WORKS -->
 <div class="how">
-  <div>
+  <div class="how-step">
     <div class="how-n">01</div>
     <div class="how-title">Pick a Category</div>
     <div class="how-desc">Choose Equipment, Clothing, or Supplements — then drill down to exactly what you're shopping for.</div>
   </div>
-  <div>
+  <div class="how-step">
     <div class="how-n">02</div>
     <div class="how-title">Tap Two Products</div>
     <div class="how-desc">Click any two products to select them. A bar appears at the bottom tracking your picks.</div>
   </div>
-  <div>
+  <div class="how-step">
     <div class="how-n">03</div>
     <div class="how-title">Get the Verdict</div>
     <div class="how-desc">See a full spec breakdown with prices, ratings, and a plain-English AI recommendation on which is the smarter buy.</div>
