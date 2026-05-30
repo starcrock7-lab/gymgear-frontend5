@@ -129,9 +129,10 @@
     --trans:.22s cubic-bezier(.4,0,.2,1);
 
     /* LAYOUT */
-    .layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 104px)}
-    .sidebar{background:var(--white);border-right:1px solid var(--border)}
-    #sidebarInner{position:sticky;top:104px;max-height:calc(100vh - 104px);overflow-y:auto;padding:16px 0}
+    .layout{display:block}
+    .sidebar{position:fixed;left:0;top:104px;width:210px;height:calc(100vh - 104px);background:var(--white);border-right:1px solid var(--border);overflow-y:auto;z-index:100;padding:16px 0}
+    #sidebarInner{padding:0}
+    .content{margin-left:210px;padding:16px 20px 140px;min-width:0}
     .sb-s{padding:0 14px;margin-bottom:20px}
     .sb-l{font-family:var(--ff);font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
     .fchips{display:flex;flex-direction:column;gap:3px}
@@ -150,7 +151,7 @@
     .sb-ad{margin:0 14px;background:var(--off);border:1px dashed var(--border-d);border-radius:8px;padding:12px;text-align:center}
     .ad-l{font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:5px;font-weight:600}
     .ad-p{width:100%;background:var(--light);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:0.68rem;height:120px}
-    .content{flex:1;padding:16px 20px 140px;min-width:0}
+    /* .content defined above in layout section */
     .top-ad{display:none} /* Hidden until real ad code is added */
     .meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
     .meta-c{font-size:0.82rem;color:var(--text-2)}
@@ -315,7 +316,7 @@
     /* MOBILE */
     @media(max-width:860px){
       .sidebar{display:none}
-      .layout{grid-template-columns:1fr}
+      .content{margin-left:0}
       .topbar{padding:0 14px;gap:8px}
       .content{padding:12px 14px 140px}
       .sort-s{display:none}
