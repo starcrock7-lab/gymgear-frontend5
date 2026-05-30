@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f5a623"/>
+      <stop offset="100%" stop-color="#e8542a"/>
+    </linearGradient>
+    <clipPath id="lh"><polygon points="0,0 34,0 31,64 0,64"/></clipPath>
+    <clipPath id="rh"><polygon points="34,0 64,0 64,64 31,64"/></clipPath>
+  </defs>
+  <!-- Left half: bright orange gradient -->
+  <g clip-path="url(#lh)">
+    <rect x="2" y="10" width="10" height="44" rx="3" fill="url(#g1)"/>
+    <rect x="12" y="18" width="5" height="28" rx="2" fill="url(#g1)"/>
+    <rect x="17" y="28" width="30" height="8" fill="url(#g1)"/>
+    <!-- knurl lines -->
+    <rect x="10" y="22" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
+    <rect x="10" y="26" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
+    <rect x="10" y="30" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
+    <rect x="10" y="34" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
+    <rect x="10" y="38" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
+  </g>
+  <!-- Right half: deeper orange -->
+  <g clip-path="url(#rh)">
+    <rect x="17" y="28" width="30" height="8" fill="#c94020"/>
+    <rect x="47" y="18" width="5" height="28" rx="2" fill="#c94020"/>
+    <rect x="52" y="10" width="10" height="44" rx="3" fill="#c94020"/>
+    <!-- knurl lines -->
+    <rect x="50" y="22" width="4" height="1.5" rx="0.5" fill="#b53818"/>
+    <rect x="50" y="26" width="4" height="1.5" rx="0.5" fill="#b53818"/>
+    <rect x="50" y="30" width="4" height="1.5" rx="0.5" fill="#b53818"/>
+    <rect x="50" y="34" width="4" height="1.5" rx="0.5" fill="#b53818"/>
+    <rect x="50" y="38" width="4" height="1.5" rx="0.5" fill="#b53818"/>
+  </g>
+</svg>

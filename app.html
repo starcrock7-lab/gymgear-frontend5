@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Compare Products — GymGear Compare</title>
-  <link rel="icon" type="image/svg+xml" href="logo.svg"/>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
   <style>
@@ -23,7 +23,7 @@
       --ff:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--ease:.18s ease;--r:4px;
     }
     html{scroll-behavior:smooth}
-    body{background:var(--off);color:var(--text);font-family:var(--fb);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    body{background:var(--off);color:var(--text);font-family:var(--fb);overflow-x:hidden;-webkit-font-smoothing:antialiased;max-width:100vw}
     ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--off)}::-webkit-scrollbar-thumb{background:var(--border-d)}
 
     /* TOPBAR */
@@ -129,8 +129,8 @@
     --trans:.22s cubic-bezier(.4,0,.2,1);
 
     /* LAYOUT */
-    .layout{display:flex;min-height:calc(100vh - 104px)}
-    .sidebar{width:210px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);position:sticky;top:104px;height:calc(100vh - 104px);overflow-y:auto;padding:16px 0}
+    .layout{display:flex;min-height:calc(100vh - 104px);overflow-x:hidden}
+    .sidebar{width:210px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);position:sticky;top:104px;max-height:calc(100vh - 104px);overflow-y:auto;padding:16px 0;align-self:flex-start}
     .sb-s{padding:0 14px;margin-bottom:20px}
     .sb-l{font-family:var(--ff);font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
     .fchips{display:flex;flex-direction:column;gap:3px}
@@ -162,7 +162,9 @@
     .spinner{display:inline-block;width:32px;height:32px;border:2.5px solid var(--border-d);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:14px}
     @keyframes spin{to{transform:rotate(360deg)}}
     .load-t{font-size:.84rem;color:var(--text-2);line-height:1.6}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    @media(max-width:1300px){.grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:1050px){.grid{grid-template-columns:repeat(2,1fr)}}
 
     /* CARD */
     .card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;position:relative;display:flex;flex-direction:column;transition:all var(--trans);box-shadow:var(--shadow-card);animation:cin .24s ease both}
@@ -319,7 +321,7 @@
       .flt-b{display:flex;align-items:center;gap:6px}
     }
     @media(max-width:600px){
-      .grid{grid-template-columns:1fr 1fr}
+      .grid{grid-template-columns:1fr 1fr!important}
       .c-emoji{font-size:3rem}
       .c-img{height:120px}
       .cbar{padding:10px 12px;flex-wrap:wrap}
@@ -336,7 +338,7 @@
       .dg-label{font-size:.82rem}
     }
     @media(max-width:400px){
-      .grid{grid-template-columns:1fr}
+      .grid{grid-template-columns:1fr!important}
       .c-emoji{font-size:3.5rem}
       .c-img{height:140px}
     }
@@ -743,6 +745,8 @@ function drillSelect(catKey, e){
   const crumb=document.getElementById('drillCrumb');
   crumb.style.display='flex';
   document.getElementById('crumbText').textContent=CAT_LABELS[catKey];
+  // Scroll to top so products are visible
+  window.scrollTo({top:0,behavior:'smooth'});
   // Load category
   selectCat(catKey);
 }
