@@ -178,7 +178,7 @@
     .c-img{height:155px;overflow:hidden;position:relative;flex-shrink:0}
     /* Category-specific emoji backgrounds */
     .c-emoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;transition:transform var(--trans)}
-    .c-photo{width:100%;height:100%;object-fit:cover;object-position:center;background:#f0eeeb;transition:transform var(--trans)}
+    .c-photo{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff;padding:10px;transition:transform var(--trans)}
     .card:hover .c-photo{transform:scale(1.05)}
     .c-emoji.bg-equip{background:linear-gradient(145deg,#f0f4ff 0%,#e0e8ff 100%)}
     .c-emoji.bg-clothing{background:linear-gradient(145deg,#fff0f5 0%,#ffe0ec 100%)}
@@ -550,11 +550,11 @@ const PROD_IMGS={
 function getProdImg(id){return PROD_IMGS[id]||''}
 
 const GROUPS={
-  equipment:{cats:['benches','barbells','dumbbells','plates','racks','cardio','kettlebells','bands']},
+  equipment:{cats:['benches','barbells','dumbbells','plates','racks','cardio','kettlebells','bands','accessories']},
   clothing:{cats:['shorts','compression','tanks','hoodies','footwear','sportsbras']},
   supplements:{cats:['preworkout','protein','creatine','recovery','vitamins','fatburners']},
 };
-const CAT_LABELS={benches:'Benches',barbells:'Barbells',dumbbells:'Dumbbells',plates:'Weight Plates',racks:'Racks & Rigs',cardio:'Cardio',kettlebells:'Kettlebells',bands:'Resistance Bands',shorts:'Gym Shorts',compression:'Compression',tanks:'Tank Tops',hoodies:'Hoodies',footwear:'Footwear',sportsbras:'Sports Bras',preworkout:'Pre-Workout',protein:'Protein',creatine:'Creatine',recovery:'Recovery',vitamins:'Vitamins',fatburners:'Fat Burners'};
+const CAT_LABELS={benches:'Benches',barbells:'Barbells',dumbbells:'Dumbbells',plates:'Weight Plates',racks:'Racks & Rigs',cardio:'Cardio',kettlebells:'Kettlebells',bands:'Resistance Bands',accessories:'Accessories',shorts:'Gym Shorts',compression:'Compression',tanks:'Tank Tops',hoodies:'Hoodies',footwear:'Footwear',sportsbras:'Sports Bras',preworkout:'Pre-Workout',protein:'Protein',creatine:'Creatine',recovery:'Recovery',vitamins:'Vitamins',fatburners:'Fat Burners'};
 
 let grp='equipment',cat=null,cache={},selIds=[],filters={brand:'all',minP:'',maxP:'',minR:0,onSale:false,clearance:false},sort='',q='',retryT={};
 const revCache={};
