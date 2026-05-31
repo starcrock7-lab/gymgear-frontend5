@@ -178,6 +178,8 @@
     .c-img{height:155px;overflow:hidden;position:relative;flex-shrink:0}
     /* Category-specific emoji backgrounds */
     .c-emoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;transition:transform var(--trans)}
+    .c-photo{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff;transition:transform var(--trans);padding:8px}
+    .card:hover .c-photo{transform:scale(1.05)}
     .c-emoji.bg-equip{background:linear-gradient(145deg,#f0f4ff 0%,#e0e8ff 100%)}
     .c-emoji.bg-clothing{background:linear-gradient(145deg,#fff0f5 0%,#ffe0ec 100%)}
     .c-emoji.bg-supp{background:linear-gradient(145deg,#f0fff4 0%,#dcfce7 100%)}
@@ -916,7 +918,7 @@ function renderGrid(){
     html+=`<div class="card ${isSel?'sel':''}" id="card-${p.id}" onclick="toggleSel('${p.id}')" style="animation-delay:${Math.min(i*.04,.3)}s">
       <div class="sel-b">✓ Selected</div>
       <div class="c-img">
-        <div class="c-emoji ${emojiBg}">${emoji}</div>
+        ${getProdImg(p.id)?`<img src="${getProdImg(p.id)}" alt="${p.name}" class="c-photo" loading="lazy" onerror="this.outerHTML='<div class=\\"c-emoji ${emojiBg}\\">${emoji}</div>'">`:`<div class="c-emoji ${emojiBg}">${emoji}</div>`}
         ${p.bestChoice?'<div class="best-badge">Best Choice</div>':''}
         ${p.discount?`<div class="disc-badge">-${p.discount}% OFF</div>`:''}
         ${p.sponsored?'<div class="spon-b">Sponsored</div>':''}
