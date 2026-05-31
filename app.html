@@ -456,7 +456,11 @@
         <span class="dg-arrow" id="darr-gear">›</span>
       </div>
       <div class="drill-sub" id="ds-gear">
-        <button onclick="drillSelect('accessories',event)">Accessories</button>
+        <button onclick="drillSelect('belts',event)">Lifting Belts</button>
+        <button onclick="drillSelect('straps',event)">Lifting Straps</button>
+        <button onclick="drillSelect('wraps',event)">Wrist Wraps</button>
+        <button onclick="drillSelect('sleeves',event)">Knee Sleeves</button>
+        <button onclick="drillSelect('chalk',event)">Chalk</button>
       </div>
     </div>
 
@@ -565,9 +569,9 @@ const GROUPS={
   equipment:{cats:['benches','barbells','dumbbells','plates','racks','cardio','kettlebells','bands']},
   clothing:{cats:['shorts','compression','tanks','hoodies','footwear','sportsbras']},
   supplements:{cats:['preworkout','protein','creatine','recovery','vitamins','fatburners']},
-  gear:{cats:['accessories']},
+  gear:{cats:['belts','straps','wraps','sleeves','chalk']},
 };
-const CAT_LABELS={benches:'Benches',barbells:'Barbells',dumbbells:'Dumbbells',plates:'Weight Plates',racks:'Racks & Rigs',cardio:'Cardio',kettlebells:'Kettlebells',bands:'Resistance Bands',accessories:'Accessories',shorts:'Gym Shorts',compression:'Compression',tanks:'Tank Tops',hoodies:'Hoodies',footwear:'Footwear',sportsbras:'Sports Bras',preworkout:'Pre-Workout',protein:'Protein',creatine:'Creatine',recovery:'Recovery',vitamins:'Vitamins',fatburners:'Fat Burners'};
+const CAT_LABELS={benches:'Benches',barbells:'Barbells',dumbbells:'Dumbbells',plates:'Weight Plates',racks:'Racks & Rigs',cardio:'Cardio',kettlebells:'Kettlebells',bands:'Resistance Bands',shorts:'Gym Shorts',compression:'Compression',tanks:'Tank Tops',hoodies:'Hoodies',footwear:'Footwear',sportsbras:'Sports Bras',preworkout:'Pre-Workout',protein:'Protein',creatine:'Creatine',recovery:'Recovery',vitamins:'Vitamins',fatburners:'Fat Burners',belts:'Lifting Belts',straps:'Lifting Straps',wraps:'Wrist Wraps',sleeves:'Knee Sleeves',chalk:'Chalk'};
 
 let grp='equipment',cat=null,cache={},selIds=[],filters={brand:'all',minP:'',maxP:'',minR:0,onSale:false,clearance:false},sort='',q='',retryT={};
 const revCache={};
