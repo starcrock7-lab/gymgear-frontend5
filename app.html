@@ -44,6 +44,13 @@
     .sw input:focus{border-color:var(--accent);background:var(--white)}
     .sw input::placeholder{color:var(--text-3)}
     .sw-i{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:0.78rem;color:var(--text-3);pointer-events:none}
+    /* Search suggestions dropdown */
+    .sw-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:1.5px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:300;overflow:hidden;display:none}
+    .sw-drop.open{display:block}
+    .sw-drop-item{display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:0.82rem;cursor:pointer;transition:background var(--ease)}
+    .sw-drop-item:hover{background:var(--accent-l);color:var(--accent)}
+    .sw-drop-item-cat{font-size:0.64rem;color:var(--text-3);margin-left:auto;font-weight:500}
+    .sw-drop-lbl{padding:6px 12px 3px;font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-3)}
     .sort-s{background:var(--light);border:1px solid var(--border);color:var(--text-2);font-family:var(--fb);font-size:0.78rem;padding:7px 8px;border-radius:6px;cursor:pointer;outline:none;margin-left:auto;flex-shrink:0;transition:border-color var(--ease)}
     .sort-s:focus{border-color:var(--accent)}
     .home-l{color:var(--text-3);font-size:0.78rem;text-decoration:none;flex-shrink:0;transition:color var(--ease);white-space:nowrap}
@@ -222,6 +229,34 @@
     .empty-i{font-size:2.5rem;margin-bottom:12px;display:block}
     .empty p{font-size:.88rem;color:var(--text-2);line-height:1.7}
 
+    /* SKELETON LOADERS */
+    .sk-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+    .sk-img{height:155px;flex-shrink:0;background:linear-gradient(90deg,var(--light) 25%,var(--off) 50%,var(--light) 75%);background-size:200% 100%;animation:sk-shimmer 1.6s ease-in-out infinite}
+    @keyframes sk-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .sk-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
+    .sk-line{border-radius:4px;background:linear-gradient(90deg,var(--light) 25%,var(--off) 50%,var(--light) 75%);background-size:200% 100%;animation:sk-shimmer 1.6s ease-in-out infinite}
+
+    /* SHARE BUTTON */
+    .btn-share{display:inline-flex;align-items:center;gap:6px;background:var(--off);border:1.5px solid var(--border);color:var(--text-2);font-family:var(--ff);font-size:.72rem;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer;transition:all var(--trans);letter-spacing:.02em}
+    .btn-share:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
+    .btn-share.copied{border-color:var(--green);color:var(--green);background:var(--green-l)}
+
+    /* STICKY BREADCRUMB */
+    .drill-crumb{position:sticky;top:0;z-index:185}
+
+    /* FOOTER for app.html */
+    .app-footer{background:var(--navy);padding:24px 32px;text-align:center;margin-top:60px}
+    .app-footer-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .app-footer-links{display:flex;gap:20px;flex-wrap:wrap}
+    .app-footer-links a{font-size:.74rem;color:rgba(255,255,255,.38);transition:color var(--trans)}
+    .app-footer-links a:hover{color:#fff}
+    .app-footer-copy{font-size:.7rem;color:rgba(255,255,255,.2)}
+    .app-footer-disc{font-size:.65rem;color:rgba(255,255,255,.13);line-height:1.5;margin-top:12px;border-top:1px solid rgba(255,255,255,.06);padding-top:12px;max-width:960px;margin-left:auto;margin-right:auto}
+
+    /* COUNT BADGE BOUNCE */
+    @keyframes badge-bounce{0%,100%{transform:scale(1)}40%{transform:scale(1.3)}70%{transform:scale(.9)}}
+    .cbar-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-family:var(--ff);font-size:.68rem;font-weight:800;width:20px;height:20px;border-radius:50%;margin-left:6px;animation:badge-bounce .35s ease}
+
     /* COMPARE BAR */
     .cbar{position:fixed;bottom:0;left:0;right:0;z-index:150;background:linear-gradient(135deg,#0d1b35,#162840);border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;padding:12px 20px;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -8px 32px rgba(0,0,0,.25)}
     .cbar.vis{transform:none}
@@ -386,7 +421,8 @@
   </a>
   <div class="sw">
     <span class="sw-i">⌕</span>
-    <input type="text" id="searchInput" placeholder="Search brands, products…" oninput="applyFilters()"/>
+    <input type="text" id="searchInput" placeholder="Search products, categories…" oninput="onSearchInput()" onfocus="onSearchFocus()" onblur="setTimeout(closeSearchDrop,180)" onkeydown="onSearchKey(event)"/>
+    <div class="sw-drop" id="swDrop"></div>
   </div>
   <button class="flt-b" onclick="openDrawer()">Filters</button>
   <select class="sort-s" id="sortSel" onchange="applyFilters()">
@@ -499,7 +535,10 @@
     <div class="cpanel" id="cpanel">
       <div class="cp-hd">
         <div class="cp-title">Side-by-Side Comparison</div>
-        <button class="cp-cl" onclick="closeComp()">✕</button>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn-share" id="shareBtn" onclick="shareComparison()">⤴ Share</button>
+          <button class="cp-cl" onclick="closeComp()">✕</button>
+        </div>
       </div>
       <div class="cp-body" id="cpBody"></div>
     </div>
@@ -521,6 +560,21 @@
 <div class="moverlay" id="moverlay" onclick="closeModal(event)">
   <div class="modal" id="modal"></div>
 </div>
+
+<footer class="app-footer">
+  <div class="app-footer-inner">
+    <div class="app-footer-links">
+      <a href="app.html?cat=benches">Equipment</a>
+      <a href="app.html?cat=shorts">Clothing</a>
+      <a href="app.html?cat=preworkout">Supplements</a>
+      <a href="app.html?cat=belts">Gear</a>
+      <a href="sponsors.html">For Brands</a>
+      <a href="index.html">Home</a>
+    </div>
+    <div class="app-footer-copy">© 2026 GymGear Compare™</div>
+  </div>
+  <div class="app-footer-disc">Some links are affiliate links. We may earn a commission at no extra cost to you. GymGear Compare is independent — no brands pay for rankings.</div>
+</footer>
 
 <script>
 const BACKEND='https://gymgear-backend5.onrender.com';
@@ -626,7 +680,15 @@ function clearDrill(){
   clearAll();
 }
 
-function stars(r){const f=Math.floor(r||0),h=(r||0)%1>=.5?1:0,e=5-f-h;return'★'.repeat(f)+(h?'½':'')+'☆'.repeat(e)}
+function stars(r){
+  const v=r||0;let h='';
+  for(let i=1;i<=5;i++){
+    if(v>=i)h+=`<span style="color:var(--amber)">★</span>`;
+    else if(v>=i-.5)h+=`<span style="color:var(--amber);opacity:.5">★</span>`;
+    else h+=`<span style="color:#ddd">★</span>`;
+  }
+  return h;
+}
 function getP(id){return(cache[cat]?.products||[]).find(p=>p.id===id)}
 function getBrands(){return[...new Set((cache[cat]?.products||[]).map(p=>p.brand))].sort()}
 
@@ -635,7 +697,7 @@ async function loadCat(c){
   if(retryT[c]){clearTimeout(retryT[c]);delete retryT[c]}
   if(cache[c]){cat=c;applyFilters();renderSidebar();return}
   cat=c;
-  document.getElementById('grid').innerHTML=`<div class="loading-s"><div class="spinner"></div><div class="load-t">Loading ${CAT_LABELS[c]}…</div></div>`;
+  document.getElementById('grid').innerHTML=Array(8).fill(0).map(()=>`<div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line" style="height:10px;width:40%"></div><div class="sk-line" style="height:18px;width:80%"></div><div class="sk-line" style="height:28px;width:55%"></div><div class="sk-line" style="height:8px;width:100%"></div><div class="sk-line" style="height:12px;width:60%"></div></div></div>`).join('');
   document.getElementById('metaC').textContent='Loading…';
   try{
     const res=await apiFetch(`/api/products/${c}`);
@@ -650,8 +712,8 @@ async function loadCat(c){
 }
 function showRetry(c){
   let r=15;
-  document.getElementById('grid').innerHTML=`<div class="loading-s"><div class="spinner"></div><div class="load-t">Loading products for the first time…<br><span id="cd-${c}">Checking in ${r}s</span></div></div>`;
-  const tick=setInterval(()=>{r--;const el=document.getElementById(`cd-${c}`);if(el)el.textContent=r>0?`Checking in ${r}s…`:'Checking…';if(r<=0)clearInterval(tick)},1000);
+  document.getElementById('grid').innerHTML=Array(8).fill(0).map(()=>`<div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line" style="height:10px;width:40%"></div><div class="sk-line" style="height:18px;width:80%"></div><div class="sk-line" style="height:28px;width:55%"></div><div class="sk-line" style="height:8px;width:100%"></div><div class="sk-line" style="height:12px;width:60%"></div></div></div>`).join('')+'<div id="sk-msg" style="grid-column:1/-1;text-align:center;padding:8px 0;font-size:.78rem;color:var(--text-3)">Waking up server… <span id="cd-'+c+'">~'+r+'s</span></div>';
+  const tick=setInterval(()=>{r--;const el=document.getElementById(`cd-${c}`);if(el)el.textContent=r>0?`~${r}s`:'almost there…';if(r<=0)clearInterval(tick)},1000);
   retryT[c]=setTimeout(()=>{clearInterval(tick);delete retryT[c];if(cat===c)loadCat(c)},15000);
 }
 
@@ -698,6 +760,85 @@ function getFiltered(){
   return out;
 }
 function applyFilters(){q=document.getElementById('searchInput').value;sort=document.getElementById('sortSel').value;renderGrid();renderTags()}
+
+// SEARCH SUGGESTIONS
+function onSearchInput(){
+  applyFilters();
+  const v=document.getElementById('searchInput').value.trim().toLowerCase();
+  if(!v){closeSearchDrop();return}
+  renderSearchDrop(v);
+}
+function onSearchFocus(){
+  const v=document.getElementById('searchInput').value.trim().toLowerCase();
+  if(v) renderSearchDrop(v);
+}
+function closeSearchDrop(){document.getElementById('swDrop').classList.remove('open')}
+function onSearchKey(e){
+  if(e.key==='Escape'){closeSearchDrop();document.getElementById('searchInput').blur()}
+  if(e.key==='Enter'&&document.querySelector('.sw-drop-item')){document.querySelector('.sw-drop-item').click()}
+}
+function renderSearchDrop(v){
+  const drop=document.getElementById('swDrop');
+  // Match categories
+  const catMatches=Object.entries(CAT_LABELS).filter(([k,l])=>l.toLowerCase().includes(v)||k.toLowerCase().includes(v)).slice(0,4);
+  // Match products from currently loaded categories
+  const prodMatches=[];
+  Object.values(cache).forEach(c=>{
+    (c.products||[]).forEach(p=>{
+      if(p.name.toLowerCase().includes(v)||p.brand.toLowerCase().includes(v)){
+        if(!prodMatches.find(x=>x.id===p.id))prodMatches.push(p);
+      }
+    });
+  });
+  const pm=prodMatches.slice(0,4);
+  if(!catMatches.length&&!pm.length){closeSearchDrop();return}
+  let html='';
+  if(catMatches.length){
+    html+=`<div class="sw-drop-lbl">Categories</div>`;
+    html+=catMatches.map(([k,l])=>`<div class="sw-drop-item" onclick="jumpToCategory('${k}')"><span>${l}</span><span class="sw-drop-item-cat">Browse →</span></div>`).join('');
+  }
+  if(pm.length){
+    html+=`<div class="sw-drop-lbl">Products</div>`;
+    html+=pm.map(p=>`<div class="sw-drop-item" onclick="jumpToProduct('${p.id}')"><span>${p.name}</span><span class="sw-drop-item-cat">${p.brand}</span></div>`).join('');
+  }
+  drop.innerHTML=html;
+  drop.classList.add('open');
+}
+function jumpToCategory(catKey){
+  closeSearchDrop();
+  document.getElementById('searchInput').value='';
+  q='';
+  // show breadcrumb
+  const crumb=document.getElementById('drillCrumb');
+  crumb.style.display='flex';
+  document.getElementById('crumbText').textContent=CAT_LABELS[catKey];
+  selectCat(catKey);
+  window.scrollTo(0,0);
+}
+function jumpToProduct(id){
+  closeSearchDrop();
+  document.getElementById('searchInput').value='';
+  q='';
+  // find which category it belongs to
+  let targetCat=null;
+  Object.entries(cache).forEach(([c,data])=>{
+    if((data.products||[]).find(p=>p.id===id)) targetCat=c;
+  });
+  if(targetCat&&targetCat!==cat){
+    selectCat(targetCat);
+    const crumb=document.getElementById('drillCrumb');
+    crumb.style.display='flex';
+    document.getElementById('crumbText').textContent=CAT_LABELS[targetCat];
+    setTimeout(()=>{
+      const el=document.getElementById('card-'+id);
+      if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.outline='2px solid var(--accent)';setTimeout(()=>el.style.outline='',1800)}
+    },400);
+  } else if(cat){
+    const el=document.getElementById('card-'+id);
+    if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.outline='2px solid var(--accent)';setTimeout(()=>el.style.outline='',1800)}
+  }
+  applyFilters();
+}
 
 // SIDEBAR
 function sbHTML(){
@@ -831,7 +972,7 @@ function updateCbar(){
   }).join('');
   if(selIds.length<MAX_COMPARE)html+=`<div class="cslot"><span class="sname">${selIds.length===1?'Add another…':'Add more…'}</span></div>`;
   if(slotsEl)slotsEl.innerHTML=html;
-  if(hint)hint.textContent=selIds.length>=2?`${selIds.length} selected`:`Select ${2-selIds.length} more`;
+  if(hint)hint.innerHTML=selIds.length>=2?`<span class="cbar-badge" key="${selIds.length}">${selIds.length}</span> selected`:`Select ${2-selIds.length} more`;
   btn.disabled=selIds.length<2;
   btn.textContent=selIds.length>=2?`Compare ${selIds.length}`:'Compare';
 }
@@ -862,7 +1003,11 @@ async function showComparison(){
     `<tr><td class="sm-k">Quality Score</td>${prods.map(p=>`<td class="sm-v ${p.quality===maxQ?'win':''}">${p.quality}/10</td>`).join('')}</tr>`,
     `<tr><td class="sm-k">Rating</td>${prods.map(p=>`<td class="sm-v ${p.rating===maxR?'win':''}">${p.rating}★ (${(p.reviewCount||0).toLocaleString()})</td>`).join('')}</tr>`,
   ].join('');
-  const specRows=allKeys.map(k=>`<tr><td class="sm-k">${k}</td>${prods.map(p=>{const v=p.specs?.[k]??'—';return`<td class="sm-v ${v==='—'?'none':''}">${v}</td>`}).join('')}</tr>`).join('');
+  const specRows=allKeys.map(k=>{
+    const vals=prods.map(p=>p.specs?.[k]??'—');
+    const wins=specRowWinners(vals,k);
+    return`<tr><td class="sm-k">${k}</td>${vals.map((v,i)=>`<td class="sm-v ${v==='—'?'none':wins[i]?'win':''}">${v}</td>`).join('')}</tr>`;
+  }).join('');
   document.getElementById('cpBody').innerHTML=`
     <div class="cp-matrix">
       <div class="cp-matrix-head" style="--cols:${n}">
@@ -884,6 +1029,20 @@ async function showComparison(){
     if(r.ok){const d=await r.json();if(d.summary)document.getElementById('aiVerdictText').innerHTML=d.summary;}
   }catch{document.getElementById('aiVerdictText').innerHTML=localSum(prods[0],prods[n-1]);}
 }
+// Detect winner across numeric spec values
+function specRowWinners(values, key){
+  const parsed=values.map(v=>{
+    if(!v||v==='—')return null;
+    const n=parseFloat(v.toString().replace(/[^0-9.]/g,''));
+    return isNaN(n)?null:n;
+  });
+  if(parsed.every(n=>n!==null)&&new Set(parsed).size>1){
+    const lowerBetter=/\b(weight|lb|lbs|kg|calorie|cal|fat|sodium|carb|serving size|sugar)\b/i.test(key);
+    const best=lowerBetter?Math.min(...parsed):Math.max(...parsed);
+    return parsed.map(n=>n===best);
+  }
+  return parsed.map(()=>false);
+}
 function localSum(p1,p2){
   const d=Math.abs(p1.price-p2.price),qw=p1.quality>=p2.quality?p1:p2,cheap=p1.price<=p2.price?p1:p2,pricey=cheap.id===p1.id?p2:p1,vw=(p1.quality/p1.price)>=(p2.quality/p2.price)?p1:p2;
   if(d===0)return`Same price. <strong>${qw.name}</strong> wins on quality (${qw.quality}/10).`;
@@ -891,7 +1050,27 @@ function localSum(p1,p2){
   if(vw.id===cheap.id)return`<strong>${cheap.name}</strong> is $${d} cheaper and better value per dollar. Save the money.`;
   return`<strong>${pricey.name}</strong> costs $${d} more but earns it — ${pricey.quality}/10 vs ${cheap.quality}/10. Worth the upgrade if budget allows.`;
 }
-function closeComp(){document.getElementById('cpanel').classList.remove('vis')}
+function closeComp(){document.getElementById('cpanel').classList.remove('vis');history.replaceState(null,'',location.pathname+(cat?`?cat=${cat}`:''))}
+
+function shareComparison(){
+  if(!selIds.length||!cat)return;
+  const url=location.origin+location.pathname+`?cat=${cat}&ids=${selIds.join(',')}`;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(()=>{
+      const btn=document.getElementById('shareBtn');
+      btn.textContent='✓ Copied!';btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent='⤴ Share';btn.classList.remove('copied')},2200);
+    }).catch(()=>fallbackCopy(url));
+  } else fallbackCopy(url);
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  document.execCommand('copy');document.body.removeChild(ta);
+  const btn=document.getElementById('shareBtn');
+  btn.textContent='✓ Copied!';btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='⤴ Share';btn.classList.remove('copied')},2200);
+}
 
 // MODAL
 async function openModal(id){
@@ -932,15 +1111,34 @@ function closeModal(e){if(!e||e.target===document.getElementById('moverlay')){do
 function openDrawer(){document.getElementById('drw').classList.add('open');document.getElementById('drwBg').classList.add('open')}
 function closeDrawer(){document.getElementById('drw').classList.remove('open');document.getElementById('drwBg').classList.remove('open')}
 
-// URL PARAMS — if ?cat=barbells, auto-open that category
+// URL PARAMS — if ?cat=barbells, auto-open; if ?cat=X&ids=a,b,c restore shared comparison
 (function(){
-  const p=new URLSearchParams(window.location.search),c=p.get('cat');
+  const p=new URLSearchParams(window.location.search);
+  const c=p.get('cat'),ids=p.get('ids');
   if(c&&CAT_LABELS[c]){
-    selectCat(c);
     // Show breadcrumb
     const crumb=document.getElementById('drillCrumb');
     crumb.style.display='flex';
     document.getElementById('crumbText').textContent=CAT_LABELS[c];
+    // Highlight active nav button
+    document.querySelectorAll('.drill-sub button').forEach(b=>{if(b.textContent.trim()===CAT_LABELS[c])b.classList.add('active')});
+    if(ids){
+      // Shared comparison — load cat, wait for data, then auto-select and compare
+      loadCat(c).then?.(()=>{}).catch?.(()=>{});
+      const parsedIds=ids.split(',').filter(Boolean).slice(0,4);
+      const tryRestore=setInterval(()=>{
+        if(cache[c]){
+          clearInterval(tryRestore);
+          selIds=parsedIds.filter(id=>cache[c].products.some(pr=>pr.id===id));
+          applyFilters();updateCbar();
+          if(selIds.length>=2)setTimeout(()=>showComparison(),400);
+        }
+      },200);
+      setTimeout(()=>clearInterval(tryRestore),15000);
+      selectCat(c);
+    } else {
+      selectCat(c);
+    }
   }
 })();
 </script>

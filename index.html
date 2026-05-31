@@ -97,6 +97,23 @@
     .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(232,84,42,0.38)}
     .hero-note{font-size:0.76rem;color:var(--text-3);margin-top:14px}
 
+    /* TRUST STAT BAR */
+    .trust-bar{
+      display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0;
+      border-bottom:1px solid var(--border);background:var(--white);
+      padding:18px 32px;
+    }
+    .trust-stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 36px;flex-shrink:0}
+    .trust-n{font-family:var(--ff);font-size:1.55rem;font-weight:800;color:var(--accent);line-height:1;letter-spacing:-0.02em}
+    .trust-l{font-size:0.72rem;color:var(--text-3);font-weight:500;letter-spacing:0.02em;text-align:center}
+    .trust-div{width:1px;height:36px;background:var(--border);flex-shrink:0}
+    @media(max-width:768px){
+      .trust-bar{gap:0;padding:14px 16px}
+      .trust-stat{padding:6px 16px}
+      .trust-n{font-size:1.2rem}
+      .trust-l{font-size:0.65rem}
+    }
+
     /* WHY NOT AI */
     .why-bar{
       background:var(--navy);padding:28px 32px;
@@ -133,12 +150,30 @@
     .how-title{font-family:var(--ff);font-size:1.05rem;font-weight:700;margin-bottom:8px}
     .how-desc{font-size:0.86rem;color:var(--text-2);line-height:1.75}
 
+    /* HOW WE COMPARE */
+    .hwc-wrap{background:var(--off);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:72px 32px}
+    .hwc-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+    .hwc-tag{font-size:0.68rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+    .hwc-title{font-family:var(--ff);font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:800;line-height:1.08;letter-spacing:-0.02em;margin-bottom:20px}
+    .hwc-desc{font-size:0.9rem;color:var(--text-2);line-height:1.8}
+    .hwc-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .hwc-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:20px;transition:all .22s ease}
+    .hwc-card:hover{border-color:rgba(232,84,42,0.3);box-shadow:0 4px 20px rgba(0,0,0,0.07);transform:translateY(-2px)}
+    .hwc-icon{font-size:1.5rem;margin-bottom:10px;display:block}
+    .hwc-card-title{font-family:var(--ff);font-size:0.88rem;font-weight:700;margin-bottom:6px}
+    .hwc-card-body{font-size:0.78rem;color:var(--text-2);line-height:1.65}
+    @media(max-width:900px){
+      .hwc-inner{grid-template-columns:1fr;gap:36px}
+      .hwc-wrap{padding:48px 20px}
+    }
+    @media(max-width:480px){.hwc-cards{grid-template-columns:1fr}}
+
     /* CATEGORIES — 3 big cards */
     .cats{padding:64px 32px;max-width:1100px;margin:0 auto}
     .cats-title{font-family:var(--ff);font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:6px}
     .cats-sub{font-size:0.9rem;color:var(--text-2);text-align:center;margin-bottom:36px}
 
-    .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
     .cat-card{
       border-radius:14px;overflow:hidden;position:relative;cursor:pointer;
       transition:transform .26s ease,box-shadow .26s ease;
@@ -191,23 +226,35 @@
     .btn-outline:hover{border-color:var(--text);background:var(--text);color:#fff}
 
     /* FOOTER */
-    footer{background:var(--navy);padding:44px 32px 28px}
+    footer{background:var(--navy);padding:56px 32px 28px}
     .foot-grid{
-      display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;
+      display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr;gap:48px;
       max-width:1100px;margin:0 auto;
-      padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.08);
+      padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,0.08);
       margin-bottom:24px;
     }
-    .foot-logo{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .foot-logo{display:flex;align-items:center;gap:10px;margin-bottom:12px}
     .foot-logo svg{height:28px;width:auto;filter:brightness(0) invert(1)}
-    .foot-desc{font-size:0.78rem;color:rgba(255,255,255,0.3);line-height:1.7;max-width:260px}
-    .foot-col-t{font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.22);margin-bottom:12px;font-family:var(--ff)}
-    .foot-links{display:flex;flex-direction:column;gap:8px}
+    .foot-desc{font-size:0.78rem;color:rgba(255,255,255,0.35);line-height:1.75;max-width:260px;margin-bottom:20px}
+    .foot-social{display:flex;gap:10px;flex-wrap:wrap}
+    .foot-social-btn{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);font-size:0.9rem;transition:all var(--ease);text-decoration:none;color:#fff}
+    .foot-social-btn:hover{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.25)}
+    .foot-col-t{font-size:0.58rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.22);margin-bottom:14px;font-family:var(--ff)}
+    .foot-links{display:flex;flex-direction:column;gap:10px}
     .foot-links a{font-size:0.78rem;color:rgba(255,255,255,0.42);transition:color var(--ease)}
     .foot-links a:hover{color:#fff}
+    .foot-newsletter{margin-top:32px;padding-top:28px;border-top:1px solid rgba(255,255,255,0.07);max-width:1100px;margin-left:auto;margin-right:auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:24px}
+    .foot-nl-text h4{font-family:var(--ff);font-size:0.95rem;font-weight:700;color:#fff;margin-bottom:4px}
+    .foot-nl-text p{font-size:0.75rem;color:rgba(255,255,255,0.35)}
+    .foot-nl-form{display:flex;gap:8px;flex-wrap:wrap}
+    .foot-nl-input{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:#fff;font-family:var(--fb);font-size:0.82rem;padding:10px 14px;border-radius:7px;outline:none;min-width:220px;transition:border-color var(--ease)}
+    .foot-nl-input::placeholder{color:rgba(255,255,255,0.3)}
+    .foot-nl-input:focus{border-color:rgba(232,84,42,0.6)}
+    .foot-nl-btn{background:var(--accent);border:none;color:#fff;font-family:var(--ff);font-weight:700;font-size:0.8rem;padding:10px 20px;border-radius:7px;cursor:pointer;letter-spacing:0.03em;transition:all var(--ease);white-space:nowrap}
+    .foot-nl-btn:hover{background:#d4421a}
     .foot-bottom{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
     .foot-copy{font-size:0.7rem;color:rgba(255,255,255,0.2)}
-    .foot-disc{font-size:0.66rem;color:rgba(255,255,255,0.13);max-width:420px;line-height:1.5}
+    .foot-disc{font-size:0.65rem;color:rgba(255,255,255,0.13);max-width:480px;line-height:1.6}
 
     /* MOBILE */
     .mob-menu{display:none;position:fixed;inset:0;background:#fff;z-index:300;flex-direction:column}
@@ -217,6 +264,9 @@
     .mob-links a{display:block;font-family:var(--ff);font-size:1rem;font-weight:700;color:var(--text);padding:14px 24px;border-bottom:1px solid var(--border)}
     .mob-foot{padding:20px 24px}
 
+    @media(max-width:1100px){
+      .cat-grid{grid-template-columns:repeat(2,1fr)}
+    }
     @media(max-width:768px){
       nav{padding:0 20px}
       .n-right a:not(.n-cta){display:none}
@@ -227,11 +277,13 @@
       .how-step{padding:24px 0;border-right:none;border-bottom:1px solid var(--border)}
       .how-step:last-child{border-bottom:none}
       .cats{padding:48px 20px}
-      .cat-grid{grid-template-columns:1fr;gap:16px}
-      .cat-img{height:200px}
-      .foot-grid{grid-template-columns:1fr;gap:24px;padding:0 0 28px}
+      .cat-grid{grid-template-columns:1fr 1fr;gap:14px}
+      .cat-img{height:180px}
+      .foot-grid{grid-template-columns:1fr 1fr;gap:28px;padding:0 0 28px}
+      .foot-newsletter{flex-direction:column;align-items:flex-start;gap:16px}
+      .foot-nl-input{min-width:0;width:100%}
       .sponsor-bar{padding:32px 20px}
-      footer{padding:36px 20px 24px}
+      footer{padding:40px 20px 24px}
       .ad-wrap{padding:0 20px 28px}
     }
   </style>
@@ -282,14 +334,25 @@
 <!-- HERO -->
 <div class="hero-wrap">
 <section class="hero">
-  <div class="hero-tag">Free · No Sign-Up · Instant Results</div>
-  <h1 class="hero-title">Stop Overpaying<br>for <span>Gym Gear</span></h1>
-  <p class="hero-sub">Pick any two products and get a side-by-side breakdown with real prices and an honest AI verdict on which to buy.</p>
+  <div class="hero-tag">Free · No Sign-Up · AI-Powered · Always Independent</div>
+  <h1 class="hero-title">Stop Guessing.<br><span>Start Comparing.</span></h1>
+  <p class="hero-sub">The smarter way to buy gym gear. Pick any two products — get a real side-by-side spec breakdown, live prices, and an honest AI verdict on which is worth your money.</p>
   <div class="hero-actions">
-    <a href="app.html" class="btn-primary">Start Comparing Free →</a>
+    <a href="app.html" class="btn-primary">Compare Products Free →</a>
   </div>
-  <div class="hero-note">No account needed. Takes 30 seconds.</div>
+  <div class="hero-note">No account needed · 160+ products · Takes 30 seconds</div>
 </section>
+</div>
+
+<!-- TRUST STAT BAR -->
+<div class="trust-bar">
+  <div class="trust-stat"><span class="trust-n">160+</span><span class="trust-l">Products Compared</span></div>
+  <div class="trust-div"></div>
+  <div class="trust-stat"><span class="trust-n">25</span><span class="trust-l">Categories</span></div>
+  <div class="trust-div"></div>
+  <div class="trust-stat"><span class="trust-n">AI</span><span class="trust-l">Powered Verdicts</span></div>
+  <div class="trust-div"></div>
+  <div class="trust-stat"><span class="trust-n">100%</span><span class="trust-l">Independent — No Paid Rankings</span></div>
 </div>
 
 <!-- WHY NOT AI -->
@@ -323,6 +386,41 @@
   </div>
 </div>
 
+<!-- HOW WE COMPARE — TRUST SECTION -->
+<section class="hwc-wrap">
+  <div class="hwc-inner">
+    <div class="hwc-text">
+      <div class="hwc-tag">Our Approach</div>
+      <h2 class="hwc-title">Built for buyers,<br>not brands</h2>
+      <p class="hwc-desc">Every product on this site was hand-researched. We pull real specs, real prices, and real customer reviews — no sponsored placements, no inflated scores, no brand influence on rankings.</p>
+      <p class="hwc-desc" style="margin-top:12px">Our AI verdict is generated fresh for every comparison, weighing specs, value, and use case — not whoever paid us.</p>
+      <a href="app.html" class="btn-primary" style="margin-top:24px;display:inline-flex">Start Comparing →</a>
+    </div>
+    <div class="hwc-cards">
+      <div class="hwc-card">
+        <div class="hwc-icon">🔍</div>
+        <div class="hwc-card-title">Independent Research</div>
+        <div class="hwc-card-body">Products are selected based on quality, popularity, and value — never by who pays more.</div>
+      </div>
+      <div class="hwc-card">
+        <div class="hwc-icon">⚡</div>
+        <div class="hwc-card-title">AI-Powered Analysis</div>
+        <div class="hwc-card-body">Every comparison runs through Claude AI to weigh specs and give you a plain-English verdict.</div>
+      </div>
+      <div class="hwc-card">
+        <div class="hwc-icon">💰</div>
+        <div class="hwc-card-title">Affiliate Transparency</div>
+        <div class="hwc-card-body">Some links earn us a commission. Rankings are never influenced by this — our credibility depends on it.</div>
+      </div>
+      <div class="hwc-card">
+        <div class="hwc-icon">🔄</div>
+        <div class="hwc-card-title">Regularly Updated</div>
+        <div class="hwc-card-body">Prices and products are reviewed and updated so you're always comparing current options.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- 3 CATEGORY CARDS -->
 <section class="cats">
   <h2 class="cats-title">What are you shopping for?</h2>
@@ -334,7 +432,7 @@
         <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=85" alt="Gym Equipment" loading="lazy"/>
       </div>
       <div class="cat-overlay">
-        <div class="cat-label">Compare</div>
+        <div class="cat-label">8 Subcategories</div>
         <div class="cat-name">Equipment</div>
         <div class="cat-items">Benches · Barbells · Racks · Dumbbells · Cardio · More</div>
         <div class="cat-btn">Browse Equipment →</div>
@@ -346,7 +444,7 @@
         <img src="https://images.unsplash.com/photo-1483721310020-03333e577078?w=800&q=85" alt="Gym Clothing" loading="lazy"/>
       </div>
       <div class="cat-overlay">
-        <div class="cat-label">Compare</div>
+        <div class="cat-label">6 Subcategories</div>
         <div class="cat-name">Clothing</div>
         <div class="cat-items">Shorts · Hoodies · Footwear · Compression · More</div>
         <div class="cat-btn">Browse Clothing →</div>
@@ -358,10 +456,22 @@
         <img src="https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&q=85" alt="Supplements" loading="lazy"/>
       </div>
       <div class="cat-overlay">
-        <div class="cat-label">Compare</div>
+        <div class="cat-label">6 Subcategories</div>
         <div class="cat-name">Supplements</div>
         <div class="cat-items">Protein · Pre-Workout · Creatine · Recovery · More</div>
         <div class="cat-btn">Browse Supplements →</div>
+      </div>
+    </a>
+
+    <a href="app.html?cat=belts" class="cat-card">
+      <div class="cat-img">
+        <img src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&q=85" alt="Gym Gear &amp; Accessories" loading="lazy"/>
+      </div>
+      <div class="cat-overlay">
+        <div class="cat-label">5 Subcategories</div>
+        <div class="cat-name">Gear</div>
+        <div class="cat-items">Lifting Belts · Straps · Wraps · Knee Sleeves · Chalk</div>
+        <div class="cat-btn">Browse Gear →</div>
       </div>
     </a>
   </div>
@@ -392,7 +502,13 @@
         <svg width="28" height="28" viewBox="0 0 60 60"><use href="#logo-mark" style="filter:brightness(0) invert(1)"/></svg>
         <span style="font-family:var(--ff);font-size:0.95rem;font-weight:700;color:#fff">GymGear <span style="color:var(--accent)">Compare</span></span>
       </div>
-      <p class="foot-desc">Side-by-side comparisons across gym equipment, clothing, and supplements. Real prices, real reviews, honest verdicts.</p>
+      <p class="foot-desc">The independent gym gear comparison site. Real specs, real prices, honest AI verdicts — no paid rankings, ever.</p>
+      <div class="foot-social">
+        <a href="#" class="foot-social-btn" title="Instagram" aria-label="Instagram">📷</a>
+        <a href="#" class="foot-social-btn" title="TikTok" aria-label="TikTok">🎵</a>
+        <a href="#" class="foot-social-btn" title="Reddit" aria-label="Reddit">🔴</a>
+        <a href="#" class="foot-social-btn" title="YouTube" aria-label="YouTube">▶</a>
+      </div>
     </div>
     <div>
       <div class="foot-col-t">Compare</div>
@@ -400,7 +516,18 @@
         <a href="app.html?cat=benches">Equipment</a>
         <a href="app.html?cat=shorts">Clothing</a>
         <a href="app.html?cat=preworkout">Supplements</a>
+        <a href="app.html?cat=belts">Gear</a>
         <a href="app.html">All Products</a>
+      </div>
+    </div>
+    <div>
+      <div class="foot-col-t">Popular</div>
+      <div class="foot-links">
+        <a href="app.html?cat=barbells">Barbells</a>
+        <a href="app.html?cat=preworkout">Pre-Workout</a>
+        <a href="app.html?cat=hoodies">Hoodies</a>
+        <a href="app.html?cat=creatine">Creatine</a>
+        <a href="app.html?cat=belts">Lifting Belts</a>
       </div>
     </div>
     <div>
@@ -408,13 +535,27 @@
       <div class="foot-links">
         <a href="sponsors.html">For Brands</a>
         <a href="sponsors.html">Advertise</a>
-        <a href="sponsors.html#contact">Contact</a>
+        <a href="sponsors.html#contact">Contact Us</a>
+        <a href="app.html">Start Comparing</a>
       </div>
     </div>
   </div>
+
+  <!-- NEWSLETTER -->
+  <div class="foot-newsletter">
+    <div class="foot-nl-text">
+      <h4>Get weekly deal alerts</h4>
+      <p>We'll email you when prices drop on popular gym gear.</p>
+    </div>
+    <div class="foot-nl-form">
+      <input type="email" class="foot-nl-input" placeholder="your@email.com"/>
+      <button class="foot-nl-btn" onclick="this.textContent='✓ Subscribed';this.style.background='#15803d'">Subscribe →</button>
+    </div>
+  </div>
+
   <div class="foot-bottom">
     <div class="foot-copy">© 2026 GymGear Compare™. All rights reserved.</div>
-    <div class="foot-disc">Some links are affiliate links. We may earn a commission at no extra cost to you.</div>
+    <div class="foot-disc">Some links are affiliate links. We may earn a small commission at no extra cost to you. Rankings are never influenced by affiliate relationships. GymGear Compare™ is an unregistered trademark.</div>
   </div>
 </footer>
 
