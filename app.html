@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Compare Products — GymGear Compare</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <!-- Google Analytics 4 — replace G-XXXXXXXXXX with your Measurement ID from analytics.google.com -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
   <style>
@@ -580,6 +583,11 @@
 const BACKEND='https://gymgear-backend5.onrender.com';
 const SITE_KEY='ggcp-2026-xK9m'; // Must match SITE_KEY env var on Render
 
+// Keep Render backend warm — ping /health every 13 minutes to prevent cold-start sleep
+(function keepAlive(){
+  setInterval(()=>{fetch(BACKEND+'/health').catch(()=>{})},13*60*1000);
+})();
+
 // Authenticated fetch — sends secret key with every request
 async function apiFetch(path, options={}) {
   const headers = {'Content-Type':'application/json','X-Site-Key':SITE_KEY,...(options.headers||{})};
@@ -604,8 +612,44 @@ const PROD_IMGS={
   'peloton-bike':'https://images.ctfassets.net/7vk8puwnesgc/2xURCMwD091uJI4uqrh3UN/755365da4bcac7fff2bc5102f5976530/Metadata-Bike_.jpg',
   'rogue-kb':'https://assets.roguefitness.com/f_auto,q_auto,c_limit,w_800,b_rgb:ffffff/catalog/Conditioning/Strength%20Equipment/Kettlebells/IP0670/IP0670-H_j6gkfw.png',
   'rep-bands':'https://repfitness.com/cdn/shop/products/Shopify-Pull-Up-Bands-Orange-Thumbnail_296715cf-6824-417b-9e5e-68a2e2e6cb32.jpg?v=1653334713',
-  // Gear
+  // Gear — Belts
   'rogue-ohio-belt':'https://assets.roguefitness.com/f_auto,q_auto,c_limit,w_800,b_rgb:ffffff/catalog/Straps%20Wraps%20and%20Support%20/Belts%20/Powerlifting/WL0044/WL0044/UPDATED%20WL0044/WL0042-H_kv2rcv.png',
+  'inzer-forever-belt':'https://www.inzernet.com/cdn/shop/products/forever-lever-belt-main_800x.jpg',
+  'sbd-belt':'https://www.sbdapparel.com/cdn/shop/products/powerlifting-belt-main_800x.jpg',
+  'gymreapers-lever-belt':'https://m.media-amazon.com/images/I/71EH3FTBPnL._AC_SL1500_.jpg',
+  'schiek-2004-belt':'https://m.media-amazon.com/images/I/71xqxCv1M8L._AC_SL1500_.jpg',
+  'harbinger-foam-belt':'https://m.media-amazon.com/images/I/71Ci3-j3SxL._AC_SL1500_.jpg',
+  'element26-belt':'https://m.media-amazon.com/images/I/71xsO3KTOFL._AC_SL1500_.jpg',
+  // Straps
+  'versa-gripps-pro':'https://m.media-amazon.com/images/I/71KWR3vl5sL._AC_SL1500_.jpg',
+  'harbinger-padded-straps':'https://m.media-amazon.com/images/I/71pxm4g8lSL._AC_SL1500_.jpg',
+  'rogue-lifting-straps':'https://assets.roguefitness.com/f_auto,q_auto,c_limit,w_800,b_rgb:ffffff/catalog/Straps%20Wraps%20and%20Support%20/Straps/Lifting%20Straps/WL0018/WL0018-H_yoakwd.png',
+  'gymreapers-figure8':'https://m.media-amazon.com/images/I/71ZJa5FJWZL._AC_SL1500_.jpg',
+  'stoic-straps':'https://m.media-amazon.com/images/I/71lFcCvxXlL._AC_SL1500_.jpg',
+  // Wraps
+  'sbd-wrist-wraps':'https://www.sbdapparel.com/cdn/shop/products/wrist-wraps-main_800x.jpg',
+  'rogue-wrist-wraps':'https://assets.roguefitness.com/f_auto,q_auto,c_limit,w_800,b_rgb:ffffff/catalog/Straps%20Wraps%20and%20Support%20/Wrist%20Wraps/USA%20Wrist%20Wraps/WL0187/WL0187-H_owlrkc.png',
+  'gymreapers-wrist-wraps':'https://m.media-amazon.com/images/I/71djnK9Ot9L._AC_SL1500_.jpg',
+  'mark-bell-wraps':'https://m.media-amazon.com/images/I/71d7hYD-HNL._AC_SL1500_.jpg',
+  // Sleeves
+  'sbd-knee-sleeves':'https://www.sbdapparel.com/cdn/shop/products/knee-sleeves-main_800x.jpg',
+  'rehband-rx-sleeves':'https://m.media-amazon.com/images/I/71Bnf0kQMXL._AC_SL1500_.jpg',
+  'stoic-knee-sleeves':'https://m.media-amazon.com/images/I/71wk0GH7TpL._AC_SL1500_.jpg',
+  'rogue-knee-sleeves':'https://assets.roguefitness.com/f_auto,q_auto,c_limit,w_800,b_rgb:ffffff/catalog/Straps%20Wraps%20and%20Support%20/Knee%20Sleeves%20and%20Wraps/5mm%20Knee%20Sleeves/KS0085/KS0085-H_gmdpfl.png',
+  'gymreapers-knee-sleeves':'https://m.media-amazon.com/images/I/71EqDrNLXVL._AC_SL1500_.jpg',
+  // Chalk
+  'frictionlabs-loose':'https://frictionlabs.com/cdn/shop/products/unicorn-dust-loose-chalk-main_800x.jpg',
+  'frictionlabs-secret-stuff':'https://frictionlabs.com/cdn/shop/products/secret-stuff-liquid-chalk-main_800x.jpg',
+  'black-diamond-chalk':'https://m.media-amazon.com/images/I/71VQdOD9YEL._AC_SL1500_.jpg',
+  // Racks
+  'rogue-rm6':'https://assets.roguefitness.com/f_auto,q_auto,c_limit,w_800,b_rgb:ffffff/catalog/Strength%20Equipment/Strength%20Training/Power%20Racks%20and%20Rigs/Monster%20Series/RM6/RM6-H_v7l1hq.png',
+  'rogue-r3':'https://assets.roguefitness.com/f_auto,q_auto,c_limit,w_800,b_rgb:ffffff/catalog/Strength%20Equipment/Strength%20Training/Power%20Racks%20and%20Rigs/R-Series/R3/R3-H_jm3cmu.png',
+  'rogue-squat':'https://assets.roguefitness.com/f_auto,q_auto,c_limit,w_800,b_rgb:ffffff/catalog/Strength%20Equipment/Strength%20Training/Power%20Racks%20and%20Rigs/Squat%20Stands/SQ-1/SQ1-H_d5sj6v.png',
+  // Cardio
+  'concept2-rower':'https://www.concept2.com/files/images/products/rowing/rowerg/product/rowerg-sport-black-legs-side-view.jpg',
+  'concept2-ski':'https://www.concept2.com/files/images/products/skiing/skierg/product/skierg-floor-stand-black.jpg',
+  'concept2-bikeerg':'https://www.concept2.com/files/images/products/biking/bikeerg/product/bikeerg-side-view.jpg',
+  // Supplements
   'nike-club-hoodie':'https://static.nike.com/a/images/t_default/94f6d19b-8ab6-41da-8dd2-d9b718abfaea/M+NSW+CLUB+HOODIE+PO+BB.png',
   'transparent-stim':'https://www.transparentlabs.com/cdn/shop/files/TL-127_BULK_BLK_30_BC_1_5.png?v=1769104751',
   'gorilla-mind':'https://gorillamind.com/cdn/shop/files/GM_HERO_Mode_RainbowSherbet_working_020626_1.png?v=1772215014',
@@ -616,6 +660,21 @@ const PROD_IMGS={
   'momentous-recovery':'https://www.livemomentous.com/cdn/shop/files/Recovery_HERO-Chocolate.png?v=1778013999&width=800',
   'momentous-omega3':'https://www.livemomentous.com/cdn/shop/files/Omega3_HERO_Jar.png?v=1776803640&width=800',
   'transparent-fat':'https://www.transparentlabs.com/cdn/shop/files/TL_BodyRecomp_120C.png?v=1745870881',
+  'transparent-sleep':'https://www.transparentlabs.com/cdn/shop/files/TL_Sleep_Recovery_V2_1.png?v=1745537479',
+  'transparent-whey':'https://www.transparentlabs.com/cdn/shop/files/TL_GrassedFed_Whey_V2_1_2.png?v=1745537479',
+  'on-gold-standard':'https://m.media-amazon.com/images/I/71u8zx0H22L._AC_SL1500_.jpg',
+  'on-creatine':'https://m.media-amazon.com/images/I/71kN3DcfVHL._AC_SL1500_.jpg',
+  'on-casein':'https://m.media-amazon.com/images/I/71+MZzX1pGL._AC_SL1500_.jpg',
+  'dymatize-iso100':'https://m.media-amazon.com/images/I/71z5tpB7bEL._AC_SL1500_.jpg',
+  'c4-original':'https://m.media-amazon.com/images/I/71lYAOBRRTL._AC_SL1500_.jpg',
+  'ghost-legend':'https://ghostlifestyle.com/cdn/shop/products/ghost-legend-pre-workout-main_800x.png',
+  'ghost-whey':'https://ghostlifestyle.com/cdn/shop/products/ghost-whey-protein-main_800x.png',
+  'ghost-bcaa':'https://ghostlifestyle.com/cdn/shop/products/ghost-bcaa-main_800x.png',
+  'ghost-burn':'https://ghostlifestyle.com/cdn/shop/products/ghost-burn-main_800x.png',
+  'lululemon-align':'https://images.lululemon.com/is/image/lululemon/LW5CJAS_032343_1',
+  'lululemon-energy':'https://images.lululemon.com/is/image/lululemon/LW1AHOS_064847_1',
+  'lululemon-scuba':'https://images.lululemon.com/is/image/lululemon/LW4DRFS_064847_1',
+  'lululemon-shorts':'https://images.lululemon.com/is/image/lululemon/LM1BGCS_032334_1',
 };
 
 function getProdImg(id){return PROD_IMGS[id]||''}
