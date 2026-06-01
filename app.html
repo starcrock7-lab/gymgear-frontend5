@@ -503,6 +503,19 @@
       </div>
     </div>
 
+    <div class="drill-group" id="dg-accessories" onclick="toggleDrill('accessories')">
+      <div class="drill-group-inner">
+        <span class="dg-label">Accessories</span>
+        <span class="dg-arrow" id="darr-accessories">›</span>
+      </div>
+      <div class="drill-sub" id="ds-accessories">
+        <button onclick="drillSelect('yogamats',event)">Yoga Mats</button>
+        <button onclick="drillSelect('foamrollers',event)">Foam Rollers</button>
+        <button onclick="drillSelect('gymbags',event)">Gym Bags</button>
+        <button onclick="drillSelect('jumpropes',event)">Jump Ropes</button>
+      </div>
+    </div>
+
   </div>
   <!-- Active breadcrumb -->
   <div class="drill-crumb" id="drillCrumb" style="display:none">
@@ -684,8 +697,9 @@ const GROUPS={
   clothing:{cats:['shorts','compression','tanks','hoodies','footwear','sportsbras']},
   supplements:{cats:['preworkout','protein','creatine','recovery','vitamins','fatburners']},
   gear:{cats:['belts','straps','wraps','sleeves','chalk']},
+  accessories:{cats:['yogamats','foamrollers','gymbags','jumpropes']},
 };
-const CAT_LABELS={benches:'Benches',barbells:'Barbells',dumbbells:'Dumbbells',plates:'Weight Plates',racks:'Racks & Rigs',cardio:'Cardio',kettlebells:'Kettlebells',bands:'Resistance Bands',shorts:'Gym Shorts',compression:'Compression',tanks:'Tank Tops',hoodies:'Hoodies',footwear:'Footwear',sportsbras:'Sports Bras',preworkout:'Pre-Workout',protein:'Protein',creatine:'Creatine',recovery:'Recovery',vitamins:'Vitamins',fatburners:'Fat Burners',belts:'Lifting Belts',straps:'Lifting Straps',wraps:'Wrist Wraps',sleeves:'Knee Sleeves',chalk:'Chalk'};
+const CAT_LABELS={benches:'Benches',barbells:'Barbells',dumbbells:'Dumbbells',plates:'Weight Plates',racks:'Racks & Rigs',cardio:'Cardio',kettlebells:'Kettlebells',bands:'Resistance Bands',shorts:'Gym Shorts',compression:'Compression',tanks:'Tank Tops',hoodies:'Hoodies',footwear:'Footwear',sportsbras:'Sports Bras',preworkout:'Pre-Workout',protein:'Protein',creatine:'Creatine',recovery:'Recovery',vitamins:'Vitamins',fatburners:'Fat Burners',belts:'Lifting Belts',straps:'Lifting Straps',wraps:'Wrist Wraps',sleeves:'Knee Sleeves',chalk:'Chalk',yogamats:'Yoga Mats',foamrollers:'Foam Rollers',gymbags:'Gym Bags',jumpropes:'Jump Ropes'};
 
 let grp='equipment',cat=null,cache={},selIds=[],filters={brand:'all',minP:'',maxP:'',minR:0,onSale:false,clearance:false},sort='',q='',retryT={};
 const revCache={};
@@ -1118,88 +1132,4 @@ function shareComparison(){
     navigator.clipboard.writeText(url).then(()=>{
       const btn=document.getElementById('shareBtn');
       btn.textContent='✓ Copied!';btn.classList.add('copied');
-      setTimeout(()=>{btn.textContent='⤴ Share';btn.classList.remove('copied')},2200);
-    }).catch(()=>fallbackCopy(url));
-  } else fallbackCopy(url);
-}
-function fallbackCopy(text){
-  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
-  document.body.appendChild(ta);ta.focus();ta.select();
-  document.execCommand('copy');document.body.removeChild(ta);
-  const btn=document.getElementById('shareBtn');
-  btn.textContent='✓ Copied!';btn.classList.add('copied');
-  setTimeout(()=>{btn.textContent='⤴ Share';btn.classList.remove('copied')},2200);
-}
-
-// MODAL
-async function openModal(id){
-  const p=getP(id);if(!p)return;
-  const emoji=p.emoji||'💪';
-  document.getElementById('modal').innerHTML=`
-    <div class="m-img" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--light),var(--border));font-size:6rem;height:180px;">${emoji}</div>
-    <div class="mh">
-      <div><div class="m-name">${p.name}</div><div class="m-brand">${p.brand}</div></div>
-      <button class="mc" onclick="closeModal()">✕</button>
-    </div>
-    <div class="mb">
-      ${p.bestChoice?'<div style="background:#15803d;color:#fff;font-family:var(--ff);font-size:0.62rem;font-weight:700;padding:5px 12px;letter-spacing:0.08em;text-transform:uppercase;text-align:center;border-radius:4px;margin-bottom:12px">★ Best Choice in Category</div>':''}
-      ${p.salePrice
-        ? `<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:3px"><span class="m-price" style="color:#dc2626">$${Number(p.salePrice).toLocaleString()}</span><span style="font-size:1rem;color:var(--text-3);text-decoration:line-through">$${Number(p.price).toLocaleString()}</span><span style="background:#dc2626;color:#fff;font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:3px;font-family:var(--ff)">-${p.discount}% OFF</span></div>`
-        : `<div class="m-price">$${Number(p.price).toLocaleString()}</div>`}
-      <div class="m-ret">via ${p.retailer}</div>
-      <div class="m-rrow"><span class="m-stars">${stars(p.rating||0)}</span><span class="m-rnum">${p.rating||'—'}</span><span class="m-rsrc">${(p.reviewCount||0).toLocaleString()} reviews · ${p.reviewSource||''}</span></div>
-      <div class="m-slbl">Specifications</div>
-      ${Object.entries(p.specs||{}).map(([k,v])=>`<div class="m-spec"><span class="m-sk">${k}</span><span class="m-sv">${v}</span></div>`).join('')}
-      <div class="m-spec"><span class="m-sk">Quality Score</span><span class="m-sv">${p.quality||'—'}/10</span></div>
-      <div class="m-slbl" style="margin-top:12px">Highlights</div>
-      <div class="m-aspects">${(p.aspects||[]).map(a=>`<span class="m-asp">${a}</span>`).join('')}</div>
-      <div class="m-slbl" style="margin-top:12px">Reviews</div>
-      <div id="rev-area" style="color:var(--text-3);font-size:0.8rem;padding:8px 0">Loading…</div>
-      <button onclick="window.open('${(p.affiliateUrl||p.url||'').replace(/'/g,"\\'")}','_blank','noopener,noreferrer')" class="m-buy">Shop at ${p.retailer} →</button>
-    </div>`;
-  document.getElementById('moverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-  const el=document.getElementById('rev-area');
-  if(revCache[id]){renderRevs(el,revCache[id]);return}
-  try{const r=await apiFetch(`/api/reviews`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productName:p.name,brand:p.brand,url:p.url})});const d=await r.json();revCache[id]=d.reviews||[];renderRevs(el,revCache[id])}catch{el.textContent='Reviews unavailable.'}
-}
-function renderRevs(el,revs){if(!revs||!revs.length){el.textContent='No reviews found.';return}el.innerHTML=revs.map(r=>`<div class="rev-item"><div class="rev-auth">${r.author}</div><div class="rev-text">"${r.text}"</div></div>`).join('')}
-function closeModal(e){if(!e||e.target===document.getElementById('moverlay')){document.getElementById('moverlay').classList.remove('open');document.body.style.overflow=''}}
-
-// DRAWER
-function openDrawer(){document.getElementById('drw').classList.add('open');document.getElementById('drwBg').classList.add('open')}
-function closeDrawer(){document.getElementById('drw').classList.remove('open');document.getElementById('drwBg').classList.remove('open')}
-
-// URL PARAMS — if ?cat=barbells, auto-open; if ?cat=X&ids=a,b,c restore shared comparison
-(function(){
-  const p=new URLSearchParams(window.location.search);
-  const c=p.get('cat'),ids=p.get('ids');
-  if(c&&CAT_LABELS[c]){
-    // Show breadcrumb
-    const crumb=document.getElementById('drillCrumb');
-    crumb.style.display='flex';
-    document.getElementById('crumbText').textContent=CAT_LABELS[c];
-    // Highlight active nav button
-    document.querySelectorAll('.drill-sub button').forEach(b=>{if(b.textContent.trim()===CAT_LABELS[c])b.classList.add('active')});
-    if(ids){
-      // Shared comparison — load cat, wait for data, then auto-select and compare
-      loadCat(c).then?.(()=>{}).catch?.(()=>{});
-      const parsedIds=ids.split(',').filter(Boolean).slice(0,4);
-      const tryRestore=setInterval(()=>{
-        if(cache[c]){
-          clearInterval(tryRestore);
-          selIds=parsedIds.filter(id=>cache[c].products.some(pr=>pr.id===id));
-          applyFilters();updateCbar();
-          if(selIds.length>=2)setTimeout(()=>showComparison(),400);
-        }
-      },200);
-      setTimeout(()=>clearInterval(tryRestore),15000);
-      selectCat(c);
-    } else {
-      selectCat(c);
-    }
-  }
-})();
-</script>
-</body>
-</html>
+      setTimeout(()=>{bt
