@@ -1,34 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg viewBox="14 8 292 130" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#f5a623"/>
-      <stop offset="100%" stop-color="#e8542a"/>
+    <linearGradient id="barbellGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f5a623"/>
+      <stop offset="100%" style="stop-color:#e8542a"/>
     </linearGradient>
-    <clipPath id="lh"><polygon points="0,0 34,0 31,64 0,64"/></clipPath>
-    <clipPath id="rh"><polygon points="34,0 64,0 64,64 31,64"/></clipPath>
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5a623"/>
+      <stop offset="100%" style="stop-color:#e8542a"/>
+    </linearGradient>
   </defs>
-  <!-- Left half: bright orange gradient -->
-  <g clip-path="url(#lh)">
-    <rect x="2" y="10" width="10" height="44" rx="3" fill="url(#g1)"/>
-    <rect x="12" y="18" width="5" height="28" rx="2" fill="url(#g1)"/>
-    <rect x="17" y="28" width="30" height="8" fill="url(#g1)"/>
-    <!-- knurl lines -->
-    <rect x="10" y="22" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
-    <rect x="10" y="26" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
-    <rect x="10" y="30" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
-    <rect x="10" y="34" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
-    <rect x="10" y="38" width="4" height="1.5" rx="0.5" fill="#d4481f"/>
-  </g>
-  <!-- Right half: deeper orange -->
-  <g clip-path="url(#rh)">
-    <rect x="17" y="28" width="30" height="8" fill="#c94020"/>
-    <rect x="47" y="18" width="5" height="28" rx="2" fill="#c94020"/>
-    <rect x="52" y="10" width="10" height="44" rx="3" fill="#c94020"/>
-    <!-- knurl lines -->
-    <rect x="50" y="22" width="4" height="1.5" rx="0.5" fill="#b53818"/>
-    <rect x="50" y="26" width="4" height="1.5" rx="0.5" fill="#b53818"/>
-    <rect x="50" y="30" width="4" height="1.5" rx="0.5" fill="#b53818"/>
-    <rect x="50" y="34" width="4" height="1.5" rx="0.5" fill="#b53818"/>
-    <rect x="50" y="38" width="4" height="1.5" rx="0.5" fill="#b53818"/>
-  </g>
+  <rect x="14" y="44" width="12" height="56" rx="3" fill="url(#barbellGrad)"/>
+  <rect x="26" y="52" width="8" height="40" rx="2" fill="url(#barbellGrad)"/>
+  <rect x="34" y="67" width="72" height="10" rx="2" fill="url(#barbellGrad)"/>
+  <rect x="214" y="67" width="72" height="10" rx="2" fill="url(#barbellGrad)"/>
+  <rect x="286" y="52" width="8" height="40" rx="2" fill="url(#barbellGrad)"/>
+  <rect x="294" y="44" width="12" height="56" rx="3" fill="url(#barbellGrad)"/>
+  <polygon points="160,8 190,72 162,72" fill="url(#boltGrad)"/>
+  <polygon points="160,136 130,72 158,72" fill="url(#boltGrad)"/>
+  <rect x="106" y="67" width="108" height="10" rx="0" fill="url(#barbellGrad)"/>
 </svg>
