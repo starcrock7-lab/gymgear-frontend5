@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>About Us — GymGear Compare</title>
+  <meta name="description" content="GymGear Compare is a free, independent gym equipment comparison tool. Real specs, real prices, honest AI verdicts — no paid rankings, ever."/>
+  <link rel="icon" href="favicon.ico" sizes="any"/>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --accent:#e8542a;--navy:#0d1b35;--text:#161410;--text-2:#706b63;--text-3:#aca59b;
+      --off:#f8f7f5;--border:#e6e1da;--green:#15803d;
+      --ff:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+    }
+    body{font-family:var(--fb);background:var(--off);color:var(--text);line-height:1.7}
+
+    /* NAV */
+    nav{background:#fff;border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-cta{background:var(--accent);color:#fff;font-family:var(--ff);font-weight:700;font-size:0.85rem;padding:10px 20px;border-radius:8px;text-decoration:none;letter-spacing:0.5px}
+    .nav-cta:hover{background:#d44820}
+
+    /* HERO */
+    .page-hero{background:var(--navy);color:#fff;padding:64px 32px 56px;text-align:center}
+    .page-hero h1{font-family:var(--ff);font-size:clamp(2rem,5vw,3rem);font-weight:800;margin-bottom:12px}
+    .page-hero p{color:#a0aec0;font-size:1rem;max-width:520px;margin:0 auto}
+
+    /* CONTENT */
+    .content{max-width:780px;margin:0 auto;padding:56px 32px 80px}
+    .content h2{font-family:var(--ff);font-size:1.35rem;font-weight:700;color:var(--text);margin:40px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+    .content h2:first-child{margin-top:0}
+    .content p{color:var(--text-2);margin-bottom:14px;font-size:0.97rem}
+    .content a{color:var(--accent);text-decoration:none}
+    .content a:hover{text-decoration:underline}
+
+    /* VALUES */
+    .values{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin:24px 0 40px}
+    .value-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px 20px;text-align:center}
+    .value-icon{font-size:2rem;margin-bottom:12px}
+    .value-title{font-family:var(--ff);font-weight:700;font-size:0.95rem;color:var(--text);margin-bottom:6px}
+    .value-desc{font-size:0.85rem;color:var(--text-2)}
+
+    /* CTA */
+    .cta-block{background:var(--navy);border-radius:16px;padding:40px 32px;text-align:center;margin-top:48px}
+    .cta-block h3{font-family:var(--ff);font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:10px}
+    .cta-block p{color:#a0aec0;margin-bottom:24px;font-size:0.95rem}
+    .cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .btn-primary{background:var(--accent);color:#fff;font-family:var(--ff);font-weight:700;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:0.9rem}
+    .btn-secondary{background:transparent;color:#fff;font-family:var(--ff);font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:0.9rem;border:1px solid rgba(255,255,255,0.2)}
+    .btn-primary:hover{background:#d44820}
+    .btn-secondary:hover{background:rgba(255,255,255,0.05)}
+
+    /* FOOTER */
+    footer{background:var(--navy);padding:40px 32px 24px;text-align:center}
+    .foot-links-row{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+    .foot-links-row a{font-size:0.82rem;color:#94a3b8;text-decoration:none}
+    .foot-links-row a:hover{color:#fff}
+    .foot-copy{font-family:var(--ff);font-size:0.8rem;color:#64748b}
+
+    @media(max-width:600px){
+      .page-hero{padding:48px 20px 40px}
+      .content{padding:40px 20px 60px}
+      nav{padding:0 16px}
+      .cta-block{padding:32px 20px}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="logo.svg" alt="GymGear Compare" style="height:44px;width:auto;display:block">
+  </a>
+  <a href="app.html" class="nav-cta">Compare Now →</a>
+</nav>
+
+<div class="page-hero">
+  <h1>About GymGear Compare</h1>
+  <p>Independent gym gear comparisons — no brand deals, no paid rankings, just honest data.</p>
+</div>
+
+<div class="content">
+
+  <h2>What We Do</h2>
+  <p>GymGear Compare is a free tool that lets you pick any two gym products — equipment, clothing, or supplements — and instantly see a side-by-side spec breakdown, live prices, and an honest AI verdict on which is worth your money.</p>
+  <p>We cover 160+ products across 20 categories: barbells, benches, dumbbells, protein powders, pre-workouts, creatine, gym clothing, and more. Every comparison takes under 30 seconds and requires no account or sign-up.</p>
+
+  <h2>Why We Built This</h2>
+  <p>Buying gym gear is confusing. Brands overpromise. Review sites bury their affiliate disclaimers. Sponsored posts push whatever pays the most. We built GymGear Compare to cut through the noise — a single place where you can compare specs side by side and get a straight answer on which product actually wins.</p>
+  <p>Our AI verdicts are generated based on objective data: quality scores, customer ratings, ingredient doses, and value for money. No brand pays to influence a verdict. Ever.</p>
+
+  <h2>Our Values</h2>
+  <div class="values">
+    <div class="value-card">
+      <div class="value-icon">🔍</div>
+      <div class="value-title">Always Independent</div>
+      <div class="value-desc">Rankings are never influenced by brand relationships or ad spend.</div>
+    </div>
+    <div class="value-card">
+      <div class="value-icon">⚡</div>
+      <div class="value-title">Fast &amp; Free</div>
+      <div class="value-desc">No account needed. Any comparison in under 30 seconds.</div>
+    </div>
+    <div class="value-card">
+      <div class="value-icon">🤖</div>
+      <div class="value-title">AI-Powered</div>
+      <div class="value-desc">Verdicts powered by Claude AI — objective, spec-driven, no fluff.</div>
+    </div>
+    <div class="value-card">
+      <div class="value-icon">💰</div>
+      <div class="value-title">Transparent</div>
+      <div class="value-desc">We earn affiliate commissions on some purchases — always disclosed.</div>
+    </div>
+  </div>
+
+  <h2>Contact Us</h2>
+  <p>Have a question, spotted an error in our data, or want to discuss a brand partnership? We'd love to hear from you.</p>
+  <p>Email us directly at <a href="mailto:roei.karpik@gmail.com">roei.karpik@gmail.com</a> or use the contact form on our <a href="sponsors.html#contact">For Brands page</a>. We respond within 1–2 business days.</p>
+
+  <div class="cta-block">
+    <h3>Ready to compare?</h3>
+    <p>160+ products. 20 categories. Free forever.</p>
+    <div class="cta-btns">
+      <a href="app.html" class="btn-primary">Start Comparing →</a>
+      <a href="sponsors.html#contact" class="btn-secondary">Contact Us</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="foot-links-row">
+    <a href="index.html">Home</a>
+    <a href="app.html">Compare</a>
+    <a href="sponsors.html">For Brands</a>
+    <a href="about.html">About</a>
+    <a href="privacy.html">Privacy Policy</a>
+  </div>
+  <div class="foot-copy">© 2026 GymGear Compare™. All rights reserved.</div>
+</footer>
+
+</body>
+</html>
