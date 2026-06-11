@@ -35,3 +35,27 @@ body {
   color: var(--ink);
   font-family: var(--font-dm-sans), sans-serif;
 }
+
+/* Slow breathing on the hero glow. Compositor-only properties so the page
+   stays paint-idle. Disabled for users who prefer reduced motion. */
+@keyframes glow-breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.08);
+  }
+}
+
+.animate-glow {
+  animation: glow-breathe 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-glow {
+    animation: none;
+  }
+}

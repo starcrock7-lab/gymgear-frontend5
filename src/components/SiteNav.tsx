@@ -6,7 +6,7 @@ export default function SiteNav() {
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-navy/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/logo.svg" alt="GymGear Compare" width={34} height={34} />
+          <Image src="/logo.svg" alt="GymGear Compare" width={44} height={30} />
           <span className="font-display text-lg font-bold tracking-tight text-white">
             GymGear<span className="text-accent">Compare</span>
           </span>
