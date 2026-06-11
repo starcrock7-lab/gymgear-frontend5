@@ -1,13 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { motion, type Variants } from "framer-motion";
+import { useRef, useState } from "react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  type Variants,
+} from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import SmoothScroll from "@/components/SmoothScroll";
 import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 import GridOverlay from "@/components/ui/grid-overlay";
+import IntroLoader from "@/components/ui/intro-loader";
+import ElegantShape from "@/components/ui/elegant-shape";
+import AuroraBackground from "@/components/ui/aurora-background";
+import FloatingPaths from "@/components/ui/background-paths";
+import { TextScramble } from "@/components/ui/text-scramble";
 
 const steps = [
   {
@@ -29,7 +40,7 @@ const steps = [
 
 const heroStagger: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.12, delayChildren: 0.2 } },
+  show: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
 };
 
 const fadeUp: Variants = {
@@ -41,9 +52,71 @@ const fadeUp: Variants = {
   },
 };
 
+/* Vectr-style 3D fly-in: copy arrives from a rotated perspective plane. */
+const flyIn: Variants = {
+  hidden: { opacity: 0, x: -180, y: 90, rotateY: 50, rotateX: 30 },
+  show: {
+    opacity: 1,
+    x: 0,
+    y: 0,
+    rotateY: 0,
+    rotateX: 0,
+    transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+/* How-it-works card with a scroll-scrubbed progress track (Vectr flow). */
+function FlowCard({
+  step,
+  index,
+}: {
+  step: (typeof steps)[number];
+  index: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 92%", "start 40%"],
+  });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{
+        duration: 0.6,
+        delay: index * 0.12,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className="group rounded-2xl border border-line bg-white p-7 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-accent/40 hover:shadow-xl hover:shadow-accent/10"
+    >
+      <div className="mb-5 h-0.5 w-full overflow-hidden rounded bg-line">
+        <motion.div
+          style={{ scaleX: scrollYProgress }}
+          className="h-full origin-left bg-accent"
+        />
+      </div>
+      <p className="font-display text-sm font-bold text-accent transition-transform duration-300 group-hover:scale-110 group-hover:[transform-origin:left]">
+        {step.n}
+      </p>
+      <h3 className="mt-3 font-display text-xl font-bold text-ink">
+        {step.title}
+      </h3>
+      <p className="mt-2 text-sm leading-relaxed text-ink-2">{step.body}</p>
+    </motion.div>
+  );
+}
+
 export default function Home() {
+  const [introDone, setIntroDone] = useState(false);
+  const { scrollY } = useScroll();
+  const hintOpacity = useTransform(scrollY, [0, 160], [1, 0]);
+
   return (
     <SmoothScroll>
+      {!introDone && <IntroLoader onComplete={() => setIntroDone(true)} />}
       <SiteNav />
 
       {/* Hero */}
@@ -54,11 +127,38 @@ export default function Home() {
           aria-hidden
           className="animate-glow pointer-events-none absolute -top-40 left-1/2 h-130 w-200 -translate-x-1/2 rounded-full bg-accent/20 blur-3xl"
         />
+
+        {/* Floating glass shapes */}
+        <ElegantShape
+          delay={0.6}
+          width={520}
+          height={120}
+          rotate={12}
+          gradient="from-accent/[0.12]"
+          className="left-[-12%] top-[14%] md:left-[-6%]"
+        />
+        <ElegantShape
+          delay={0.8}
+          width={380}
+          height={92}
+          rotate={-14}
+          gradient="from-[#1b3060]/[0.5]"
+          className="right-[-8%] top-[64%] md:right-[-3%]"
+        />
+        <ElegantShape
+          delay={1}
+          width={180}
+          height={48}
+          rotate={22}
+          gradient="from-accent/[0.1]"
+          className="right-[12%] top-[8%]"
+        />
+
         <motion.div
           variants={heroStagger}
           initial="hidden"
-          animate="show"
-          className="relative mx-auto flex max-w-4xl flex-col items-center px-5 pt-24 pb-28 text-center"
+          animate={introDone ? "show" : "hidden"}
+          className="relative mx-auto flex max-w-4xl flex-col items-center px-5 pt-24 pb-32 text-center"
         >
           <motion.p
             variants={fadeUp}
@@ -69,7 +169,8 @@ export default function Home() {
             <ChevronRight className="h-3.5 w-3.5 text-white/50" />
           </motion.p>
           <motion.h1
-            variants={fadeUp}
+            variants={flyIn}
+            style={{ transformPerspective: 1000 }}
             className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-7xl"
           >
             <span className="bg-gradient-to-b from-white via-white to-white/60 bg-clip-text text-transparent">
@@ -81,7 +182,8 @@ export default function Home() {
             </span>
           </motion.h1>
           <motion.p
-            variants={fadeUp}
+            variants={flyIn}
+            style={{ transformPerspective: 1000 }}
             className="mt-6 max-w-xl text-lg leading-relaxed text-white/70"
           >
             Answer 5 quick questions. Our AI builds you three complete
@@ -111,8 +213,27 @@ export default function Home() {
           <motion.p variants={fadeUp} className="mt-5 text-xs text-white/40">
             No account needed · 160+ products · 20 categories
           </motion.p>
+
+          {/* Scroll hint, fades as you move (Vectr hero__scroll-btn) */}
+          <motion.div
+            variants={fadeUp}
+            style={{ opacity: hintOpacity }}
+            className="mt-14 flex flex-col items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.25em] text-white/40"
+          >
+            scroll to see how it works
+            <motion.span
+              animate={{ y: [0, 6, 0] }}
+              transition={{
+                duration: 1.6,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              }}
+              className="text-accent"
+            >
+              ↓
+            </motion.span>
+          </motion.div>
         </motion.div>
-        {/* Soft fade into the page background */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-off to-transparent"
@@ -132,42 +253,47 @@ export default function Home() {
         </motion.h2>
         <div className="mt-12 grid gap-6 sm:grid-cols-3">
           {steps.map((s, i) => (
-            <motion.div
-              key={s.n}
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{
-                duration: 0.6,
-                delay: i * 0.12,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="group rounded-2xl border border-line bg-white p-7 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-accent/40 hover:shadow-xl hover:shadow-accent/10"
-            >
-              <p className="font-display text-sm font-bold text-accent transition-transform duration-300 group-hover:scale-110 group-hover:[transform-origin:left]">
-                {s.n}
-              </p>
-              <h3 className="mt-3 font-display text-xl font-bold text-ink">
-                {s.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-2">
-                {s.body}
-              </p>
-            </motion.div>
+            <FlowCard key={s.n} step={s} index={i} />
           ))}
         </div>
+      </section>
+
+      {/* CTA band: aurora + flowing paths + scramble */}
+      <section className="relative overflow-hidden bg-navy-deep py-28 text-white">
+        <AuroraBackground />
+        <div className="text-white/40">
+          <FloatingPaths position={1} />
+          <FloatingPaths position={-1} />
+        </div>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-12 text-center"
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="relative mx-auto flex max-w-3xl flex-col items-center px-5 text-center"
         >
+          <TextScramble
+            text="READY WHEN YOU ARE"
+            className="text-white/60"
+          />
+          <h2 className="mt-6 font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+            Stop guessing.{" "}
+            <span className="bg-gradient-to-r from-accent via-[#ff7a4d] to-accent-deep bg-clip-text text-transparent">
+              Start training.
+            </span>
+          </h2>
+          <p className="mt-4 max-w-lg text-white/60">
+            One minute of questions. Three kits built for your space, your
+            budget, your goals.
+          </p>
           <Link
             href="/quiz"
-            className="inline-block rounded-xl bg-accent px-8 py-4 font-display text-base font-bold text-white shadow-lg shadow-accent/20 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/40 active:translate-y-0 active:scale-[0.98]"
+            className="group mt-9 rounded-xl bg-accent px-9 py-4 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
           >
-            Build my kit →
+            Build my kit
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              →
+            </span>
           </Link>
         </motion.div>
       </section>

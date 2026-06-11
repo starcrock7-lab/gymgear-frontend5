@@ -54,8 +54,27 @@ body {
   animation: glow-breathe 7s ease-in-out infinite;
 }
 
+/* Aurora band drift (brand ember tones). */
+@keyframes aurora {
+  from {
+    background-position:
+      50% 50%,
+      50% 50%;
+  }
+  to {
+    background-position:
+      350% 50%,
+      350% 50%;
+  }
+}
+
+.animate-aurora {
+  animation: aurora 60s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-glow {
+  .animate-glow,
+  .animate-aurora {
     animation: none;
   }
 }
