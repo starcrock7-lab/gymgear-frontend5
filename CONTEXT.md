@@ -58,15 +58,16 @@ Comparison tool stays as secondary path for people who already know what they wa
 ## Build order — do not skip phases
 
 ### Phase 1 — Next.js foundation
-- [ ] Init Next.js project, port design system (CSS tokens, fonts, logo)
-- [ ] Homepage with dark hero + "Start Quiz" CTA
-- [ ] Deploy to Vercel, confirm gymgearcompare.com still resolves
+- [x] Init Next.js project, port design system (CSS tokens, fonts, logo)
+- [x] Homepage with dark hero + "Start Quiz" CTA
+- [ ] Deploy to Vercel, confirm gymgearcompare.com still resolves (branch not pushed yet)
 
-### Phase 2 — Quiz flow
-- [ ] 5-screen quiz with animated transitions (one question per screen)
-- [ ] Progress indicator
-- [ ] Quiz state management (store answers, navigate back/forward)
-- [ ] "Building your kit..." loading screen
+### Phase 2 — Quiz flow (done 2026-06-11, on nextjs-rebuild)
+- [x] 5-screen quiz with animated transitions (one question per screen)
+- [x] Progress indicator
+- [x] Quiz state management (store answers, navigate back/forward)
+- [x] "Building your kit..." loading screen
+- Answers persist to sessionStorage under `gymgear.quiz.v1` (stable option ids in `src/lib/quiz.ts`) — Phase 3 reads this to call /api/kit, and swaps the fixed timer in BuildingScreen for the real request
 
 ### Phase 3 — Kit generation
 - [ ] Add `/api/kit` route to Express backend (Groq call)
