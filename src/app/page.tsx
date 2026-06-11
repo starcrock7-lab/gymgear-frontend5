@@ -12,7 +12,7 @@ import { ChevronRight } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import SmoothScroll from "@/components/SmoothScroll";
-import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
+import { ShaderBackground } from "@/components/ui/animated-shader-hero";
 import GridOverlay from "@/components/ui/grid-overlay";
 import IntroLoader from "@/components/ui/intro-loader";
 import ElegantShape from "@/components/ui/elegant-shape";
@@ -121,12 +121,8 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy text-white">
-        <AnimatedGradientBackground />
+        <ShaderBackground />
         <GridOverlay />
-        <div
-          aria-hidden
-          className="animate-glow pointer-events-none absolute -top-40 left-1/2 h-130 w-200 -translate-x-1/2 rounded-full bg-accent/20 blur-3xl"
-        />
 
         {/* Floating glass shapes */}
         <ElegantShape
