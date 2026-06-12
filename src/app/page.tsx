@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
   motion,
@@ -19,6 +20,8 @@ import ElegantShape from "@/components/ui/elegant-shape";
 import AuroraBackground from "@/components/ui/aurora-background";
 import FloatingPaths from "@/components/ui/background-paths";
 import { TextScramble } from "@/components/ui/text-scramble";
+import { ButtonColorful } from "@/components/ui/button-colorful";
+import { LiquidButton, MetalButton } from "@/components/ui/liquid-glass-button";
 
 const steps = [
   {
@@ -110,6 +113,7 @@ function FlowCard({
 }
 
 export default function Home() {
+  const router = useRouter();
   const [introDone, setIntroDone] = useState(false);
   const { scrollY } = useScroll();
   const hintOpacity = useTransform(scrollY, [0, 160], [1, 0]);
@@ -190,21 +194,18 @@ export default function Home() {
             variants={fadeUp}
             className="mt-10 flex flex-wrap items-center justify-center gap-4"
           >
-            <Link
-              href="/quiz"
-              className="group rounded-xl bg-accent px-8 py-4 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
-            >
-              Start the Quiz
-              <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
-            <Link
-              href="/compare"
-              className="rounded-xl border border-white/20 bg-white/5 px-8 py-4 font-display text-lg font-bold text-white/90 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
+            <ButtonColorful
+              label="Start the Quiz"
+              onClick={() => router.push("/quiz")}
+              className="h-14 rounded-xl px-8 font-display text-lg font-bold shadow-lg shadow-accent/30"
+            />
+            <LiquidButton
+              size="xl"
+              onClick={() => router.push("/compare")}
+              className="h-14 font-display text-lg font-bold text-white/90 hover:text-white"
             >
               Just compare products
-            </Link>
+            </LiquidButton>
           </motion.div>
           <motion.p variants={fadeUp} className="mt-5 text-xs text-white/40">
             No account needed · 160+ products · 20 categories
@@ -282,15 +283,15 @@ export default function Home() {
             One minute of questions. Three kits built for your space, your
             budget, your goals.
           </p>
-          <Link
-            href="/quiz"
-            className="group mt-9 rounded-xl bg-accent px-9 py-4 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
-          >
-            Build my kit
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
-              →
-            </span>
-          </Link>
+          <div className="mt-9">
+            <MetalButton
+              variant="primary"
+              onClick={() => router.push("/quiz")}
+              className="h-14 px-10 font-display text-lg font-bold"
+            >
+              Build my kit →
+            </MetalButton>
+          </div>
         </motion.div>
       </section>
 
