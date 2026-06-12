@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
@@ -13,12 +14,8 @@ import { ChevronRight } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import SmoothScroll from "@/components/SmoothScroll";
-import { ShaderBackground } from "@/components/ui/animated-shader-hero";
-import GridOverlay from "@/components/ui/grid-overlay";
 import CursorLight from "@/components/ui/cursor-light";
 import IntroLoader from "@/components/ui/intro-loader";
-import AuroraBackground from "@/components/ui/aurora-background";
-import FloatingPaths from "@/components/ui/background-paths";
 import { TextScramble } from "@/components/ui/text-scramble";
 import { ButtonColorful } from "@/components/ui/button-colorful";
 import { LiquidButton, MetalButton } from "@/components/ui/liquid-glass-button";
@@ -125,8 +122,19 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy text-white">
-        <ShaderBackground />
-        <GridOverlay />
+        {/* Moving photo backdrop: slow Ken Burns drift + navy veils for text */}
+        <div aria-hidden className="absolute inset-0 overflow-hidden">
+          <Image
+            src="/hero.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="animate-kenburns object-cover"
+          />
+          <div className="absolute inset-0 bg-navy/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-navy/70 via-transparent to-navy/50" />
+        </div>
         <CursorLight />
 
         <motion.div
@@ -230,12 +238,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA band: aurora + flowing paths + scramble */}
+      {/* CTA band: kettlebell silhouette photo + scramble */}
       <section className="relative overflow-hidden bg-navy-deep py-28 text-white">
-        <AuroraBackground />
-        <div className="text-white/40">
-          <FloatingPaths position={1} />
-          <FloatingPaths position={-1} />
+        <div aria-hidden className="absolute inset-0">
+          <Image
+            src="/cta.jpg"
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover object-[50%_38%]"
+          />
+          <div className="absolute inset-0 bg-navy-deep/55" />
+          <div className="absolute inset-0 bg-gradient-to-b from-navy-deep via-transparent to-navy-deep" />
         </div>
         <motion.div
           initial={{ opacity: 0, y: 28 }}

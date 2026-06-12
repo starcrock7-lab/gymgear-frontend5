@@ -72,9 +72,25 @@ body {
   animation: aurora 60s linear infinite;
 }
 
+/* Slow drift on the hero photo — the "moving background". */
+@keyframes kenburns {
+  from {
+    transform: scale(1.03) translateY(0);
+  }
+  to {
+    transform: scale(1.12) translateY(-1.5%);
+  }
+}
+
+.animate-kenburns {
+  animation: kenburns 38s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-glow,
-  .animate-aurora {
+  .animate-aurora,
+  .animate-kenburns {
     animation: none;
   }
 }
