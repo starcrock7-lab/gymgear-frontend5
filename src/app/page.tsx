@@ -14,7 +14,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import SmoothScroll from "@/components/SmoothScroll";
 import { ShaderBackground } from "@/components/ui/animated-shader-hero";
-import GridOverlay from "@/components/ui/grid-overlay";
+import { Waves } from "@/components/ui/wave-background";
 import IntroLoader from "@/components/ui/intro-loader";
 import ElegantShape from "@/components/ui/elegant-shape";
 import AuroraBackground from "@/components/ui/aurora-background";
@@ -126,7 +126,10 @@ export default function Home() {
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy text-white">
         <ShaderBackground />
-        <GridOverlay />
+        <Waves
+          strokeColor="rgba(255,255,255,0.08)"
+          className="[mask-image:radial-gradient(ellipse_70%_60%_at_50%_30%,black_55%,transparent_100%)]"
+        />
 
         {/* Floating glass shapes */}
         <ElegantShape
