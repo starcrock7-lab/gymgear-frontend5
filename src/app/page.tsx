@@ -16,9 +16,12 @@ import SiteFooter from "@/components/SiteFooter";
 import SmoothScroll from "@/components/SmoothScroll";
 import CursorLight from "@/components/ui/cursor-light";
 import IntroLoader from "@/components/ui/intro-loader";
+import AuroraBackground from "@/components/ui/aurora-background";
+import FloatingPaths from "@/components/ui/background-paths";
 import { TextScramble } from "@/components/ui/text-scramble";
 import { ButtonColorful } from "@/components/ui/button-colorful";
-import { LiquidButton, MetalButton } from "@/components/ui/liquid-glass-button";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
+import { HighlightButton } from "@/components/ui/highlight-button";
 
 const steps = [
   {
@@ -64,6 +67,24 @@ const flyIn: Variants = {
     transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1] },
   },
 };
+
+/* hero-futuristic-style masked word reveal for the headline. */
+const wordStagger: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.09 } },
+};
+
+const wordRise: Variants = {
+  hidden: { y: "110%", opacity: 0 },
+  show: {
+    y: "0%",
+    opacity: 1,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const heroLine1 = "Your perfect home gym.".split(" ");
+const heroLine2 = "Built in 60 seconds.".split(" ");
 
 /* How-it-works card with a scroll-scrubbed progress track (Vectr flow). */
 function FlowCard({
@@ -134,6 +155,10 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-navy/40" />
           <div className="absolute inset-0 bg-gradient-to-b from-navy/70 via-transparent to-navy/50" />
+          <div
+            aria-hidden
+            className="animate-scanline absolute left-0 h-px w-full bg-gradient-to-r from-transparent via-accent/60 to-transparent shadow-[0_0_14px_rgba(232,84,42,0.55)]"
+          />
         </div>
         <CursorLight />
 
@@ -152,16 +177,40 @@ export default function Home() {
             <ChevronRight className="h-3.5 w-3.5 text-white/50" />
           </motion.p>
           <motion.h1
-            variants={flyIn}
-            style={{ transformPerspective: 1000 }}
+            variants={wordStagger}
             className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-7xl"
           >
-            <span className="bg-gradient-to-b from-white via-white to-white/60 bg-clip-text text-transparent">
-              Your perfect home gym.
+            <span className="block">
+              {heroLine1.map((w, i) => (
+                <span
+                  key={i}
+                  className="inline-block overflow-hidden pb-1.5 align-bottom"
+                >
+                  <motion.span
+                    variants={wordRise}
+                    className="inline-block bg-gradient-to-b from-white via-white to-white/60 bg-clip-text text-transparent"
+                  >
+                    {w}
+                    {i < heroLine1.length - 1 ? " " : ""}
+                  </motion.span>
+                </span>
+              ))}
             </span>
-            <br />
-            <span className="bg-gradient-to-r from-accent via-[#ff7a4d] to-accent-deep bg-clip-text text-transparent">
-              Built in 60 seconds.
+            <span className="block">
+              {heroLine2.map((w, i) => (
+                <span
+                  key={i}
+                  className="inline-block overflow-hidden pb-1.5 align-bottom"
+                >
+                  <motion.span
+                    variants={wordRise}
+                    className="inline-block bg-gradient-to-r from-accent via-[#ff7a4d] to-accent-deep bg-clip-text text-transparent"
+                  >
+                    {w}
+                    {i < heroLine2.length - 1 ? " " : ""}
+                  </motion.span>
+                </span>
+              ))}
             </span>
           </motion.h1>
           <motion.p
@@ -238,18 +287,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA band: kettlebell silhouette photo + scramble */}
+      {/* CTA band: aurora + flowing paths + scramble */}
       <section className="relative overflow-hidden bg-navy-deep py-28 text-white">
-        <div aria-hidden className="absolute inset-0">
-          <Image
-            src="/cta.jpg"
-            alt=""
-            fill
-            sizes="100vw"
-            className="object-cover object-[50%_38%]"
-          />
-          <div className="absolute inset-0 bg-navy-deep/55" />
-          <div className="absolute inset-0 bg-gradient-to-b from-navy-deep via-transparent to-navy-deep" />
+        <AuroraBackground />
+        <div className="text-white/40">
+          <FloatingPaths position={1} />
+          <FloatingPaths position={-1} />
         </div>
         <motion.div
           initial={{ opacity: 0, y: 28 }}
@@ -273,13 +316,12 @@ export default function Home() {
             budget, your goals.
           </p>
           <div className="mt-9">
-            <MetalButton
-              variant="primary"
+            <HighlightButton
               onClick={() => router.push("/quiz")}
-              className="h-14 px-10 font-display text-lg font-bold"
+              className="h-14 rounded-xl bg-accent px-10 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0"
             >
               Build my kit →
-            </MetalButton>
+            </HighlightButton>
           </div>
         </motion.div>
       </section>

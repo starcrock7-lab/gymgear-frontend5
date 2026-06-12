@@ -72,6 +72,41 @@ body {
   animation: aurora 60s linear infinite;
 }
 
+/* Click ripple inside HighlightButton. */
+@keyframes highlight-button-ripple {
+  0% {
+    opacity: 1;
+    width: 0;
+    height: 0;
+  }
+  to {
+    opacity: 0;
+    width: 200%;
+    height: 200%;
+  }
+}
+
+/* Thin scan line sweeping the hero photo (hero-futuristic feel). */
+@keyframes scanline {
+  0% {
+    top: -8%;
+  }
+  100% {
+    top: 108%;
+  }
+}
+
+.animate-scanline {
+  animation: scanline 9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scanline {
+    animation: none;
+    display: none;
+  }
+}
+
 /* Slow drift on the hero photo — the "moving background". */
 @keyframes kenburns {
   from {
