@@ -17,7 +17,6 @@ import { ShaderBackground } from "@/components/ui/animated-shader-hero";
 import GridOverlay from "@/components/ui/grid-overlay";
 import CursorLight from "@/components/ui/cursor-light";
 import IntroLoader from "@/components/ui/intro-loader";
-import ElegantShape from "@/components/ui/elegant-shape";
 import AuroraBackground from "@/components/ui/aurora-background";
 import FloatingPaths from "@/components/ui/background-paths";
 import { TextScramble } from "@/components/ui/text-scramble";
@@ -129,32 +128,6 @@ export default function Home() {
         <ShaderBackground />
         <GridOverlay />
         <CursorLight />
-
-        {/* Floating glass shapes */}
-        <ElegantShape
-          delay={0.6}
-          width={520}
-          height={120}
-          rotate={12}
-          gradient="from-accent/[0.12]"
-          className="left-[-12%] top-[14%] md:left-[-6%]"
-        />
-        <ElegantShape
-          delay={0.8}
-          width={380}
-          height={92}
-          rotate={-14}
-          gradient="from-[#1b3060]/[0.5]"
-          className="right-[-8%] top-[64%] md:right-[-3%]"
-        />
-        <ElegantShape
-          delay={1}
-          width={180}
-          height={48}
-          rotate={22}
-          gradient="from-accent/[0.1]"
-          className="right-[12%] top-[8%]"
-        />
 
         <motion.div
           variants={heroStagger}
