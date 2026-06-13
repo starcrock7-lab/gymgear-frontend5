@@ -3,14 +3,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   motion,
   useScroll,
   useTransform,
   type Variants,
 } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import {
+  ChevronRight,
+  ClipboardList,
+  Sparkles,
+  ShieldCheck,
+} from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -22,22 +27,44 @@ import { TextScramble } from "@/components/ui/text-scramble";
 import { ButtonColorful } from "@/components/ui/button-colorful";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { HighlightButton } from "@/components/ui/highlight-button";
+import FlowCard, { type FlowStep } from "@/components/ui/flow-card";
 
-const steps = [
+const steps: FlowStep[] = [
   {
     n: "01",
+    icon: <ClipboardList className="h-4.5 w-4.5" />,
     title: "Answer 5 questions",
     body: "Your goal, budget, space, setup size, and what you already own. Takes under a minute.",
+    details: [
+      "Goal — build strength, lose weight, get fit, or full home gym",
+      "Budget — from under $300 to $2,000+",
+      "Space — apartment corner up to a full garage",
+      "Tell it what you already own, it builds around it",
+    ],
   },
   {
     n: "02",
+    icon: <Sparkles className="h-4.5 w-4.5" />,
     title: "AI builds 3 kits",
     body: "Best Value, Best Match, and Best Quality — assembled from 160 real products with live prices.",
+    details: [
+      "Best Value — the cheapest route to your goal",
+      "Best Match — balanced for your exact answers",
+      "Best Quality — buy once, cry once",
+      "160 real products across 20 categories, live prices",
+    ],
   },
   {
     n: "03",
+    icon: <ShieldCheck className="h-4.5 w-4.5" />,
     title: "Buy with confidence",
     body: "Every pick explained in plain English, with direct buy links. Swap anything you don't like.",
+    details: [
+      "Plain-English reason behind every pick",
+      "Swap any product for an alternative in one click",
+      "Send picks into the comparison tool side by side",
+      "Direct buy links — same price, zero markup",
+    ],
   },
 ];
 
@@ -85,50 +112,6 @@ const wordRise: Variants = {
 
 const heroLine1 = "Your perfect home gym.".split(" ");
 const heroLine2 = "Built in 60 seconds.".split(" ");
-
-/* How-it-works card with a scroll-scrubbed progress track (Vectr flow). */
-function FlowCard({
-  step,
-  index,
-}: {
-  step: (typeof steps)[number];
-  index: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 92%", "start 40%"],
-  });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{
-        duration: 0.6,
-        delay: index * 0.12,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      className="group rounded-2xl border border-line bg-white p-7 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-accent/40 hover:shadow-xl hover:shadow-accent/10"
-    >
-      <div className="mb-5 h-0.5 w-full overflow-hidden rounded bg-line">
-        <motion.div
-          style={{ scaleX: scrollYProgress }}
-          className="h-full origin-left bg-accent"
-        />
-      </div>
-      <p className="font-display text-sm font-bold text-accent transition-transform duration-300 group-hover:scale-110 group-hover:[transform-origin:left]">
-        {step.n}
-      </p>
-      <h3 className="mt-3 font-display text-xl font-bold text-ink">
-        {step.title}
-      </h3>
-      <p className="mt-2 text-sm leading-relaxed text-ink-2">{step.body}</p>
-    </motion.div>
-  );
-}
 
 export default function Home() {
   const router = useRouter();
@@ -280,7 +263,7 @@ export default function Home() {
         >
           How it works
         </motion.h2>
-        <div className="mt-12 grid gap-6 sm:grid-cols-3">
+        <div className="mt-12 grid items-start gap-6 sm:grid-cols-3">
           {steps.map((s, i) => (
             <FlowCard key={s.n} step={s} index={i} />
           ))}
