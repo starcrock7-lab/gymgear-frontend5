@@ -30,18 +30,25 @@ import {
 } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import GridOverlay from "@/components/ui/grid-overlay";
+import KitResult from "@/components/quiz/KitResult";
 import { cn } from "@/lib/utils";
+import { requestKit } from "@/lib/api";
+import type { KitResponse } from "@/lib/kit";
 import {
   EMPTY_ANSWERS,
   OWNED_NONE,
   QUESTIONS,
   clearAnswers,
   loadAnswers,
-  optionLabel,
   saveAnswers,
   type QuizAnswers,
   type QuizQuestion,
 } from "@/lib/quiz";
+
+type KitState =
+  | { status: "loading" }
+  | { status: "done"; data: KitResponse }
+  | { status: "error" };
 
 const OPTION_ICONS: Record<string, LucideIcon> = {
   "build-strength": Dumbbell,
@@ -85,6 +92,7 @@ export default function QuizFlow() {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [answers, setAnswers] = useState<QuizAnswers>(EMPTY_ANSWERS);
+  const [kit, setKit] = useState<KitState>({ status: "loading" });
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* During a screen transition the exiting screen's buttons are still in
@@ -170,12 +178,33 @@ export default function QuizFlow() {
     setStep((s) => Math.max(s - 1, 0));
   }, []);
 
+  /* Kick off the real /api/kit build. The building animation and the request
+     race a shared minimum delay so the screen never flashes past. */
+  const startBuild = useCallback((finalAnswers: QuizAnswers) => {
+    setKit({ status: "loading" });
+    setPhase("building");
+    const minDelay = new Promise<void>((r) => setTimeout(r, 2400));
+    (async () => {
+      try {
+        const [data] = await Promise.all([
+          requestKit(finalAnswers),
+          minDelay,
+        ]);
+        setKit({ status: "done", data });
+      } catch {
+        await minDelay;
+        setKit({ status: "error" });
+      }
+      setPhase("ready");
+    })();
+  }, []);
+
   const submit = useCallback(() => {
     if (phaseRef.current !== "quiz") return;
     cancelPendingAdvance();
     saveAnswers(answers);
-    setPhase("building");
-  }, [answers]);
+    startBuild(answers);
+  }, [answers, startBuild]);
 
   const retake = useCallback(() => {
     clearAnswers();
@@ -310,9 +339,13 @@ export default function QuizFlow() {
                     )}
                   </>
                 ) : phase === "building" ? (
-                  <BuildingScreen onDone={() => setPhase("ready")} />
+                  <BuildingScreen />
                 ) : (
-                  <ReadyPanel answers={answers} onRetake={retake} />
+                  <ReadyPanel
+                    kit={kit}
+                    onRetake={retake}
+                    onRetry={() => startBuild(answers)}
+                  />
                 )}
               </motion.div>
             </AnimatePresence>
@@ -449,13 +482,9 @@ const BUILD_LINES = [
 
 const LINE_STEP_MS = 1100;
 
-function BuildingScreen({ onDone }: { onDone: () => void }) {
-  /* Phase 3 swaps the fixed timer for the real /api/kit round-trip. */
-  useEffect(() => {
-    const t = setTimeout(onDone, BUILD_LINES.length * LINE_STEP_MS + 900);
-    return () => clearTimeout(t);
-  }, [onDone]);
-
+function BuildingScreen() {
+  /* Pure animation — QuizFlow.startBuild flips the phase when the real
+     /api/kit response and the minimum delay both resolve. */
   return (
     <div className="flex flex-col items-center text-center">
       <motion.div
@@ -506,62 +535,53 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-/* --- Post-build stub until /api/kit exists (Phase 3) ------------------- */
+/* --- Result: render the generated kits, or an error with retry ---------- */
 
 function ReadyPanel({
-  answers,
+  kit,
   onRetake,
+  onRetry,
 }: {
-  answers: QuizAnswers;
+  kit: KitState;
   onRetake: () => void;
+  onRetry: () => void;
 }) {
-  const recap = [
-    answers.goal && optionLabel("goal", answers.goal),
-    answers.budget && optionLabel("budget", answers.budget),
-    answers.space && optionLabel("space", answers.space),
-    answers.equipmentCount && optionLabel("equipmentCount", answers.equipmentCount),
-    answers.owned.includes(OWNED_NONE) || answers.owned.length === 0
-      ? "Starting fresh"
-      : `Owns: ${answers.owned.map((id) => optionLabel("owned", id)).join(", ")}`,
-  ].filter(Boolean) as string[];
+  if (kit.status === "done") {
+    return <KitResult data={kit.data} onRetake={onRetake} />;
+  }
 
+  /* Error (or the brief instant before phase flips) — offer a retry and the
+     comparison tool as a fallback path. */
   return (
     <div className="flex flex-col items-center text-center">
       <p className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
-        Brief locked in
+        Couldn&apos;t reach the kit builder
       </p>
       <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-        Your kit brief is ready.
+        That one&apos;s on us.
       </h1>
-      <div className="mt-6 flex max-w-xl flex-wrap items-center justify-center gap-2">
-        {recap.map((chip) => (
-          <span
-            key={chip}
-            className="rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm text-white/80"
-          >
-            {chip}
-          </span>
-        ))}
-      </div>
-      <p className="mt-6 max-w-md text-white/60">
-        AI kit generation goes live in the next update — your answers are
-        saved on this device. Until then, the comparison tool covers all 160
-        products.
+      <p className="mt-4 max-w-md text-white/60">
+        The kit service didn&apos;t respond — your answers are saved, so give
+        it another go. The comparison tool is open either way.
       </p>
       <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
-        <Link
-          href="/compare"
+        <button
+          type="button"
+          onClick={onRetry}
           className="group rounded-xl bg-accent px-8 py-4 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
         >
+          Try again
+        </button>
+        <Link
+          href="/compare"
+          className="rounded-xl border border-white/20 bg-white/5 px-8 py-4 font-display text-lg font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
+        >
           Compare products
-          <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
-            →
-          </span>
         </Link>
         <button
           type="button"
           onClick={onRetake}
-          className="rounded-xl border border-white/20 bg-white/5 px-8 py-4 font-display text-lg font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
+          className="font-display text-sm font-bold text-white/50 transition-colors hover:text-white"
         >
           Retake quiz
         </button>

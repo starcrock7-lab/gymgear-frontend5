@@ -1,0 +1,59 @@
+/* Shapes returned by the backend /api/kit route. The server owns all product
+   data; the frontend only renders it. Keep in sync with server.js hydrateKits. */
+
+export type KitProduct = {
+  id: string;
+  name: string;
+  brand: string;
+  price: number;
+  retailer: string;
+  url: string;
+  affiliateUrl: string;
+  image: string | null;
+  quality: number;
+  rating: number;
+  reviewCount: number;
+  expertVerdict: string;
+  expertSource: string;
+  specs: Record<string, string>;
+  aspects: string[];
+  bestChoice: boolean;
+  salePrice?: number;
+  discount?: number;
+  category: string;
+};
+
+export type KitType = "value" | "match" | "quality";
+
+export type Kit = {
+  type: KitType;
+  name: string;
+  description: string;
+  products: KitProduct[];
+  totalPrice: number;
+};
+
+export type KitResponse = {
+  kits: Kit[];
+  generatedBy: "groq" | "fallback";
+  generatedAt: string;
+};
+
+/* Display metadata per tier — order here is the order kits render in. */
+export const KIT_TIER_META: Record<
+  KitType,
+  { label: string; tagline: string }
+> = {
+  value: { label: "Best Value", tagline: "Most gym per dollar" },
+  match: { label: "Best Match", tagline: "Dialed to your answers" },
+  quality: { label: "Best Quality", tagline: "Buy once, cry once" },
+};
+
+/* The buy link for a product — affiliate first, falls back to the direct URL. */
+export function buyUrl(p: KitProduct): string {
+  return p.affiliateUrl || p.url;
+}
+
+export function formatPrice(n: number): string {
+  return `$${n.toLocaleString("en-US")}`;
+}
