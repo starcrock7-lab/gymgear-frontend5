@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,12 +9,7 @@ import {
   useTransform,
   type Variants,
 } from "framer-motion";
-import {
-  ChevronRight,
-  ClipboardList,
-  Sparkles,
-  ShieldCheck,
-} from "lucide-react";
+import { ClipboardList, Sparkles, ShieldCheck } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -82,19 +76,6 @@ const fadeUp: Variants = {
   },
 };
 
-/* Vectr-style 3D fly-in: copy arrives from a rotated perspective plane. */
-const flyIn: Variants = {
-  hidden: { opacity: 0, x: -180, y: 90, rotateY: 50, rotateX: 30 },
-  show: {
-    opacity: 1,
-    x: 0,
-    y: 0,
-    rotateY: 0,
-    rotateX: 0,
-    transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
 /* hero-futuristic-style masked word reveal for the headline. */
 const wordStagger: Variants = {
   hidden: {},
@@ -121,7 +102,7 @@ export default function Home() {
 
   return (
     <SmoothScroll>
-      {!introDone && <IntroLoader onComplete={() => setIntroDone(true)} />}
+      <IntroLoader onComplete={() => setIntroDone(true)} />
       <SiteNav />
 
       {/* Hero */}
@@ -157,7 +138,6 @@ export default function Home() {
           >
             <span className="text-[0.5rem] text-accent">●</span>
             Free · No Sign-Up · AI-Powered · Always Independent
-            <ChevronRight className="h-3.5 w-3.5 text-white/50" />
           </motion.p>
           <motion.h1
             variants={wordStagger}
@@ -197,8 +177,7 @@ export default function Home() {
             </span>
           </motion.h1>
           <motion.p
-            variants={flyIn}
-            style={{ transformPerspective: 1000 }}
+            variants={fadeUp}
             className="mt-6 max-w-xl text-lg leading-relaxed text-white/70"
           >
             Answer 5 quick questions. Our AI builds you three complete

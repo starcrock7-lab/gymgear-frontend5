@@ -19,6 +19,12 @@ export interface FlowStep {
   details: string[];
 }
 
+function subscribeHoverMedia(onChange: () => void) {
+  const mq = window.matchMedia("(hover: hover)");
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
 const detailVariants: Variants = {
   hidden: { opacity: 0, height: 0, marginTop: 0 },
   visible: {
@@ -44,11 +50,13 @@ export default function FlowCard({
 }) {
   const ref = React.useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = React.useState(false);
-  const [canHover, setCanHover] = React.useState(true);
-
-  React.useEffect(() => {
-    setCanHover(window.matchMedia("(hover: hover)").matches);
-  }, []);
+  // SSR assumes a hover device; touch devices correct after hydration and
+  // get the details permanently expanded.
+  const canHover = React.useSyncExternalStore(
+    subscribeHoverMedia,
+    () => window.matchMedia("(hover: hover)").matches,
+    () => true,
+  );
 
   const { scrollYProgress } = useScroll({
     target: ref,

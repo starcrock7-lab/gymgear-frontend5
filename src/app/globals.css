@@ -100,13 +100,6 @@ body {
   animation: scanline 9s linear infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-scanline {
-    animation: none;
-    display: none;
-  }
-}
-
 /* Slow drift on the hero photo — the "moving background". */
 @keyframes kenburns {
   from {
@@ -127,5 +120,9 @@ body {
   .animate-aurora,
   .animate-kenburns {
     animation: none;
+  }
+
+  .animate-scanline {
+    display: none;
   }
 }

@@ -104,6 +104,9 @@ export default function QuizFlow() {
   useEffect(() => {
     const saved = loadAnswers();
     if (!saved) return;
+    // One-time hydration from sessionStorage — a single deliberate
+    // post-mount re-render; lazy init would mismatch the SSR HTML.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAnswers(saved);
     const firstOpen = QUESTIONS.findIndex((q) =>
       q.multi ? saved.owned.length === 0 : !saved[q.key],

@@ -16,6 +16,7 @@ export default function IntroLoader({
 }) {
   const reduce = useReducedMotion();
   const [leaving, setLeaving] = useState(false);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     if (reduce) {
@@ -23,11 +24,17 @@ export default function IntroLoader({
       return;
     }
     document.body.style.overflow = "hidden";
-    const t = setTimeout(() => setLeaving(true), 1650);
+    // Hand off as the overlay starts lifting so the hero rises beneath it.
+    const t = setTimeout(() => {
+      setLeaving(true);
+      document.body.style.overflow = "";
+      onComplete();
+    }, 1650);
     // rAF throttles to zero in hidden tabs, freezing the exit animation —
     // hard deadline so a background-tab load can never trap the overlay.
     const failsafe = setTimeout(() => {
       document.body.style.overflow = "";
+      setDone(true);
       onComplete();
     }, 3200);
     return () => {
@@ -37,7 +44,7 @@ export default function IntroLoader({
     };
   }, [reduce, onComplete]);
 
-  if (reduce) return null;
+  if (reduce || done) return null;
 
   return (
     <motion.div
@@ -46,10 +53,7 @@ export default function IntroLoader({
       animate={leaving ? { y: "-100%" } : { y: 0 }}
       transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
       onAnimationComplete={() => {
-        if (leaving) {
-          document.body.style.overflow = "";
-          onComplete();
-        }
+        if (leaving) setDone(true);
       }}
     >
       <div className="relative flex h-56 w-80 items-center justify-center">

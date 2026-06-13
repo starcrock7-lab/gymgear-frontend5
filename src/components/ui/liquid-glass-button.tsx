@@ -252,11 +252,12 @@ export const MetalButton = React.forwardRef<
 >(({ children, className, variant = "default", ...props }, ref) => {
   const [isPressed, setIsPressed] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
-  const [isTouchDevice, setIsTouchDevice] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0);
-  }, []);
+  // Static capability — empty subscription, server snapshot assumes pointer.
+  const isTouchDevice = React.useSyncExternalStore(
+    () => () => {},
+    () => "ontouchstart" in window || navigator.maxTouchPoints > 0,
+    () => false,
+  );
 
   const buttonText = children || "Button";
   const variants = metalButtonVariants(
