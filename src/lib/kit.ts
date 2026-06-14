@@ -82,3 +82,33 @@ export function buyUrl(p: KitProduct): string {
 export function formatPrice(n: number): string {
   return `$${n.toLocaleString("en-US")}`;
 }
+
+/* --- Persistence (sessionStorage) -------------------------------------
+   The generated kits are cached so returning to /quiz can show the last
+   result instantly instead of re-calling the backend. */
+const KIT_STORAGE_KEY = "gymgear.kit.v1";
+
+export function saveKit(resp: KitResponse): void {
+  try {
+    sessionStorage.setItem(KIT_STORAGE_KEY, JSON.stringify(resp));
+  } catch {
+    /* private mode / storage full — results just won't persist */
+  }
+}
+
+export function loadKit(): KitResponse | null {
+  try {
+    const raw = sessionStorage.getItem(KIT_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as KitResponse) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearKit(): void {
+  try {
+    sessionStorage.removeItem(KIT_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}

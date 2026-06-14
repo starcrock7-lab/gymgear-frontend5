@@ -100,6 +100,13 @@ export function optionLabel(key: QuizQuestion["key"], id: string): string {
   return q?.options.find((o) => o.id === id)?.label ?? id;
 }
 
+/* Every question answered — the quiz is finished and ready to build. */
+export function isComplete(a: QuizAnswers): boolean {
+  return Boolean(
+    a.goal && a.budget && a.space && a.equipmentCount && a.owned.length > 0,
+  );
+}
+
 /* --- Persistence (sessionStorage) ------------------------------------- */
 
 const STORAGE_KEY = "gymgear.quiz.v1";

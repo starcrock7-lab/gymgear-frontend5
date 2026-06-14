@@ -23,6 +23,7 @@ import {
   Home,
   LayoutGrid,
   Package,
+  RotateCcw,
   TreePine,
   Wallet,
   Warehouse,
@@ -33,13 +34,15 @@ import GridOverlay from "@/components/ui/grid-overlay";
 import KitResult from "@/components/quiz/KitResult";
 import { cn } from "@/lib/utils";
 import { requestKit } from "@/lib/api";
-import type { KitResponse } from "@/lib/kit";
+import { saveKit, loadKit, clearKit, type KitResponse } from "@/lib/kit";
 import {
   EMPTY_ANSWERS,
   OWNED_NONE,
   QUESTIONS,
   clearAnswers,
+  isComplete,
   loadAnswers,
+  optionLabel,
   saveAnswers,
   type QuizAnswers,
   type QuizQuestion,
@@ -85,7 +88,7 @@ const screenVariants: Variants = {
   }),
 };
 
-type Phase = "quiz" | "building" | "ready";
+type Phase = "quiz" | "returning" | "building" | "ready";
 
 export default function QuizFlow() {
   const [phase, setPhase] = useState<Phase>("quiz");
@@ -107,15 +110,21 @@ export default function QuizFlow() {
 
   const question = QUESTIONS[step];
 
-  /* Resume a half-finished quiz: restore answers, land on the first
-     unanswered question. */
+  /* On mount, pick up where the user left off:
+     - finished quiz  → "returning" choice screen (see kits / start new)
+     - half-finished  → resume at the first unanswered question
+     One deliberate post-mount re-render; lazy init would mismatch SSR HTML. */
   useEffect(() => {
     const saved = loadAnswers();
     if (!saved) return;
-    // One-time hydration from sessionStorage — a single deliberate
-    // post-mount re-render; lazy init would mismatch the SSR HTML.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAnswers(saved);
+    if (isComplete(saved)) {
+      const cached = loadKit();
+      if (cached) setKit({ status: "done", data: cached });
+      setPhase("returning");
+      return;
+    }
     const firstOpen = QUESTIONS.findIndex((q) =>
       q.multi ? saved.owned.length === 0 : !saved[q.key],
     );
@@ -190,6 +199,7 @@ export default function QuizFlow() {
           requestKit(finalAnswers),
           minDelay,
         ]);
+        saveKit(data);
         setKit({ status: "done", data });
       } catch {
         await minDelay;
@@ -206,13 +216,31 @@ export default function QuizFlow() {
     startBuild(answers);
   }, [answers, startBuild]);
 
-  const retake = useCallback(() => {
+  /* Wipe everything and start the quiz over from question one. */
+  const startNew = useCallback(() => {
+    cancelPendingAdvance();
     clearAnswers();
+    clearKit();
     setAnswers(EMPTY_ANSWERS);
-    setDirection(-1);
+    setKit({ status: "loading" });
+    setDirection(1);
     setStep(0);
     setPhase("quiz");
   }, []);
+
+  /* Returning user wants their kits — show the cached result instantly, or
+     rebuild from the saved answers if the cache is gone. */
+  const showResults = useCallback(() => {
+    const cached = loadKit();
+    if (cached) {
+      setKit({ status: "done", data: cached });
+      setPhase("ready");
+    } else {
+      startBuild(answers);
+    }
+  }, [answers, startBuild]);
+
+  const retake = startNew;
 
   /* Keyboard: 1–9 picks an option, Backspace goes back, Enter submits the
      final multi-select. */
@@ -344,6 +372,12 @@ export default function QuizFlow() {
                       </div>
                     )}
                   </>
+                ) : phase === "returning" ? (
+                  <ReturningPanel
+                    answers={answers}
+                    onResults={showResults}
+                    onNew={startNew}
+                  />
                 ) : phase === "building" ? (
                   <BuildingScreen />
                 ) : (
@@ -536,6 +570,67 @@ function BuildingScreen() {
             {line}
           </motion.p>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* --- Returning user: choose to see saved kits or start fresh ----------- */
+
+function ReturningPanel({
+  answers,
+  onResults,
+  onNew,
+}: {
+  answers: QuizAnswers;
+  onResults: () => void;
+  onNew: () => void;
+}) {
+  const recap = [
+    answers.goal && optionLabel("goal", answers.goal),
+    answers.budget && optionLabel("budget", answers.budget),
+    answers.space && optionLabel("space", answers.space),
+    answers.equipmentCount &&
+      optionLabel("equipmentCount", answers.equipmentCount),
+  ].filter(Boolean) as string[];
+
+  return (
+    <div className="flex flex-col items-center text-center">
+      <p className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
+        Welcome back
+      </p>
+      <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+        Your kit is right where you left it.
+      </h1>
+      <div className="mt-6 flex max-w-xl flex-wrap items-center justify-center gap-2">
+        {recap.map((chip) => (
+          <span
+            key={chip}
+            className="rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm text-white/80"
+          >
+            {chip}
+          </span>
+        ))}
+      </div>
+      <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+        <button
+          type="button"
+          onClick={onResults}
+          className="group rounded-xl bg-accent px-8 py-4 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
+        >
+          See my kits
+          <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+            →
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={onNew}
+          className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-4 font-display text-lg font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Start a new quiz
+        </button>
       </div>
     </div>
   );
