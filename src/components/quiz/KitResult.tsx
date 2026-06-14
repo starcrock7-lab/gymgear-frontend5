@@ -88,7 +88,7 @@ export default function KitResult({
             initial={{ opacity: 0, y: 32 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: i * 0.08, ease: EASE }}
-            className="flex-1"
+            className="min-w-0 flex-1"
           >
             <KitCard
               kit={k}
@@ -345,6 +345,12 @@ function ProductRow({
             </span>
           )}
         </div>
+        {/* Plain-English reason this pick is good */}
+        {p.expertVerdict && (
+          <p className="mt-1 line-clamp-2 text-[0.72rem] leading-snug text-white/45">
+            {p.expertVerdict}
+          </p>
+        )}
       </div>
 
       {/* Swap — secondary */}

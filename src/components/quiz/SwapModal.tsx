@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Star, Loader2, ArrowDown, ArrowUp } from "lucide-react";
+import { X, Check, Star, Loader2, Search } from "lucide-react";
 import { requestAlternatives } from "@/lib/api";
 import { formatPrice, type KitProduct } from "@/lib/kit";
 
@@ -10,8 +10,9 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
 
 /* Picker for swapping one product in a kit. Loads every product in the same
-   category, sorts cheapest-first, and shows each option's price difference
-   against the current pick so the budget impact is obvious. */
+   category, lets the user search by name or brand, sorts cheapest-first, and
+   explains why each option is good (expert verdict) with the price difference
+   against the current pick. */
 export default function SwapModal({
   category,
   currentId,
@@ -29,6 +30,7 @@ export default function SwapModal({
 }) {
   const [items, setItems] = useState<KitProduct[] | null>(null);
   const [error, setError] = useState(false);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let live = true;
@@ -46,10 +48,20 @@ export default function SwapModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const sorted = useMemo(
-    () => (items ? [...items].sort((a, b) => priceOf(a) - priceOf(b)) : null),
-    [items],
-  );
+  const shown = useMemo(() => {
+    if (!items) return null;
+    const q = query.trim().toLowerCase();
+    const filtered = q
+      ? items.filter(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.brand.toLowerCase().includes(q),
+        )
+      : items;
+    return [...filtered].sort((a, b) => priceOf(a) - priceOf(b));
+  }, [items, query]);
+
+  const label = categoryLabel.toLowerCase();
 
   return (
     <AnimatePresence>
@@ -72,18 +84,18 @@ export default function SwapModal({
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 24, opacity: 0 }}
           transition={{ duration: 0.32, ease: EASE }}
-          className="relative flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-white/12 bg-navy shadow-2xl sm:rounded-2xl"
+          className="relative flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-white/12 bg-navy shadow-2xl sm:rounded-2xl"
         >
           <div className="flex items-start justify-between gap-3 border-b border-white/10 px-5 py-4">
             <div className="min-w-0">
               <p className="text-[0.6rem] font-medium uppercase tracking-[0.2em] text-accent">
-                Swap your {categoryLabel.toLowerCase()} pick
+                Choose a different {label}
               </p>
               <h3 className="mt-1 truncate font-display text-lg font-bold text-white">
                 {categoryLabel}
               </h3>
               <p className="text-xs text-white/45">
-                Currently {formatPrice(currentPrice)} · cheapest first
+                Yours costs {formatPrice(currentPrice)} — pick any swap below
               </p>
             </div>
             <button
@@ -95,19 +107,48 @@ export default function SwapModal({
             </button>
           </div>
 
+          {/* Search */}
+          <div className="border-b border-white/10 px-4 py-3">
+            <div className="flex items-center gap-2 rounded-xl border border-white/12 bg-white/[0.04] px-3 py-2 focus-within:border-accent/50">
+              <Search className="h-4 w-4 shrink-0 text-white/40" />
+              <input
+                type="text"
+                value={query}
+                autoComplete="off"
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={`Search ${label} by name or brand…`}
+                className="w-full bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="shrink-0 text-white/40 transition-colors hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="flex-1 overflow-y-auto p-3">
             {error ? (
               <p className="px-3 py-10 text-center text-sm text-white/55">
-                Couldn&apos;t load alternatives. Close and try again.
+                Couldn&apos;t load options. Close and try again.
               </p>
-            ) : !sorted ? (
+            ) : !shown ? (
               <div className="flex items-center justify-center gap-2 py-12 text-white/50">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading options…
               </div>
+            ) : shown.length === 0 ? (
+              <p className="px-3 py-10 text-center text-sm text-white/55">
+                No {label} match “{query}”.
+              </p>
             ) : (
               <ul className="flex flex-col gap-2">
-                {sorted.map((p) => (
+                {shown.map((p) => (
                   <li key={p.id}>
                     <SwapOption
                       product={p}
@@ -144,13 +185,13 @@ function SwapOption({
       disabled={isCurrent}
       onClick={onPick}
       className={
-        "flex w-full items-center gap-3 rounded-xl border p-2.5 text-left transition-all duration-200 " +
+        "flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all duration-200 " +
         (isCurrent
           ? "cursor-default border-accent/60 bg-accent/10"
           : "border-white/10 bg-white/[0.03] hover:-translate-y-0.5 hover:border-accent/50 hover:bg-white/[0.07]")
       }
     >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
         {imgOk && p.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -161,7 +202,7 @@ function SwapOption({
             className="h-full w-full object-contain"
           />
         ) : (
-          <span className="font-display text-sm font-bold text-navy">
+          <span className="font-display text-base font-bold text-navy">
             {p.brand.charAt(0)}
           </span>
         )}
@@ -173,8 +214,8 @@ function SwapOption({
             {p.name}
           </p>
           {p.bestChoice && (
-            <span className="shrink-0 text-[0.6rem] font-bold text-win">
-              ★ Top
+            <span className="shrink-0 rounded bg-win/20 px-1.5 py-0.5 text-[0.55rem] font-bold uppercase text-win">
+              Top pick
             </span>
           )}
         </div>
@@ -183,11 +224,14 @@ function SwapOption({
           <span className="text-white/20">·</span>
           <span className="flex items-center gap-0.5">
             <Star className="h-2.5 w-2.5 fill-accent text-accent" />
-            {p.rating}
+            {p.rating} ({p.reviewCount.toLocaleString()})
           </span>
-          <span className="text-white/20">·</span>
-          <span>q{p.quality}</span>
         </div>
+        {p.expertVerdict && (
+          <p className="mt-1 line-clamp-2 text-[0.72rem] leading-snug text-white/45">
+            {p.expertVerdict}
+          </p>
+        )}
       </div>
 
       <div className="shrink-0 text-right">
@@ -195,27 +239,21 @@ function SwapOption({
           {formatPrice(priceOf(p))}
         </div>
         {isCurrent ? (
-          <span className="flex items-center justify-end gap-0.5 text-[0.65rem] font-bold text-accent">
+          <span className="mt-0.5 flex items-center justify-end gap-0.5 text-[0.65rem] font-bold text-accent">
             <Check className="h-3 w-3" />
-            In kit
+            In your kit
           </span>
         ) : delta !== 0 ? (
           <span
             className={
-              "flex items-center justify-end gap-0.5 text-[0.65rem] font-bold " +
+              "mt-0.5 block text-[0.65rem] font-bold " +
               (delta > 0 ? "text-white/45" : "text-win")
             }
           >
-            {delta > 0 ? (
-              <ArrowUp className="h-2.5 w-2.5" />
-            ) : (
-              <ArrowDown className="h-2.5 w-2.5" />
-            )}
-            {delta > 0 ? "+" : "−"}
-            {formatPrice(Math.abs(delta))}
+            {delta > 0 ? `+${formatPrice(delta)}` : `−${formatPrice(-delta)}`}
           </span>
         ) : (
-          <span className="text-[0.65rem] font-bold text-white/40">
+          <span className="mt-0.5 block text-[0.65rem] font-bold text-white/40">
             Same price
           </span>
         )}

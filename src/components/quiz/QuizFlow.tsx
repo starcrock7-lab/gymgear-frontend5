@@ -252,7 +252,13 @@ export default function QuizFlow() {
           className="animate-glow pointer-events-none absolute -top-40 left-1/2 h-130 w-200 -translate-x-1/2 rounded-full bg-accent/15 blur-3xl"
         />
 
-        <div className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col px-5 pb-16 pt-10">
+        <div
+          className={cn(
+            "relative mx-auto flex w-full flex-1 flex-col px-5 pb-16 pt-10 transition-[max-width] duration-500",
+            // The three-kit result needs room; quiz + building stay narrow.
+            phase === "ready" ? "max-w-6xl" : "max-w-3xl",
+          )}
+        >
           {/* Progress header */}
           <div
             className={cn(
