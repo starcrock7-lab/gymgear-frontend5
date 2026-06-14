@@ -1,5 +1,5 @@
 import type { QuizAnswers } from "@/lib/quiz";
-import type { KitResponse } from "@/lib/kit";
+import type { KitResponse, KitProduct } from "@/lib/kit";
 
 /* All backend calls go through apiFetch so the base URL and the site-key
    header are applied in one place (mirrors the classic site's apiFetch). */
@@ -29,4 +29,15 @@ export async function requestKit(answers: QuizAnswers): Promise<KitResponse> {
     throw new Error(`Kit request failed (${res.status})`);
   }
   return (await res.json()) as KitResponse;
+}
+
+/* All products in a category, for swapping a pick in a kit. The category is
+   stamped onto each so swapped products keep the field the kit relies on. */
+export async function requestAlternatives(
+  category: string,
+): Promise<KitProduct[]> {
+  const res = await apiFetch(`/api/products/${category}`);
+  if (!res.ok) throw new Error(`Products request failed (${res.status})`);
+  const data = (await res.json()) as { products: Omit<KitProduct, "category">[] };
+  return data.products.map((p) => ({ ...p, category }));
 }

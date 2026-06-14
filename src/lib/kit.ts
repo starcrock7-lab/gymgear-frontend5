@@ -49,6 +49,31 @@ export const KIT_TIER_META: Record<
   quality: { label: "Best Quality", tagline: "Buy once, cry once" },
 };
 
+/* Human labels for the kit-eligible categories (mirrors the backend meta),
+   used as the title when swapping a product. */
+export const CATEGORY_LABEL: Record<string, string> = {
+  racks: "Racks & Rigs",
+  barbells: "Barbells",
+  plates: "Weight Plates",
+  benches: "Weight Benches",
+  dumbbells: "Dumbbells",
+  kettlebells: "Kettlebells",
+  cardio: "Cardio",
+  bands: "Resistance Bands",
+  jumpropes: "Jump Ropes",
+  yogamats: "Yoga Mats",
+  foamrollers: "Foam Rollers",
+};
+
+export function categoryLabel(cat: string): string {
+  return CATEGORY_LABEL[cat] ?? cat;
+}
+
+/* Sum a kit's products at their effective (sale-aware) price. */
+export function kitTotal(products: KitProduct[]): number {
+  return products.reduce((s, p) => s + (p.salePrice ?? p.price), 0);
+}
+
 /* The buy link for a product — affiliate first, falls back to the direct URL. */
 export function buyUrl(p: KitProduct): string {
   return p.affiliateUrl || p.url;
