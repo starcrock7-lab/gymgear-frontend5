@@ -69,21 +69,22 @@ Comparison tool stays as secondary path for people who already know what they wa
 - [x] "Building your kit..." loading screen
 - Answers persist to sessionStorage under `gymgear.quiz.v1` (stable option ids in `src/lib/quiz.ts`) — Phase 3 reads this to call /api/kit, and swaps the fixed timer in BuildingScreen for the real request
 
-### Phase 3 — Kit generation
-- [ ] Add `/api/kit` route to Express backend (Groq call)
-- [ ] Prompt: takes 5 quiz answers + full product catalog, returns 3 kits as JSON
-- [ ] Each kit: { name, description, products[], totalPrice, optimizationType }
-- [ ] Wire frontend result page to backend
+### Phase 3 — Kit generation (done, on nextjs-rebuild + backend kit-endpoint)
+- [x] `POST /api/kit` on the Express backend — deterministic cart builder owns product selection (budget/space/owned-aware), Groq (Llama 3.3 70B) writes only the kit name + description so it can never produce a bad cart; templated copy fallback when no key/API error
+- [x] Server validates + hydrates product ids, owns all price data
+- [x] Each kit: { type, name, description, products[], totalPrice }; three distinct tiers (value=cheapest decent, match=best-rated, quality=best-built)
+- [x] Wire frontend result page to backend (lib/api.ts apiFetch + requestKit, lib/kit.ts types)
 
-### Phase 4 — Result page
-- [ ] Three kit cards (Best Value / Best Match / Best Quality)
-- [ ] Expand/collapse per card, default Best Match expanded
-- [ ] Product cards with price, affiliate buy button, specs summary
-- [ ] Swap product UX, Compare shortcut
-- [ ] Mobile: tab layout
+### Phase 4 — Result page (done, on nextjs-rebuild)
+- [x] Three kit cards (Best Value / Best Match / Best Quality)
+- [x] Desktop: all three side by side, Best Match elevated + "Recommended" badge (chose this over expand/collapse — the whole comparison stays visible)
+- [x] Product cards with price, sale strikethrough, rating, affiliate-first buy link
+- [x] Swap product UX (SwapModal, reuses /api/products/:cat, recomputes total)
+- [x] Mobile: tab layout
+- [ ] Compare shortcut — deferred to Phase 5 (needs the comparison tool to exist first)
 
 ### Phase 5 — Polish + SEO
-- [ ] Port comparison tool to Next.js
+- [ ] Port comparison tool to Next.js (then wire the "Compare these" shortcut from kits)
 - [ ] Product pages for SEO (e.g. /compare/rogue-ohio-vs-eleiko)
 - [ ] Activate weekly-refresh.yml (real pricing)
 - [ ] Social sharing for kit results
