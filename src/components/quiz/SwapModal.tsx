@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Star, Loader2, Search } from "lucide-react";
+import { X, Check, Star, Loader2, Search, ChevronDown } from "lucide-react";
 import { requestAlternatives } from "@/lib/api";
 import { formatPrice, type KitProduct } from "@/lib/kit";
 
@@ -179,85 +179,133 @@ function SwapOption({
   onPick: () => void;
 }) {
   const [imgOk, setImgOk] = useState(true);
+  const [showSpecs, setShowSpecs] = useState(false);
+  const specs = Object.entries(p.specs ?? {});
+
   return (
-    <button
-      type="button"
-      disabled={isCurrent}
-      onClick={onPick}
+    <div
       className={
-        "flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all duration-200 " +
+        "rounded-xl border transition-colors duration-200 " +
         (isCurrent
-          ? "cursor-default border-accent/60 bg-accent/10"
-          : "border-white/10 bg-white/[0.03] hover:-translate-y-0.5 hover:border-accent/50 hover:bg-white/[0.07]")
+          ? "border-accent/60 bg-accent/10"
+          : "border-white/10 bg-white/[0.03] hover:border-accent/40")
       }
     >
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
-        {imgOk && p.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={p.image}
-            alt={p.name}
-            loading="lazy"
-            onError={() => setImgOk(false)}
-            className="h-full w-full object-contain"
-          />
-        ) : (
-          <span className="font-display text-base font-bold text-navy">
-            {p.brand.charAt(0)}
-          </span>
-        )}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
-          <p className="truncate font-display text-sm font-bold text-white">
-            {p.name}
-          </p>
-          {p.bestChoice && (
-            <span className="shrink-0 rounded bg-win/20 px-1.5 py-0.5 text-[0.55rem] font-bold uppercase text-win">
-              Top pick
+      <button
+        type="button"
+        disabled={isCurrent}
+        onClick={onPick}
+        className="flex w-full items-start gap-3 p-3 text-left"
+      >
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+          {imgOk && p.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={p.image}
+              alt={p.name}
+              loading="lazy"
+              onError={() => setImgOk(false)}
+              className="h-full w-full object-contain"
+            />
+          ) : (
+            <span className="font-display text-base font-bold text-navy">
+              {p.brand.charAt(0)}
             </span>
           )}
         </div>
-        <div className="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-white/45">
-          <span>{p.brand}</span>
-          <span className="text-white/20">·</span>
-          <span className="flex items-center gap-0.5">
-            <Star className="h-2.5 w-2.5 fill-accent text-accent" />
-            {p.rating} ({p.reviewCount.toLocaleString()})
-          </span>
-        </div>
-        {p.expertVerdict && (
-          <p className="mt-1 line-clamp-2 text-[0.72rem] leading-snug text-white/45">
-            {p.expertVerdict}
-          </p>
-        )}
-      </div>
 
-      <div className="shrink-0 text-right">
-        <div className="font-display text-sm font-bold text-white">
-          {formatPrice(priceOf(p))}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <p className="truncate font-display text-sm font-bold text-white">
+              {p.name}
+            </p>
+            {p.bestChoice && (
+              <span className="shrink-0 rounded bg-win/20 px-1.5 py-0.5 text-[0.55rem] font-bold uppercase text-win">
+                Top pick
+              </span>
+            )}
+          </div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-white/45">
+            <span>{p.brand}</span>
+            <span className="text-white/20">·</span>
+            <span className="flex items-center gap-0.5">
+              <Star className="h-2.5 w-2.5 fill-accent text-accent" />
+              {p.rating} ({p.reviewCount.toLocaleString()})
+            </span>
+          </div>
+          {p.expertVerdict && (
+            <p className="mt-1 line-clamp-2 text-[0.72rem] leading-snug text-white/45">
+              {p.expertVerdict}
+            </p>
+          )}
         </div>
-        {isCurrent ? (
-          <span className="mt-0.5 flex items-center justify-end gap-0.5 text-[0.65rem] font-bold text-accent">
-            <Check className="h-3 w-3" />
-            In your kit
-          </span>
-        ) : delta !== 0 ? (
-          <span
-            className={
-              "mt-0.5 block text-[0.65rem] font-bold " +
-              (delta > 0 ? "text-white/45" : "text-win")
-            }
+
+        <div className="shrink-0 text-right">
+          <div className="font-display text-sm font-bold text-white">
+            {formatPrice(priceOf(p))}
+          </div>
+          {isCurrent ? (
+            <span className="mt-0.5 flex items-center justify-end gap-0.5 text-[0.65rem] font-bold text-accent">
+              <Check className="h-3 w-3" />
+              In your kit
+            </span>
+          ) : delta !== 0 ? (
+            <span
+              className={
+                "mt-0.5 block text-[0.65rem] font-bold " +
+                (delta > 0 ? "text-white/45" : "text-win")
+              }
+            >
+              {delta > 0 ? `+${formatPrice(delta)}` : `−${formatPrice(-delta)}`}
+            </span>
+          ) : (
+            <span className="mt-0.5 block text-[0.65rem] font-bold text-white/40">
+              Same price
+            </span>
+          )}
+        </div>
+      </button>
+
+      {/* Inline specs — peek before you pick */}
+      {specs.length > 0 && (
+        <div className="border-t border-white/8 px-3">
+          <button
+            type="button"
+            onClick={() => setShowSpecs((s) => !s)}
+            className="flex w-full items-center justify-center gap-1 py-1.5 text-[0.65rem] font-bold uppercase tracking-wide text-white/45 transition-colors hover:text-accent"
           >
-            {delta > 0 ? `+${formatPrice(delta)}` : `−${formatPrice(-delta)}`}
-          </span>
-        ) : (
-          <span className="mt-0.5 block text-[0.65rem] font-bold text-white/40">
-            Same price
-          </span>
-        )}
-      </div>
-    </button>
+            {showSpecs ? "Hide specs" : "View specs"}
+            <ChevronDown
+              className={
+                "h-3 w-3 transition-transform duration-200 " +
+                (showSpecs ? "rotate-180" : "")
+              }
+            />
+          </button>
+          <AnimatePresence initial={false}>
+            {showSpecs && (
+              <motion.dl
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: EASE }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pb-3 pt-1">
+                  {specs.map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-2 text-xs">
+                      <dt className="text-white/40">{k}</dt>
+                      <dd className="text-right font-medium text-white/80">
+                        {v}
+                      </dd>
+                    </div>
+                  ))}
+                </div>
+              </motion.dl>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
   );
 }
