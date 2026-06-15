@@ -25,6 +25,8 @@ export default function ProductModal({
   const [imgOk, setImgOk] = useState(true);
   const price = p.salePrice ?? p.price;
   const specs = Object.entries(p.specs ?? {});
+  // Label the buy button by where it actually goes (affiliate → Amazon).
+  const dest = /amazon\./.test(buyUrl(p)) ? "Amazon" : p.retailer;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -65,14 +67,14 @@ export default function ProductModal({
 
           <div className="flex-1 overflow-y-auto">
             {/* Image / brand banner */}
-            <div className="flex h-44 items-center justify-center bg-white p-4">
+            <div className="flex h-44 items-center justify-center overflow-hidden bg-white">
               {imgOk && p.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={p.image}
                   alt={p.name}
                   onError={() => setImgOk(false)}
-                  className="h-full w-full object-contain"
+                  className="h-full w-full object-cover"
                 />
               ) : (
                 <span className="font-display text-5xl font-extrabold text-navy/80">
@@ -183,7 +185,7 @@ export default function ProductModal({
               rel="noopener noreferrer sponsored"
               className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent font-display text-base font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50"
             >
-              Buy at {p.retailer} · {formatPrice(price)}
+              Buy on {dest} · {formatPrice(price)}
               <ArrowUpRight className="h-4 w-4" />
             </a>
           </div>

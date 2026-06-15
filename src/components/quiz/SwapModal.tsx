@@ -205,7 +205,7 @@ function SwapOption({
               alt={p.name}
               loading="lazy"
               onError={() => setImgOk(false)}
-              className="h-full w-full object-contain"
+              className="h-full w-full object-cover"
             />
           ) : (
             <span className="font-display text-base font-bold text-navy">
