@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Check, Star, Sparkles, Repeat2 } from "lucide-react";
+import { RotateCcw, Check, Star, Sparkles, Repeat2, Info } from "lucide-react";
 import {
   KIT_TIER_META,
   buyUrl,
@@ -14,6 +14,7 @@ import {
   type KitResponse,
 } from "@/lib/kit";
 import SwapModal from "@/components/quiz/SwapModal";
+import ProductModal from "@/components/quiz/ProductModal";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
@@ -41,6 +42,7 @@ export default function KitResult({
     kits.some((k) => k.type === "match") ? "match" : kits[0]?.type,
   );
   const [swap, setSwap] = useState<SwapTarget | null>(null);
+  const [detail, setDetail] = useState<KitProduct | null>(null);
   const [flashId, setFlashId] = useState<string | null>(null);
   const selectedKit = kits.find((k) => k.type === selected) ?? kits[0];
 
@@ -97,6 +99,7 @@ export default function KitResult({
               flashId={flashId}
               onSelect={() => setSelected(k.type)}
               onSwap={(product) => setSwap({ kitType: k.type, product })}
+              onInfo={setDetail}
             />
           </motion.div>
         ))}
@@ -154,6 +157,7 @@ export default function KitResult({
               onSwap={(product) =>
                 setSwap({ kitType: selectedKit.type, product })
               }
+              onInfo={setDetail}
             />
           </motion.div>
         </AnimatePresence>
@@ -186,6 +190,10 @@ export default function KitResult({
           onClose={() => setSwap(null)}
         />
       )}
+
+      {detail && (
+        <ProductModal product={detail} onClose={() => setDetail(null)} />
+      )}
     </div>
   );
 }
@@ -197,6 +205,7 @@ function KitCard({
   flashId,
   onSelect,
   onSwap,
+  onInfo,
 }: {
   kit: Kit;
   recommended: boolean;
@@ -204,6 +213,7 @@ function KitCard({
   flashId: string | null;
   onSelect: () => void;
   onSwap: (product: KitProduct) => void;
+  onInfo: (product: KitProduct) => void;
 }) {
   const meta = KIT_TIER_META[kit.type];
   return (
@@ -274,6 +284,7 @@ function KitCard({
             product={p}
             flash={flashId === p.id}
             onSwap={() => onSwap(p)}
+            onInfo={() => onInfo(p)}
           />
         ))}
       </div>
@@ -285,10 +296,12 @@ function ProductRow({
   product: p,
   flash,
   onSwap,
+  onInfo,
 }: {
   product: KitProduct;
   flash: boolean;
   onSwap: () => void;
+  onInfo: () => void;
 }) {
   const [imgOk, setImgOk] = useState(true);
   const price = priceOf(p);
@@ -302,56 +315,67 @@ function ProductRow({
       transition={{ duration: 0.45, ease: EASE }}
       className="flex items-center gap-3 rounded-xl border p-2.5"
     >
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
-        {imgOk && p.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={p.image}
-            alt={p.name}
-            loading="lazy"
-            onError={() => setImgOk(false)}
-            className="h-full w-full object-contain"
-          />
-        ) : (
-          <span className="font-display text-base font-bold text-navy">
-            {p.brand.charAt(0)}
-          </span>
-        )}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-display text-sm font-bold text-white">
-          {p.name}
-        </p>
-        <div className="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-white/45">
-          <span className="flex items-center gap-0.5">
-            <Star className="h-2.5 w-2.5 fill-accent text-accent" />
-            {p.rating}
-          </span>
-          {p.bestChoice && (
-            <>
-              <span className="text-white/20">·</span>
-              <span className="flex items-center gap-0.5 text-win">
-                <Check className="h-2.5 w-2.5" />
-                Top
-              </span>
-            </>
-          )}
-          <span className="text-white/20">·</span>
-          <span className="font-bold text-white/70">{formatPrice(price)}</span>
-          {p.salePrice && (
-            <span className="text-white/30 line-through">
-              {formatPrice(p.price)}
+      {/* Thumb + info opens the product detail panel */}
+      <button
+        type="button"
+        onClick={onInfo}
+        aria-label={`Details for ${p.name}`}
+        className="group flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left transition-colors hover:bg-white/[0.03] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+      >
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+          {imgOk && p.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={p.image}
+              alt={p.name}
+              loading="lazy"
+              onError={() => setImgOk(false)}
+              className="h-full w-full object-contain"
+            />
+          ) : (
+            <span className="font-display text-base font-bold text-navy">
+              {p.brand.charAt(0)}
             </span>
           )}
         </div>
-        {/* Plain-English reason this pick is good */}
-        {p.expertVerdict && (
-          <p className="mt-1 line-clamp-2 text-[0.72rem] leading-snug text-white/45">
-            {p.expertVerdict}
+
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-1 truncate font-display text-sm font-bold text-white">
+            <span className="truncate">{p.name}</span>
+            <Info className="h-3 w-3 shrink-0 text-white/30 transition-colors group-hover:text-accent" />
           </p>
-        )}
-      </div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-white/45">
+            <span className="flex items-center gap-0.5">
+              <Star className="h-2.5 w-2.5 fill-accent text-accent" />
+              {p.rating}
+            </span>
+            {p.bestChoice && (
+              <>
+                <span className="text-white/20">·</span>
+                <span className="flex items-center gap-0.5 text-win">
+                  <Check className="h-2.5 w-2.5" />
+                  Top
+                </span>
+              </>
+            )}
+            <span className="text-white/20">·</span>
+            <span className="font-bold text-white/70">
+              {formatPrice(price)}
+            </span>
+            {p.salePrice && (
+              <span className="text-white/30 line-through">
+                {formatPrice(p.price)}
+              </span>
+            )}
+          </div>
+          {/* Plain-English reason this pick is good */}
+          {p.expertVerdict && (
+            <p className="mt-1 line-clamp-2 text-[0.72rem] leading-snug text-white/45">
+              {p.expertVerdict}
+            </p>
+          )}
+        </div>
+      </button>
 
       {/* Swap — secondary */}
       <button
