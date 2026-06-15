@@ -74,9 +74,17 @@ export function kitTotal(products: KitProduct[]): number {
   return products.reduce((s, p) => s + (p.salePrice ?? p.price), 0);
 }
 
-/* The buy link for a product — affiliate first, falls back to the direct URL. */
+/* Amazon Associates tag — every buy link earns commission through it. */
+const AMAZON_TAG = "gymgearcompar-20";
+
+/* The buy link for a product. Prefer the backend-supplied affiliate link;
+   otherwise build an Amazon affiliate search from the name + brand. We never
+   fall back to the product's direct brand URL — those are frequently dead
+   pages (404), whereas an Amazon search always resolves. */
 export function buyUrl(p: KitProduct): string {
-  return p.affiliateUrl || p.url;
+  if (p.affiliateUrl) return p.affiliateUrl;
+  const q = encodeURIComponent(`${p.brand} ${p.name}`.trim());
+  return `https://www.amazon.com/s?k=${q}&tag=${AMAZON_TAG}`;
 }
 
 export function formatPrice(n: number): string {
@@ -86,7 +94,7 @@ export function formatPrice(n: number): string {
 /* --- Persistence (sessionStorage) -------------------------------------
    The generated kits are cached so returning to /quiz can show the last
    result instantly instead of re-calling the backend. */
-const KIT_STORAGE_KEY = "gymgear.kit.v1";
+const KIT_STORAGE_KEY = "gymgear.kit.v2";
 
 export function saveKit(resp: KitResponse): void {
   try {
