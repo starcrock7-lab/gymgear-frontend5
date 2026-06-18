@@ -1,12 +1,12 @@
 import Link from "next/link";
-import Image from "next/image";
+import { LogoMark } from "@/components/ui/logo-mark";
 
 export default function SiteNav() {
   return (
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-navy/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/logo.svg" alt="GymGear Compare" width={44} height={30} />
+        <Link href="/" className="group flex items-center gap-2.5">
+          <LogoMark className="h-9 w-[3.25rem]" />
           <span className="font-display text-lg font-bold tracking-tight text-white">
             GymGear<span className="text-accent">Compare</span>
           </span>
