@@ -469,6 +469,7 @@ function ComparisonMatrix({
                       ({p.reviewCount.toLocaleString()})
                     </span>
                   </span>
+                  <MetricBar value={p.rating} max={5} />
                 </Cell>
               ))}
             </Row>
@@ -481,6 +482,11 @@ function ComparisonMatrix({
                       best
                     </span>
                   )}
+                  <MetricBar
+                    value={p.quality}
+                    max={10}
+                    best={p.id === bestQualityId}
+                  />
                 </Cell>
               ))}
             </Row>
@@ -548,6 +554,35 @@ function Cell({
     >
       {children}
     </td>
+  );
+}
+
+/* A thin proportional bar that makes a numeric metric scannable across the
+   comparison columns. The exact value stays labelled in the cell above it
+   (per the bar-chart guideline: always keep value labels visible). */
+function MetricBar({
+  value,
+  max,
+  best = false,
+}: {
+  value: number;
+  max: number;
+  best?: boolean;
+}) {
+  const pct = Math.max(0, Math.min(100, (value / max) * 100));
+  return (
+    <span
+      role="presentation"
+      className="mt-1.5 block h-1.5 w-full max-w-[120px] overflow-hidden rounded-full bg-line"
+    >
+      <span
+        className={
+          "block h-full rounded-full transition-[width] duration-500 " +
+          (best ? "bg-win" : "bg-accent/70")
+        }
+        style={{ width: `${pct}%` }}
+      />
+    </span>
   );
 }
 
