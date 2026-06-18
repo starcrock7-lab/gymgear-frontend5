@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Check, Star, Sparkles, Repeat2, Info } from "lucide-react";
+import {
+  RotateCcw,
+  Check,
+  Star,
+  Sparkles,
+  Repeat2,
+  Info,
+  Share2,
+} from "lucide-react";
 import {
   KIT_TIER_META,
   buyUrl,
@@ -44,7 +52,34 @@ export default function KitResult({
   const [swap, setSwap] = useState<SwapTarget | null>(null);
   const [detail, setDetail] = useState<KitProduct | null>(null);
   const [flashId, setFlashId] = useState<string | null>(null);
+  const [shared, setShared] = useState(false);
   const selectedKit = kits.find((k) => k.type === selected) ?? kits[0];
+
+  /* Share the selected kit — native share sheet where available, otherwise
+     copy a link to the clipboard. */
+  async function shareKit() {
+    const k = selectedKit;
+    const text = `My AI-built home gym: ${k.name} — ${k.products.length} pieces, ${formatPrice(k.totalPrice)}. Build yours free:`;
+    const url =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/quiz`
+        : "https://gymgearcompare.com/quiz";
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title: "GymGear Compare", text, url });
+      } catch {
+        /* user dismissed the share sheet */
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    } catch {
+      /* clipboard unavailable */
+    }
+  }
 
   function applySwap(replacement: KitProduct) {
     if (!swap) return;
@@ -164,6 +199,23 @@ export default function KitResult({
       </div>
 
       <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
+        <button
+          type="button"
+          onClick={shareKit}
+          className="flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-display font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover"
+        >
+          {shared ? (
+            <>
+              <Check className="h-4 w-4" />
+              Link copied
+            </>
+          ) : (
+            <>
+              <Share2 className="h-4 w-4" />
+              Share my kit
+            </>
+          )}
+        </button>
         <a
           href="/compare"
           className="rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-display font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"

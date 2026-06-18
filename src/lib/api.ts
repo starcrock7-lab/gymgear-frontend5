@@ -2,11 +2,13 @@ import type { QuizAnswers } from "@/lib/quiz";
 import type { KitResponse, KitProduct, Category } from "@/lib/kit";
 
 /* All backend calls go through apiFetch so the base URL and the site-key
-   header are applied in one place (mirrors the classic site's apiFetch). */
+   header are applied in one place (mirrors the classic site's apiFetch).
+   Local dev sets NEXT_PUBLIC_BACKEND_URL=http://localhost:3001 in .env.local;
+   on Vercel (no .env.local) it falls back to the production Render backend. */
 const BASE =
   process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "") ||
-  "http://localhost:3001";
-const SITE_KEY = process.env.NEXT_PUBLIC_SITE_KEY || "";
+  "https://gymgear-backend5.onrender.com";
+const SITE_KEY = process.env.NEXT_PUBLIC_SITE_KEY || "ggcp-2026-xK9m";
 
 export async function apiFetch(
   path: string,
