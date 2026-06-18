@@ -22,6 +22,8 @@ import {
   type KitProduct,
 } from "@/lib/kit";
 import ProductModal from "@/components/quiz/ProductModal";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const MAX = 4;
@@ -162,9 +164,10 @@ export default function CompareTool() {
           {/* Product grid */}
           <div className="mt-10 min-h-[40vh]">
             {!products ? (
-              <div className="flex items-center justify-center gap-2 py-20 text-ink-3">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading products…
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -254,18 +257,18 @@ function ProductCard({
   onDetail: () => void;
 }) {
   return (
-    <div
+    <SpotlightCard
       className={
         "flex flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-200 " +
         (selected
           ? "border-accent shadow-lg shadow-accent/10"
-          : "border-line hover:-translate-y-1 hover:shadow-lg")
+          : "border-line hover:-translate-y-1 hover:border-accent/30 hover:shadow-xl hover:shadow-ink/5")
       }
     >
       <button
         type="button"
         onClick={onDetail}
-        className="relative aspect-square overflow-hidden bg-off"
+        className="relative z-[1] aspect-square overflow-hidden bg-off"
       >
         <ProductThumb product={p} className="h-full w-full" cover />
         {p.bestChoice && (
@@ -280,7 +283,7 @@ function ProductCard({
         ) : null}
       </button>
 
-      <div className="flex flex-1 flex-col p-3">
+      <div className="relative z-[1] flex flex-1 flex-col p-3">
         <button onClick={onDetail} className="text-left">
           <p className="truncate font-display text-sm font-bold text-ink">
             {p.name}
@@ -323,6 +326,22 @@ function ProductCard({
             </>
           )}
         </button>
+      </div>
+    </SpotlightCard>
+  );
+}
+
+/* --- Loading skeleton ---------------------------------------------------- */
+
+function SkeletonCard() {
+  return (
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-white">
+      <Skeleton className="aspect-square rounded-none" />
+      <div className="flex flex-1 flex-col gap-2 p-3">
+        <Skeleton className="h-3.5 w-4/5" />
+        <Skeleton className="h-3 w-1/3" />
+        <Skeleton className="mt-1.5 h-3 w-2/3" />
+        <Skeleton className="mt-3 h-8 w-full rounded-lg" />
       </div>
     </div>
   );

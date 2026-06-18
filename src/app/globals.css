@@ -115,6 +115,33 @@ body {
   will-change: transform;
 }
 
+/* Shimmer sweep for loading skeletons (see components/ui/skeleton.tsx). */
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.gg-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--line);
+}
+
+.gg-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, #ffffff 75%, transparent),
+    transparent
+  );
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-glow,
   .animate-aurora,
@@ -124,5 +151,9 @@ body {
 
   .animate-scanline {
     display: none;
+  }
+
+  .gg-skeleton::after {
+    animation: none;
   }
 }

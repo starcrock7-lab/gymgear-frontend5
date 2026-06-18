@@ -1,0 +1,71 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import {
+  useRef,
+  type CSSProperties,
+  type HTMLAttributes,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from "react";
+
+type SpotlightCardProps = {
+  children: ReactNode;
+  className?: string;
+  /** Glow color — any CSS color. Defaults to the brand accent. */
+  glow?: string;
+  /** Spotlight radius in px. */
+  radius?: number;
+  style?: CSSProperties;
+} & HTMLAttributes<HTMLDivElement>;
+
+/* A surface that paints a soft, brand-tinted highlight tracking the pointer.
+   Tuned for the light theme: the glow sits behind the card content (z-0) so it
+   reads as a halo around the text/controls rather than washing them out. Pure
+   CSS custom properties driven by a local pointermove — no requestAnimationFrame
+   and no global document listeners, so dozens can live in a grid cheaply. The
+   card content should sit at z-[1] or above (see CompareTool ProductCard). */
+export function SpotlightCard({
+  children,
+  className,
+  glow = "var(--accent)",
+  radius = 230,
+  style,
+  ...rest
+}: SpotlightCardProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  function handleMove(e: ReactPointerEvent<HTMLDivElement>) {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    el.style.setProperty("--my", `${e.clientY - r.top}px`);
+  }
+
+  return (
+    <div
+      ref={ref}
+      onPointerMove={handleMove}
+      className={cn("group/spot relative isolate", className)}
+      style={
+        {
+          "--glow": glow,
+          "--spot": `${radius}px`,
+          ...style,
+        } as CSSProperties
+      }
+      {...rest}
+    >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover/spot:opacity-100"
+        style={{
+          background:
+            "radial-gradient(var(--spot) circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--glow) 22%, transparent), transparent 70%)",
+        }}
+      />
+      {children}
+    </div>
+  );
+}
