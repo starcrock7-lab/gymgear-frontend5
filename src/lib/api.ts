@@ -1,5 +1,5 @@
 import type { QuizAnswers } from "@/lib/quiz";
-import type { KitResponse, KitProduct } from "@/lib/kit";
+import type { KitResponse, KitProduct, Category } from "@/lib/kit";
 
 /* All backend calls go through apiFetch so the base URL and the site-key
    header are applied in one place (mirrors the classic site's apiFetch). */
@@ -40,4 +40,12 @@ export async function requestAlternatives(
   if (!res.ok) throw new Error(`Products request failed (${res.status})`);
   const data = (await res.json()) as { products: Omit<KitProduct, "category">[] };
   return data.products.map((p) => ({ ...p, category }));
+}
+
+/* The full category list (grouped) for the comparison tool. */
+export async function requestCategories(): Promise<Category[]> {
+  const res = await apiFetch("/api/categories");
+  if (!res.ok) throw new Error(`Categories request failed (${res.status})`);
+  const data = (await res.json()) as { categories: Category[] };
+  return data.categories;
 }

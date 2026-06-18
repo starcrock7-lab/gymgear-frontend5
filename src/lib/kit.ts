@@ -25,6 +25,14 @@ export type KitProduct = {
 
 export type KitType = "value" | "match" | "quality";
 
+/* A product category as returned by /api/categories. */
+export type Category = {
+  key: string;
+  label: string;
+  group: string;
+  count: number;
+};
+
 export type Kit = {
   type: KitType;
   name: string;
