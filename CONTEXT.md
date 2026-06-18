@@ -84,7 +84,8 @@ Comparison tool stays as secondary path for people who already know what they wa
 - [ ] Compare shortcut — deferred to Phase 5 (needs the comparison tool to exist first)
 
 ### Phase 5 — Polish + SEO
-- [ ] Port comparison tool to Next.js (then wire the "Compare these" shortcut from kits)
+- [x] Port comparison tool to Next.js — `/compare` is the real tool: grouped category browse → select 2–4 → side-by-side spec matrix (cheapest + best-quality highlighted) + best-value verdict + Buy links + detail panel (CompareTool.tsx)
+- [ ] "Compare these" shortcut from a kit — deferred: kit products are cross-category, so they don't share a spec matrix; the standalone tool compares within one category
 - [ ] Product pages for SEO (e.g. /compare/rogue-ohio-vs-eleiko)
 - [ ] Activate weekly-refresh.yml (real pricing)
 - [ ] Social sharing for kit results
