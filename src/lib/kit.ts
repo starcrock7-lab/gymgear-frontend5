@@ -102,7 +102,7 @@ export function formatPrice(n: number): string {
 /* --- Persistence (sessionStorage) -------------------------------------
    The generated kits are cached so returning to /quiz can show the last
    result instantly instead of re-calling the backend. */
-const KIT_STORAGE_KEY = "gymgear.kit.v2";
+const KIT_STORAGE_KEY = "gymgear.kit.v3";
 
 export function saveKit(resp: KitResponse): void {
   try {
