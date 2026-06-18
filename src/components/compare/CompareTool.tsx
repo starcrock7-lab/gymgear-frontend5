@@ -259,10 +259,10 @@ function ProductCard({
   return (
     <SpotlightCard
       className={
-        "flex flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-200 " +
+        "flex flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-300 " +
         (selected
           ? "border-accent shadow-lg shadow-accent/10"
-          : "border-line hover:-translate-y-1 hover:border-accent/30 hover:shadow-xl hover:shadow-ink/5")
+          : "border-line hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-2xl hover:shadow-accent/15")
       }
     >
       <button
@@ -270,7 +270,11 @@ function ProductCard({
         onClick={onDetail}
         className="relative z-[1] aspect-square overflow-hidden bg-off"
       >
-        <ProductThumb product={p} className="h-full w-full" cover />
+        <ProductThumb
+          product={p}
+          className="h-full w-full transition-transform duration-500 group-hover/spot:scale-105"
+          cover
+        />
         {p.bestChoice && (
           <span className="absolute left-2 top-2 rounded bg-win px-1.5 py-0.5 text-[0.6rem] font-bold uppercase text-white">
             Top pick
@@ -390,19 +394,25 @@ function ComparisonMatrix({
 
       {/* Verdict */}
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="flex items-center gap-3 rounded-xl border border-line bg-white p-4">
-          <BadgeDollarSign className="h-5 w-5 shrink-0 text-win" />
-          <p className="text-sm text-ink-2">
+        <SpotlightCard
+          glow="var(--win)"
+          className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition-colors hover:border-win/40"
+        >
+          <BadgeDollarSign className="relative z-[1] h-5 w-5 shrink-0 text-win" />
+          <p className="relative z-[1] text-sm text-ink-2">
             <span className="font-bold text-ink">Best value:</span> {valueName}
           </p>
-        </div>
-        <div className="flex items-center gap-3 rounded-xl border border-line bg-white p-4">
-          <Trophy className="h-5 w-5 shrink-0 text-accent" />
-          <p className="text-sm text-ink-2">
+        </SpotlightCard>
+        <SpotlightCard
+          glow="var(--accent)"
+          className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition-colors hover:border-accent/40"
+        >
+          <Trophy className="relative z-[1] h-5 w-5 shrink-0 text-accent" />
+          <p className="relative z-[1] text-sm text-ink-2">
             <span className="font-bold text-ink">Best quality:</span>{" "}
             {qualityName}
           </p>
-        </div>
+        </SpotlightCard>
       </div>
 
       {/* Matrix */}

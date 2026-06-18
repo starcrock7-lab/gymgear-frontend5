@@ -57,15 +57,27 @@ export function SpotlightCard({
       }
       {...rest}
     >
+      {/* Soft halo behind the content — reads on the card's flat/white areas. */}
       <span
         aria-hidden
         className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover/spot:opacity-100"
         style={{
           background:
-            "radial-gradient(var(--spot) circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--glow) 22%, transparent), transparent 70%)",
+            "radial-gradient(var(--spot) circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--glow) 26%, transparent), transparent 70%)",
         }}
       />
       {children}
+      {/* Brightening sheen above the content — lights up imagery under the
+         cursor. mix-blend-screen is a near no-op over white, so text on the
+         card's flat areas stays crisp. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[3] rounded-[inherit] opacity-0 mix-blend-screen transition-opacity duration-300 group-hover/spot:opacity-100"
+        style={{
+          background:
+            "radial-gradient(calc(var(--spot) * 0.8) circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--glow) 32%, transparent), transparent 65%)",
+        }}
+      />
     </div>
   );
 }
