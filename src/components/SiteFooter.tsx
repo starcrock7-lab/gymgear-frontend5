@@ -110,8 +110,9 @@ export default function SiteFooter() {
             GymGear<span className="text-accent">Compare</span>™
           </p>
           <p className="mt-1 max-w-md text-xs leading-relaxed">
-            Some links are affiliate links — we may earn a commission at no
-            extra cost to you. Verdicts stay independent.
+            As an Amazon Associate, we earn from qualifying purchases. Some
+            links are affiliate links — we may earn a commission at no extra
+            cost to you. Verdicts stay independent.
           </p>
         </div>
         <div className="flex gap-5 text-xs font-medium">

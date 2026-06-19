@@ -1,0 +1,31 @@
+name: Keep backend warm
+
+# Render's free tier sleeps after ~15 min idle, adding a 30-50s cold start to
+# the next visitor's quiz/compare request. Ping /health every ~10 min so the
+# backend stays awake for ad traffic. (Lives in the frontend repo so it doesn't
+# trigger an extra backend redeploy; it only needs the public health URL.)
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend /health (waking it if asleep)
+        run: |
+          URL="https://gymgear-backend5.onrender.com/health"
+          for i in 1 2 3 4; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$URL" || echo "000")
+            echo "attempt $i -> HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "backend is awake"; exit 0
+            fi
+            sleep 20
+          done
+          echo "::warning::backend did not return 200 after retries"
+          exit 0
