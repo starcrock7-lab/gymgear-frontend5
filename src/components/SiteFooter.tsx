@@ -12,6 +12,7 @@ import {
 const navLinks = [
   { href: "/quiz", label: "Build My Kit" },
   { href: "/compare", label: "Compare Tool" },
+  { href: "/extras", label: "Gear & Extras" },
   { href: "/sponsors", label: "Partners" },
 ] as const;
 

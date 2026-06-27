@@ -13,6 +13,12 @@ export default function SiteNav() {
         </Link>
         <div className="flex items-center gap-6">
           <Link
+            href="/extras"
+            className="hidden text-sm font-medium text-white/70 transition-colors hover:text-white sm:block"
+          >
+            Gear
+          </Link>
+          <Link
             href="/compare"
             className="hidden text-sm font-medium text-white/70 transition-colors hover:text-white sm:block"
           >
