@@ -10,6 +10,8 @@ import {
   Repeat2,
   Info,
   Share2,
+  Plus,
+  PackagePlus,
 } from "lucide-react";
 import {
   KIT_TIER_META,
@@ -17,6 +19,7 @@ import {
   formatPrice,
   categoryLabel,
   kitTotal,
+  saveKit,
   type Kit,
   type KitProduct,
   type KitResponse,
@@ -54,6 +57,7 @@ export default function KitResult({
   const [flashId, setFlashId] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
   const selectedKit = kits.find((k) => k.type === selected) ?? kits[0];
+  const accessories = data.accessories ?? [];
 
   /* Share the selected kit — native share sheet where available, otherwise
      copy a link to the clipboard. */
@@ -96,12 +100,33 @@ export default function KitResult({
     setSwap(null);
   }
 
+  /* Add or remove a "frequently bought together" accessory on the selected
+     kit — independent of the rest of the build; the row + total update live. */
+  function toggleAccessory(acc: KitProduct) {
+    setKits((prev) =>
+      prev.map((k) => {
+        if (k.type !== selected) return k;
+        const has = k.products.some((p) => p.id === acc.id);
+        const products = has
+          ? k.products.filter((p) => p.id !== acc.id)
+          : [...k.products, acc];
+        return { ...k, products, totalPrice: kitTotal(products) };
+      }),
+    );
+    setFlashId(acc.id);
+  }
+
   /* Clear the post-swap highlight after it plays. */
   useEffect(() => {
     if (!flashId) return;
     const t = setTimeout(() => setFlashId(null), 1300);
     return () => clearTimeout(t);
   }, [flashId]);
+
+  /* Persist swaps + added accessories so returning to the page keeps them. */
+  useEffect(() => {
+    saveKit({ ...data, kits });
+  }, [kits, data]);
 
   return (
     <div className="flex flex-col">
@@ -197,6 +222,14 @@ export default function KitResult({
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {accessories.length > 0 && (
+        <FbtPanel
+          accessories={accessories}
+          kit={selectedKit}
+          onToggle={toggleAccessory}
+        />
+      )}
 
       <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
         <button
@@ -455,5 +488,133 @@ function ProductRow({
         Buy
       </a>
     </motion.div>
+  );
+}
+
+/* --- Frequently bought together ----------------------------------------- */
+
+function FbtPanel({
+  accessories,
+  kit,
+  onToggle,
+}: {
+  accessories: KitProduct[];
+  kit: Kit;
+  onToggle: (acc: KitProduct) => void;
+}) {
+  const addedIds = new Set(kit.products.map((p) => p.id));
+  const addedCount = accessories.filter((a) => addedIds.has(a.id)).length;
+  return (
+    <section className="mt-16">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="flex items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
+            <PackagePlus className="h-3.5 w-3.5" />
+            Frequently bought together
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-white">
+            Complete your setup
+          </h2>
+          <p className="mt-1 text-sm text-white/50">
+            Picked for your {KIT_TIER_META[kit.type].label} — add any to your kit.
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="font-display text-2xl font-extrabold text-accent">
+            {formatPrice(kit.totalPrice)}
+          </p>
+          <p className="text-xs text-white/45">
+            {kit.products.length} pieces
+            {addedCount > 0 &&
+              ` · ${addedCount} add-on${addedCount > 1 ? "s" : ""}`}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {accessories.map((a) => (
+          <AccessoryCard
+            key={a.id}
+            product={a}
+            added={addedIds.has(a.id)}
+            onToggle={() => onToggle(a)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AccessoryCard({
+  product: a,
+  added,
+  onToggle,
+}: {
+  product: KitProduct;
+  added: boolean;
+  onToggle: () => void;
+}) {
+  const [imgOk, setImgOk] = useState(true);
+  const price = priceOf(a);
+  return (
+    <div
+      className={
+        "flex flex-col overflow-hidden rounded-2xl border bg-white/[0.04] backdrop-blur-sm transition-all duration-300 " +
+        (added
+          ? "border-accent/60 shadow-lg shadow-accent/15"
+          : "border-white/12 hover:-translate-y-1 hover:border-accent/40")
+      }
+    >
+      <div className="relative aspect-square overflow-hidden bg-white">
+        {imgOk && a.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={a.image}
+            alt={a.name}
+            loading="lazy"
+            onError={() => setImgOk(false)}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center font-display text-xl font-bold text-navy">
+            {a.brand.charAt(0)}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col p-3">
+        <p className="truncate font-display text-sm font-bold text-white">
+          {a.name}
+        </p>
+        <p className="text-[0.7rem] text-white/45">{a.brand}</p>
+        <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-white/55">
+          <Star className="h-2.5 w-2.5 fill-accent text-accent" />
+          {a.rating}
+          <span className="text-white/20">·</span>
+          <span className="font-bold text-white/80">{formatPrice(price)}</span>
+        </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          className={
+            "mt-3 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-colors " +
+            (added
+              ? "bg-accent text-white hover:bg-accent-hover"
+              : "bg-white/10 text-white hover:bg-white/15")
+          }
+        >
+          {added ? (
+            <>
+              <Check className="h-3.5 w-3.5" />
+              Added
+            </>
+          ) : (
+            <>
+              <Plus className="h-3.5 w-3.5" />
+              Add to kit
+            </>
+          )}
+        </button>
+      </div>
+    </div>
   );
 }

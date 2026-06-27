@@ -43,6 +43,8 @@ export type Kit = {
 
 export type KitResponse = {
   kits: Kit[];
+  /* Complementary accessories for the kit ("frequently bought together"). */
+  accessories?: KitProduct[];
   generatedBy: "groq" | "fallback";
   generatedAt: string;
 };
