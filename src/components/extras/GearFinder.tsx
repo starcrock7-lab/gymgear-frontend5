@@ -166,11 +166,22 @@ function FinderCard({
           className="h-full w-full transition-transform duration-500 group-hover/spot:scale-105"
           cover
         />
+        {p.awards?.[0] ? (
+          <span className="absolute left-2 top-2 rounded bg-win px-1.5 py-0.5 text-[0.6rem] font-bold uppercase text-white">
+            {p.awards[0]}
+          </span>
+        ) : null}
         {p.discount ? (
           <span className="absolute right-2 top-2 rounded bg-accent px-1.5 py-0.5 text-[0.6rem] font-bold text-white">
             {p.discount}% off
           </span>
         ) : null}
+        {typeof p.gymgearScore === "number" && (
+          <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-navy/90 px-1.5 py-0.5 text-[0.6rem] font-bold text-white backdrop-blur-sm">
+            <span className="text-accent">{p.gymgearScore}</span>
+            <span className="text-white/60">GymGear</span>
+          </span>
+        )}
       </button>
 
       <div className="relative z-[1] flex flex-1 flex-col p-3">
