@@ -10,7 +10,6 @@ import {
   Repeat2,
   Info,
   Share2,
-  Plus,
   PackagePlus,
 } from "lucide-react";
 import {
@@ -100,20 +99,21 @@ export default function KitResult({
     setSwap(null);
   }
 
-  /* Add or remove a "frequently bought together" accessory on the selected
-     kit — independent of the rest of the build; the row + total update live. */
-  function toggleAccessory(acc: KitProduct) {
+  /* Add the ticked "frequently bought together" accessories to the selected
+     kit in one action (Amazon-style bundle), skipping any already in it. */
+  function addAccessories(accs: KitProduct[]) {
+    if (!accs.length) return;
     setKits((prev) =>
       prev.map((k) => {
         if (k.type !== selected) return k;
-        const has = k.products.some((p) => p.id === acc.id);
-        const products = has
-          ? k.products.filter((p) => p.id !== acc.id)
-          : [...k.products, acc];
+        const have = new Set(k.products.map((p) => p.id));
+        const fresh = accs.filter((a) => !have.has(a.id));
+        if (!fresh.length) return k;
+        const products = [...k.products, ...fresh];
         return { ...k, products, totalPrice: kitTotal(products) };
       }),
     );
-    setFlashId(acc.id);
+    setFlashId(accs[accs.length - 1].id);
   }
 
   /* Clear the post-swap highlight after it plays. */
@@ -227,7 +227,7 @@ export default function KitResult({
         <FbtPanel
           accessories={accessories}
           kit={selectedKit}
-          onToggle={toggleAccessory}
+          onAddBundle={addAccessories}
         />
       )}
 
@@ -496,50 +496,83 @@ function ProductRow({
 function FbtPanel({
   accessories,
   kit,
-  onToggle,
+  onAddBundle,
 }: {
   accessories: KitProduct[];
   kit: Kit;
-  onToggle: (acc: KitProduct) => void;
+  onAddBundle: (accs: KitProduct[]) => void;
 }) {
-  const addedIds = new Set(kit.products.map((p) => p.id));
-  const addedCount = accessories.filter((a) => addedIds.has(a.id)).length;
+  const inKit = new Set(kit.products.map((p) => p.id));
+  /* Which accessories are ticked for the bundle (Amazon-style). Defaults to
+     every one not already in the kit. */
+  const [picked, setPicked] = useState<Set<string>>(
+    () => new Set(accessories.filter((a) => !inKit.has(a.id)).map((a) => a.id)),
+  );
+
+  function togglePick(id: string) {
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  const toAdd = accessories.filter((a) => picked.has(a.id) && !inKit.has(a.id));
+  const addonTotal = toAdd.reduce((s, a) => s + priceOf(a), 0);
+
   return (
     <section className="mt-16">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="flex items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
-            <PackagePlus className="h-3.5 w-3.5" />
-            Frequently bought together
-          </p>
-          <h2 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-white">
-            Complete your setup
-          </h2>
-          <p className="mt-1 text-sm text-white/50">
-            Picked for your {KIT_TIER_META[kit.type].label} — add any to your kit.
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="font-display text-2xl font-extrabold text-accent">
-            {formatPrice(kit.totalPrice)}
-          </p>
-          <p className="text-xs text-white/45">
-            {kit.products.length} pieces
-            {addedCount > 0 &&
-              ` · ${addedCount} add-on${addedCount > 1 ? "s" : ""}`}
-          </p>
-        </div>
-      </div>
+      <p className="flex items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
+        <PackagePlus className="h-3.5 w-3.5" />
+        Frequently bought together
+      </p>
+      <h2 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-white">
+        Complete your setup
+      </h2>
+      <p className="mt-1 text-sm text-white/50">
+        Picked for your {KIT_TIER_META[kit.type].label} — tick the ones you want
+        and add them in one go.
+      </p>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {accessories.map((a) => (
-          <AccessoryCard
-            key={a.id}
-            product={a}
-            added={addedIds.has(a.id)}
-            onToggle={() => onToggle(a)}
-          />
-        ))}
+      <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-3 sm:p-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {accessories.map((a) => (
+            <AccessoryCard
+              key={a.id}
+              product={a}
+              inKit={inKit.has(a.id)}
+              picked={picked.has(a.id)}
+              onToggle={() => togglePick(a.id)}
+            />
+          ))}
+        </div>
+
+        {/* Bundle bar — combined total + add-all, like Amazon's "Add all to cart" */}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-5">
+          <div>
+            <p className="text-xs text-white/45">
+              {toAdd.length > 0
+                ? `${toAdd.length} selected · adds ${formatPrice(addonTotal)}`
+                : "Nothing selected"}
+            </p>
+            <p className="font-display text-2xl font-extrabold text-white">
+              Kit + extras{" "}
+              <span className="text-accent">
+                {formatPrice(kit.totalPrice + addonTotal)}
+              </span>
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={toAdd.length === 0}
+            onClick={() => onAddBundle(toAdd)}
+            className="flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-body text-sm font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+          >
+            <PackagePlus className="h-4 w-4" />
+            {toAdd.length > 0 ? `Add ${toAdd.length} to kit` : "Add to kit"}
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -547,24 +580,20 @@ function FbtPanel({
 
 function AccessoryCard({
   product: a,
-  added,
+  inKit,
+  picked,
   onToggle,
 }: {
   product: KitProduct;
-  added: boolean;
+  inKit: boolean;
+  picked: boolean;
   onToggle: () => void;
 }) {
   const [imgOk, setImgOk] = useState(true);
   const price = priceOf(a);
-  return (
-    <div
-      className={
-        "flex flex-col overflow-hidden rounded-2xl border bg-white/[0.04] backdrop-blur-sm transition-all duration-300 " +
-        (added
-          ? "border-accent/60 shadow-lg shadow-accent/15"
-          : "border-white/12 hover:-translate-y-1 hover:border-accent/40")
-      }
-    >
+
+  const inner = (
+    <>
       <div className="relative aspect-square overflow-hidden bg-white">
         {imgOk && a.image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -580,8 +609,26 @@ function AccessoryCard({
             {a.brand.charAt(0)}
           </span>
         )}
+        {inKit ? (
+          <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-win px-2 py-0.5 text-[0.6rem] font-bold text-white shadow">
+            <Check className="h-3 w-3" />
+            In kit
+          </span>
+        ) : (
+          <span
+            aria-hidden
+            className={
+              "absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-md border-2 shadow transition-colors " +
+              (picked
+                ? "border-accent bg-accent text-white"
+                : "border-white/70 bg-black/30 text-transparent")
+            }
+          >
+            <Check className="h-3 w-3" />
+          </span>
+        )}
       </div>
-      <div className="flex flex-1 flex-col p-3">
+      <div className="flex flex-1 flex-col p-3 text-left">
         <p className="truncate font-body text-sm font-bold text-white">
           {a.name}
         </p>
@@ -592,29 +639,31 @@ function AccessoryCard({
           <span className="text-white/20">·</span>
           <span className="font-bold text-white/80">{formatPrice(price)}</span>
         </div>
-        <button
-          type="button"
-          onClick={onToggle}
-          className={
-            "mt-3 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-colors " +
-            (added
-              ? "bg-accent text-white hover:bg-accent-hover"
-              : "bg-white/10 text-white hover:bg-white/15")
-          }
-        >
-          {added ? (
-            <>
-              <Check className="h-3.5 w-3.5" />
-              Added
-            </>
-          ) : (
-            <>
-              <Plus className="h-3.5 w-3.5" />
-              Add to kit
-            </>
-          )}
-        </button>
       </div>
-    </div>
+    </>
+  );
+
+  const cls =
+    "flex flex-col overflow-hidden rounded-2xl border bg-white/[0.04] backdrop-blur-sm transition-all duration-300 " +
+    (inKit
+      ? "border-win/40 shadow-lg shadow-win/10"
+      : picked
+        ? "border-accent/60 shadow-lg shadow-accent/15"
+        : "border-white/12 hover:-translate-y-1 hover:border-accent/40");
+
+  return inKit ? (
+    <div className={cls}>{inner}</div>
+  ) : (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={picked}
+      className={
+        cls +
+        " text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+      }
+    >
+      {inner}
+    </button>
   );
 }
