@@ -420,7 +420,7 @@ function ComparisonMatrix({
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-line">
-              <th className="w-32 p-4" />
+              <th className="sticky left-0 z-[2] w-32 bg-white p-4" />
               {products.map((p) => (
                 <th key={p.id} className="p-4 align-top">
                   <button
@@ -443,7 +443,7 @@ function ComparisonMatrix({
             <Row label="Price">
               {products.map((p) => (
                 <Cell key={p.id} highlight={p.id === cheapestId}>
-                  <span className="font-display font-bold text-ink">
+                  <span className="font-body font-bold text-ink">
                     {formatPrice(priceOf(p))}
                   </span>
                   {p.salePrice && (
@@ -500,7 +500,7 @@ function ComparisonMatrix({
               </Row>
             ))}
             <tr>
-              <td className="p-4" />
+              <td className="sticky left-0 z-[1] bg-white p-4" />
               {products.map((p) => (
                 <td key={p.id} className="p-4 align-top">
                   <a
@@ -531,7 +531,7 @@ function Row({
 }) {
   return (
     <tr className="border-b border-line last:border-0">
-      <th className="bg-off p-4 text-left text-xs font-bold uppercase tracking-wide text-ink-3">
+      <th className="sticky left-0 z-[1] bg-off p-4 text-left text-xs font-bold uppercase tracking-wide text-ink-3">
         {label}
       </th>
       {children}
