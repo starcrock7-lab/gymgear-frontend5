@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2,
@@ -13,6 +13,7 @@ import {
   Scale,
   Trophy,
   BadgeDollarSign,
+  Link2,
 } from "lucide-react";
 import { requestCategories, requestAlternatives } from "@/lib/api";
 import {
@@ -45,6 +46,8 @@ export default function CompareTool() {
   const [selected, setSelected] = useState<KitProduct[]>([]);
   const [comparing, setComparing] = useState(false);
   const [detail, setDetail] = useState<KitProduct | null>(null);
+  /* IDs from a shared ?ids= URL, applied once their products have loaded. */
+  const pendingIds = useRef<string[] | null>(null);
 
   /* Load categories once; default to the first equipment category. */
   useEffect(() => {
@@ -53,8 +56,20 @@ export default function CompareTool() {
       .then((cs) => {
         if (!live) return;
         setCategories(cs);
-        const first = cs.find((c) => c.group === "equipment");
-        if (first) setCat(first.key);
+        // Restore a shared comparison from the URL (?cat=&ids=), else default.
+        const params = new URLSearchParams(window.location.search);
+        const sharedCat = params.get("cat");
+        const sharedIds = params.get("ids");
+        const shared =
+          sharedCat && sharedIds && cs.find((c) => c.key === sharedCat);
+        if (shared && sharedCat && sharedIds) {
+          setGroup(shared.group);
+          setCat(sharedCat);
+          pendingIds.current = sharedIds.split(",").filter(Boolean);
+        } else {
+          const first = cs.find((c) => c.group === "equipment");
+          if (first) setCat(first.key);
+        }
       })
       .catch(() => live && setCategories([]));
     return () => {
@@ -100,6 +115,33 @@ export default function CompareTool() {
   }
   const isSelected = (id: string) => selected.some((p) => p.id === id);
 
+  /* Restore a shared comparison once its products have loaded. */
+  useEffect(() => {
+    if (!products || !pendingIds.current) return;
+    const want = pendingIds.current;
+    pendingIds.current = null;
+    const picks = products.filter((p) => want.includes(p.id)).slice(0, MAX);
+    if (picks.length >= 2) {
+      setSelected(picks);
+      setComparing(true);
+    }
+  }, [products]);
+
+  /* Open the matrix and put the selection in the URL so it's shareable. */
+  function startCompare() {
+    setComparing(true);
+    const ids = selected.map((p) => p.id).join(",");
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}?cat=${encodeURIComponent(cat)}&ids=${encodeURIComponent(ids)}`,
+    );
+  }
+  function backToBrowse() {
+    setComparing(false);
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+
   if (!categories) {
     return (
       <div className="flex items-center justify-center gap-2 py-32 text-ink-3">
@@ -114,7 +156,7 @@ export default function CompareTool() {
       {comparing ? (
         <ComparisonMatrix
           products={selected}
-          onBack={() => setComparing(false)}
+          onBack={backToBrowse}
           onDetail={setDetail}
         />
       ) : (
@@ -223,7 +265,7 @@ export default function CompareTool() {
               <button
                 type="button"
                 disabled={selected.length < 2}
-                onClick={() => setComparing(true)}
+                onClick={startCompare}
                 className="flex shrink-0 items-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-body text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
               >
                 <Scale className="h-4 w-4" />
@@ -368,6 +410,40 @@ function ComparisonMatrix({
   onBack: () => void;
   onDetail: (p: KitProduct) => void;
 }) {
+  /* Share: the current URL already carries ?cat=&ids= (set in startCompare). */
+  const [copied, setCopied] = useState(false);
+  const copyLink = async () => {
+    const url = window.location.href;
+    // Legacy path for contexts where the async Clipboard API is blocked
+    // (insecure origin, embedded frame, older browsers).
+    const execFallback = () => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok;
+      } catch {
+        return false;
+      }
+    };
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      ok = true;
+    } catch {
+      ok = execFallback();
+    }
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    }
+  };
+
   const cheapestId = products.reduce((a, b) =>
     priceOf(a) <= priceOf(b) ? a : b,
   ).id;
@@ -387,16 +463,72 @@ function ComparisonMatrix({
   const valueName = products.find((p) => p.id === bestValueId)?.name;
   const qualityName = products.find((p) => p.id === bestQualityId)?.name;
 
+  // F5 — winner per row. Direction per (numeric, parseable) spec attribute;
+  // non-numeric specs (Finish, Made In…) simply have no winner.
+  const SPEC_DIR: Record<string, "high" | "low"> = {
+    "Weight Capacity": "high", Capacity: "high", "Max Capacity": "high",
+    "Max Weight": "high", "Max Load": "high", PSI: "high",
+    "Tensile Strength": "high", Warranty: "high", Servings: "high",
+    Protein: "high", Resistance: "high",
+  };
+  const parseNum = (v?: string) => {
+    if (v == null) return null;
+    const m = String(v).replace(/,/g, "").match(/-?\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : null;
+  };
+  const rowWinner = (
+    getVal: (p: KitProduct) => number | null,
+    dir: "high" | "low",
+  ) => {
+    const vals = products
+      .map((p) => ({ id: p.id, v: getVal(p) }))
+      .filter((x): x is { id: string; v: number } => x.v != null);
+    if (vals.length < 2) return null;
+    const best = vals.reduce((a, b) =>
+      dir === "high" ? (b.v > a.v ? b : a) : (b.v < a.v ? b : a),
+    );
+    if (vals.every((x) => x.v === best.v)) return null; // all tied → no winner
+    return best.id;
+  };
+  const bestRatedId = rowWinner((p) => p.rating, "high");
+  const hasScores = products.some((p) => typeof p.gymgearScore === "number");
+  const bestScoreId = rowWinner((p) => p.gymgearScore ?? null, "high");
+  const specWinner: Record<string, string | null> = {};
+  for (const k of specKeys) {
+    specWinner[k] = SPEC_DIR[k]
+      ? rowWinner((p) => parseNum(p.specs?.[k]), SPEC_DIR[k])
+      : null;
+  }
+
   return (
     <div>
-      <button
-        type="button"
-        onClick={onBack}
-        className="flex items-center gap-1.5 text-sm font-bold text-ink-2 transition-colors hover:text-ink"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to browse
-      </button>
+      <div className="flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-sm font-bold text-ink-2 transition-colors hover:text-ink"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to browse
+        </button>
+        <button
+          type="button"
+          onClick={copyLink}
+          className="flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink-2 transition-colors hover:border-accent/40 hover:text-ink"
+        >
+          {copied ? (
+            <>
+              <Check className="h-3.5 w-3.5 text-win" />
+              Link copied
+            </>
+          ) : (
+            <>
+              <Link2 className="h-3.5 w-3.5" />
+              Copy link
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Verdict */}
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -446,6 +578,36 @@ function ComparisonMatrix({
             </tr>
           </thead>
           <tbody>
+            {hasScores && (
+              <Row label="GymGear Score">
+                {products.map((p) => (
+                  <Cell key={p.id} highlight={p.id === bestScoreId}>
+                    {typeof p.gymgearScore === "number" ? (
+                      <>
+                        <span className="font-display text-base font-extrabold text-ink">
+                          {p.gymgearScore}
+                          <span className="text-xs font-bold text-ink-3">
+                            /100
+                          </span>
+                        </span>
+                        {p.id === bestScoreId && (
+                          <span className="ml-1 text-[0.6rem] font-bold uppercase text-accent">
+                            best
+                          </span>
+                        )}
+                        <MetricBar
+                          value={p.gymgearScore}
+                          max={100}
+                          best={p.id === bestScoreId}
+                        />
+                      </>
+                    ) : (
+                      <span className="text-ink-3">—</span>
+                    )}
+                  </Cell>
+                ))}
+              </Row>
+            )}
             <Row label="Price">
               {products.map((p) => (
                 <Cell key={p.id} highlight={p.id === cheapestId}>
@@ -467,7 +629,7 @@ function ComparisonMatrix({
             </Row>
             <Row label="Rating">
               {products.map((p) => (
-                <Cell key={p.id}>
+                <Cell key={p.id} highlight={p.id === bestRatedId}>
                   <span className="inline-flex items-center gap-1">
                     <Star className="h-3 w-3 fill-accent text-accent" />
                     {p.rating}
@@ -475,7 +637,16 @@ function ComparisonMatrix({
                       ({p.reviewCount.toLocaleString()})
                     </span>
                   </span>
-                  <MetricBar value={p.rating} max={5} />
+                  {p.id === bestRatedId && (
+                    <span className="ml-1 text-[0.6rem] font-bold uppercase text-accent">
+                      best
+                    </span>
+                  )}
+                  <MetricBar
+                    value={p.rating}
+                    max={5}
+                    best={p.id === bestRatedId}
+                  />
                 </Cell>
               ))}
             </Row>
@@ -499,8 +670,21 @@ function ComparisonMatrix({
             {specKeys.map((k) => (
               <Row key={k} label={k}>
                 {products.map((p) => (
-                  <Cell key={p.id}>
-                    <span className="text-ink-2">{p.specs?.[k] ?? "—"}</span>
+                  <Cell key={p.id} highlight={p.id === specWinner[k]}>
+                    <span
+                      className={
+                        p.id === specWinner[k]
+                          ? "font-bold text-ink"
+                          : "text-ink-2"
+                      }
+                    >
+                      {p.specs?.[k] ?? "—"}
+                    </span>
+                    {p.id === specWinner[k] && (
+                      <span className="ml-1 text-[0.6rem] font-bold uppercase text-accent">
+                        best
+                      </span>
+                    )}
                   </Cell>
                 ))}
               </Row>
