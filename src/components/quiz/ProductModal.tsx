@@ -138,6 +138,79 @@ export default function ProductModal({
                 </div>
               </div>
 
+              {/* GymGear Score — our transparent rubric ("show the working") */}
+              {typeof p.gymgearScore === "number" && (
+                <div className="mt-5 rounded-xl border border-accent/25 bg-accent/[0.06] p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-accent text-white shadow-lg shadow-accent/30">
+                      <span className="font-display text-2xl font-extrabold leading-none">
+                        {p.gymgearScore}
+                      </span>
+                      <span className="text-[0.5rem] font-bold uppercase tracking-wide opacity-80">
+                        / 100
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-display text-sm font-bold text-white">
+                        GymGear Score
+                      </p>
+                      <p className="text-xs leading-snug text-white/55">
+                        Our weighted rubric for {categoryLabel(p.category)} —{" "}
+                        <a
+                          href="/methodology"
+                          className="text-accent underline-offset-2 hover:underline"
+                        >
+                          how we score
+                        </a>
+                        .
+                      </p>
+                      {p.awards?.length ? (
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {p.awards.map((a) => (
+                            <span
+                              key={a}
+                              className="rounded-full bg-white/12 px-2 py-0.5 text-[0.6rem] font-bold text-white"
+                            >
+                              {a}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                  {p.scoreBreakdown?.length ? (
+                    <div className="mt-4 space-y-2">
+                      {p.scoreBreakdown.map((f) => (
+                        <div
+                          key={f.key}
+                          className="flex items-center gap-2 text-[0.7rem]"
+                        >
+                          <span className="w-28 shrink-0 text-white/55">
+                            {f.label}
+                          </span>
+                          <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                            <span
+                              className="block h-full rounded-full bg-accent"
+                              style={{ width: `${f.score}%` }}
+                            />
+                          </span>
+                          <span className="w-8 shrink-0 text-right font-bold text-white/70">
+                            {f.score}
+                          </span>
+                          <span className="w-9 shrink-0 text-right text-white/35">
+                            {Math.round(f.weight * 100)}%
+                          </span>
+                        </div>
+                      ))}
+                      <p className="pt-1 text-[0.6rem] text-white/35">
+                        Facet strength × its weight for this category.
+                        Data-derived, not hands-on.
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
               {/* the "why" — expert verdict */}
               {p.expertVerdict && (
                 <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-4">

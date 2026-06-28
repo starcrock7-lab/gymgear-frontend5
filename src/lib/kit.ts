@@ -21,6 +21,17 @@ export type KitProduct = {
   salePrice?: number;
   discount?: number;
   category: string;
+  /* F4 — GymGear Score rubric (data/spec-derived, see /methodology). */
+  gymgearScore?: number;
+  scoreBreakdown?: ScoreFacet[];
+  awards?: string[];
+};
+
+export type ScoreFacet = {
+  key: string;
+  label: string;
+  score: number;
+  weight: number;
 };
 
 export type KitType = "value" | "match" | "quality";
