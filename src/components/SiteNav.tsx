@@ -26,7 +26,7 @@ export default function SiteNav() {
           </Link>
           <Link
             href="/quiz"
-            className="rounded-lg bg-accent px-4 py-2 font-display text-sm font-bold text-white transition-all hover:-translate-y-px hover:bg-accent-hover"
+            className="rounded-lg bg-accent px-4 py-2 font-body text-sm font-bold text-white transition-all hover:-translate-y-px hover:bg-accent-hover"
           >
             Build My Kit →
           </Link>

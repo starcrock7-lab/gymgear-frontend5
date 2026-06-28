@@ -9,7 +9,7 @@ export default function NotFound() {
     <>
       <SiteNav />
       <main className="flex min-h-[70vh] flex-col items-center justify-center bg-off px-6 py-20 text-center">
-        <p className="font-display text-sm font-bold uppercase tracking-[0.3em] text-accent">
+        <p className="font-body text-sm font-bold uppercase tracking-[0.3em] text-accent">
           404
         </p>
         <h1 className="mt-3 max-w-xl font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
@@ -22,13 +22,13 @@ export default function NotFound() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/quiz"
-            className="rounded-xl bg-accent px-5 py-2.5 font-display text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+            className="rounded-xl bg-accent px-5 py-2.5 font-body text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
           >
             Build My Kit →
           </Link>
           <Link
             href="/"
-            className="rounded-xl border border-line bg-white px-5 py-2.5 font-display text-sm font-bold text-ink transition-colors hover:border-accent/40"
+            className="rounded-xl border border-line bg-white px-5 py-2.5 font-body text-sm font-bold text-ink transition-colors hover:border-accent/40"
           >
             Back home
           </Link>

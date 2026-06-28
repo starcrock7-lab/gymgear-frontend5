@@ -216,7 +216,7 @@ function SwapOption({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <p className="truncate font-display text-sm font-bold text-white">
+            <p className="truncate font-body text-sm font-bold text-white">
               {p.name}
             </p>
             {p.bestChoice && (
@@ -241,7 +241,7 @@ function SwapOption({
         </div>
 
         <div className="shrink-0 text-right">
-          <div className="font-display text-sm font-bold text-white">
+          <div className="font-body text-sm font-bold text-white">
             {formatPrice(priceOf(p))}
           </div>
           {isCurrent ? (

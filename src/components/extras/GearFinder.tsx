@@ -175,7 +175,7 @@ function FinderCard({
 
       <div className="relative z-[1] flex flex-1 flex-col p-3">
         <button onClick={onDetail} className="text-left">
-          <p className="truncate font-display text-sm font-bold text-ink">
+          <p className="truncate font-body text-sm font-bold text-ink">
             {p.name}
           </p>
           <p className="text-xs text-ink-3">{p.brand}</p>

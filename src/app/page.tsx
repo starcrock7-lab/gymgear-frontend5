@@ -191,12 +191,12 @@ export default function Home() {
             <ButtonColorful
               label="Start the Quiz"
               onClick={() => router.push("/quiz")}
-              className="h-14 rounded-xl px-8 font-display text-lg font-bold shadow-lg shadow-accent/30"
+              className="h-14 rounded-xl px-8 font-body text-lg font-bold shadow-lg shadow-accent/30"
             />
             <LiquidButton
               size="xl"
               onClick={() => router.push("/compare")}
-              className="h-14 font-display text-lg font-bold text-white/90 hover:text-white"
+              className="h-14 font-body text-lg font-bold text-white/90 hover:text-white"
             >
               Just compare products
             </LiquidButton>
@@ -280,7 +280,7 @@ export default function Home() {
           <div className="mt-9">
             <HighlightButton
               onClick={() => router.push("/quiz")}
-              className="h-14 rounded-xl bg-accent px-10 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0"
+              className="h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0"
             >
               Build my kit →
             </HighlightButton>

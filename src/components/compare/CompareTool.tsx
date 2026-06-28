@@ -224,7 +224,7 @@ export default function CompareTool() {
                 type="button"
                 disabled={selected.length < 2}
                 onClick={() => setComparing(true)}
-                className="flex shrink-0 items-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-display text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+                className="flex shrink-0 items-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-body text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
               >
                 <Scale className="h-4 w-4" />
                 Compare {selected.length >= 2 ? selected.length : ""}
@@ -289,7 +289,7 @@ function ProductCard({
 
       <div className="relative z-[1] flex flex-1 flex-col p-3">
         <button onClick={onDetail} className="text-left">
-          <p className="truncate font-display text-sm font-bold text-ink">
+          <p className="truncate font-body text-sm font-bold text-ink">
             {p.name}
           </p>
           <p className="text-xs text-ink-3">{p.brand}</p>
@@ -430,7 +430,7 @@ function ComparisonMatrix({
                     <span className="block h-20 w-full overflow-hidden rounded-lg bg-off">
                       <ProductThumb product={p} className="h-full w-full" cover />
                     </span>
-                    <span className="mt-2 block font-display text-sm font-bold text-ink">
+                    <span className="mt-2 block font-body text-sm font-bold text-ink">
                       {p.name}
                     </span>
                     <span className="block text-xs text-ink-3">{p.brand}</span>

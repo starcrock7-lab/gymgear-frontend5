@@ -183,7 +183,7 @@ export default function KitResult({
                     : "border-white/12 bg-white/5 hover:border-accent/50 hover:bg-white/10")
                 }
               >
-                <span className="block font-display text-xs font-bold sm:text-sm">
+                <span className="block font-body text-xs font-bold sm:text-sm">
                   {meta.label}
                 </span>
                 <span
@@ -235,7 +235,7 @@ export default function KitResult({
         <button
           type="button"
           onClick={shareKit}
-          className="flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-display font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover"
+          className="flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-body font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover"
         >
           {shared ? (
             <>
@@ -251,14 +251,14 @@ export default function KitResult({
         </button>
         <a
           href="/compare"
-          className="rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-display font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
+          className="rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-body font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
         >
           Compare products
         </a>
         <button
           type="button"
           onClick={onRetake}
-          className="flex items-center gap-2 rounded-xl px-6 py-3 font-display font-bold text-white/60 transition-colors hover:text-white"
+          className="flex items-center gap-2 rounded-xl px-6 py-3 font-body font-bold text-white/60 transition-colors hover:text-white"
         >
           <RotateCcw className="h-4 w-4" />
           Retake quiz
@@ -333,7 +333,7 @@ function KitCard({
         className="block w-full cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 lg:cursor-pointer"
       >
         <span className="flex items-center justify-between">
-          <span className="font-display text-sm font-bold text-white">
+          <span className="font-body text-sm font-bold text-white">
             {meta.label}
           </span>
           {selected && (
@@ -425,7 +425,7 @@ function ProductRow({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1 truncate font-display text-sm font-bold text-white">
+          <p className="flex items-center gap-1 truncate font-body text-sm font-bold text-white">
             <span className="truncate">{p.name}</span>
             <Info className="h-3 w-3 shrink-0 text-white/30 transition-colors group-hover:text-accent" />
           </p>
@@ -582,7 +582,7 @@ function AccessoryCard({
         )}
       </div>
       <div className="flex flex-1 flex-col p-3">
-        <p className="truncate font-display text-sm font-bold text-white">
+        <p className="truncate font-body text-sm font-bold text-white">
           {a.name}
         </p>
         <p className="text-[0.7rem] text-white/45">{a.brand}</p>

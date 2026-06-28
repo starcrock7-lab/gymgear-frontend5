@@ -183,7 +183,7 @@ export default function ProductModal({
               href={buyUrl(p)}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent font-display text-base font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent font-body text-base font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50"
             >
               Buy on {dest} · {formatPrice(price)}
               <ArrowUpRight className="h-4 w-4" />

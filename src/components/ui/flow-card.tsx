@@ -136,7 +136,7 @@ export default function FlowCard({
         </div>
 
         <div className="mt-5 flex items-center justify-between">
-          <p className="font-display text-sm font-bold text-accent transition-transform duration-300 group-hover:scale-110 group-hover:[transform-origin:left]">
+          <p className="font-body text-sm font-bold text-accent transition-transform duration-300 group-hover:scale-110 group-hover:[transform-origin:left]">
             {step.n}
           </p>
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent transition-all duration-300 group-hover:bg-accent group-hover:text-white">

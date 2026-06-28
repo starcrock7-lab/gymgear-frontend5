@@ -435,7 +435,7 @@ function OptionCard({
         </span>
       )}
       <span className="min-w-0 flex-1">
-        <span className="block font-display font-bold">{label}</span>
+        <span className="block font-body font-bold">{label}</span>
         {hint && (
           <span className="mt-0.5 block text-sm text-white/55">{hint}</span>
         )}
@@ -494,7 +494,7 @@ function OwnedScreen({
         onClick={onSubmit}
         disabled={!canSubmit}
         className={cn(
-          "group mt-10 w-fit rounded-xl bg-accent px-8 py-4 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out",
+          "group mt-10 w-fit rounded-xl bg-accent px-8 py-4 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out",
           canSubmit
             ? "hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
             : "cursor-not-allowed opacity-40",
@@ -616,7 +616,7 @@ function ReturningPanel({
         <button
           type="button"
           onClick={onResults}
-          className="group rounded-xl bg-accent px-8 py-4 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
+          className="group rounded-xl bg-accent px-8 py-4 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
         >
           See my kits
           <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
@@ -626,7 +626,7 @@ function ReturningPanel({
         <button
           type="button"
           onClick={onNew}
-          className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-4 font-display text-lg font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
+          className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-4 font-body text-lg font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
         >
           <RotateCcw className="h-4 w-4" />
           Start a new quiz
@@ -669,20 +669,20 @@ function ReadyPanel({
         <button
           type="button"
           onClick={onRetry}
-          className="group rounded-xl bg-accent px-8 py-4 font-display text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
+          className="group rounded-xl bg-accent px-8 py-4 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
         >
           Try again
         </button>
         <Link
           href="/compare"
-          className="rounded-xl border border-white/20 bg-white/5 px-8 py-4 font-display text-lg font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
+          className="rounded-xl border border-white/20 bg-white/5 px-8 py-4 font-body text-lg font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
         >
           Compare products
         </Link>
         <button
           type="button"
           onClick={onRetake}
-          className="font-display text-sm font-bold text-white/50 transition-colors hover:text-white"
+          className="font-body text-sm font-bold text-white/50 transition-colors hover:text-white"
         >
           Retake quiz
         </button>

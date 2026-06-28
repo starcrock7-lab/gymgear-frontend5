@@ -34,6 +34,11 @@ body {
   background: var(--off);
   color: var(--ink);
   font-family: var(--font-dm-sans), sans-serif;
+  /* Comfortable body leading; sized text utilities set their own, so this only
+     relaxes un-sized prose. Display headings stay tight via their utilities. */
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* Slow breathing on the hero glow. Compositor-only properties so the page
