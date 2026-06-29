@@ -11,6 +11,9 @@ import {
   Info,
   Share2,
   PackagePlus,
+  ShoppingCart,
+  Trash2,
+  ArrowUpRight,
 } from "lucide-react";
 import {
   KIT_TIER_META,
@@ -116,6 +119,27 @@ export default function KitResult({
     setFlashId(accs[accs.length - 1].id);
   }
 
+  /* Remove a line item from the selected cart (Amazon-style delete). */
+  function removeProduct(id: string) {
+    setKits((prev) =>
+      prev.map((k) => {
+        if (k.type !== selected) return k;
+        const products = k.products.filter((p) => p.id !== id);
+        return { ...k, products, totalPrice: kitTotal(products) };
+      }),
+    );
+  }
+
+  /* "Buy all" — open each line item's store page. Affiliate links are
+     per-product (no shared checkout), so we fire one tab per item from the
+     single user click. Per-item Buy buttons remain the reliable fallback. */
+  function buyAll() {
+    if (typeof window === "undefined") return;
+    for (const p of selectedKit.products) {
+      window.open(buyUrl(p), "_blank", "noopener,noreferrer");
+    }
+  }
+
   /* Clear the post-swap highlight after it plays. */
   useEffect(() => {
     if (!flashId) return;
@@ -132,42 +156,20 @@ export default function KitResult({
     <div className="flex flex-col">
       <div className="text-center">
         <p className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
-          Your kits are ready
+          Your cart is ready
         </p>
         <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Three ways to build it.
+          Everything for your gym.
         </h1>
         <p className="mt-3 text-white/55">
-          Pick the kit that fits — swap any piece, then buy direct.
+          Start from an AI build, then swap, remove, or add anything — and buy
+          it all in one place.
         </p>
       </div>
 
-      {/* Desktop: three cards side by side, click a card's header to select */}
-      <div className="mt-14 hidden items-stretch gap-5 lg:flex">
-        {kits.map((k, i) => (
-          <motion.div
-            key={k.type}
-            initial={{ opacity: 0, y: 32 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: i * 0.08, ease: EASE }}
-            className="min-w-0 flex-1"
-          >
-            <KitCard
-              kit={k}
-              recommended={k.type === "match"}
-              selected={k.type === selected}
-              flashId={flashId}
-              onSelect={() => setSelected(k.type)}
-              onSwap={(product) => setSwap({ kitType: k.type, product })}
-              onInfo={setDetail}
-            />
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Mobile / tablet: tab switcher + one kit */}
-      <div className="lg:hidden">
-        <div className="mt-8 grid grid-cols-3 gap-2">
+      {/* Tier selector — the cart's starting point (Value / Match / Quality) */}
+      <div className="mt-10 flex flex-col items-center">
+        <div className="inline-flex flex-wrap justify-center gap-1 rounded-2xl border border-white/12 bg-white/5 p-1">
           {kits.map((k) => {
             const meta = KIT_TIER_META[k.type];
             const on = k.type === selected;
@@ -177,51 +179,48 @@ export default function KitResult({
                 type="button"
                 onClick={() => setSelected(k.type)}
                 className={
-                  "relative overflow-hidden rounded-xl border px-2 py-3 text-center transition-all duration-200 " +
+                  "relative rounded-xl px-5 py-2.5 text-center transition-all duration-200 sm:px-7 " +
                   (on
-                    ? "border-accent bg-accent/15 shadow-lg shadow-accent/20"
-                    : "border-white/12 bg-white/5 hover:border-accent/50 hover:bg-white/10")
+                    ? "bg-accent text-white shadow-lg shadow-accent/25"
+                    : "text-white/65 hover:bg-white/5 hover:text-white")
                 }
               >
-                <span className="block font-body text-xs font-bold sm:text-sm">
+                <span className="flex items-center justify-center gap-1 font-body text-xs font-bold">
+                  {k.type === "match" && <Sparkles className="h-3 w-3" />}
                   {meta.label}
                 </span>
-                <span
-                  className={
-                    "mt-1 block font-display text-base font-extrabold tracking-tight sm:text-lg " +
-                    (on ? "text-accent" : "text-white/80")
-                  }
-                >
+                <span className="mt-0.5 block font-display text-base font-extrabold tracking-tight">
                   {formatPrice(k.totalPrice)}
                 </span>
               </button>
             );
           })}
         </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={selectedKit.type}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.28, ease: EASE }}
-            className="mt-5"
-          >
-            <KitCard
-              kit={selectedKit}
-              recommended={selectedKit.type === "match"}
-              selected
-              flashId={flashId}
-              onSelect={() => {}}
-              onSwap={(product) =>
-                setSwap({ kitType: selectedKit.type, product })
-              }
-              onInfo={setDetail}
-            />
-          </motion.div>
-        </AnimatePresence>
+        <p className="mt-3 text-xs text-white/40">
+          Your starting point — edit anything in the cart below.
+        </p>
       </div>
+
+      {/* The cart */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={selectedKit.type}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.28, ease: EASE }}
+          className="mt-8"
+        >
+          <Cart
+            kit={selectedKit}
+            flashId={flashId}
+            onSwap={(product) => setSwap({ kitType: selectedKit.type, product })}
+            onRemove={removeProduct}
+            onInfo={setDetail}
+            onBuyAll={buyAll}
+          />
+        </motion.div>
+      </AnimatePresence>
 
       {accessories.length > 0 && (
         <FbtPanel
@@ -283,109 +282,132 @@ export default function KitResult({
   );
 }
 
-function KitCard({
+function Cart({
   kit,
-  recommended,
-  selected,
   flashId,
-  onSelect,
   onSwap,
+  onRemove,
   onInfo,
+  onBuyAll,
 }: {
   kit: Kit;
-  recommended: boolean;
-  selected: boolean;
   flashId: string | null;
-  onSelect: () => void;
   onSwap: (product: KitProduct) => void;
+  onRemove: (id: string) => void;
   onInfo: (product: KitProduct) => void;
+  onBuyAll: () => void;
 }) {
-  const meta = KIT_TIER_META[kit.type];
+  const items = kit.products;
+  const subtotal = kit.totalPrice;
+  const listTotal = items.reduce((s, p) => s + p.price, 0);
+  const savings = Math.round(listTotal - subtotal);
+
   return (
-    <div
-      className={
-        "relative flex h-full flex-col rounded-2xl border p-5 backdrop-blur-sm transition-all duration-300 sm:p-6 " +
-        (selected
-          ? "border-accent/60 bg-accent/[0.07] shadow-2xl shadow-accent/20 lg:-translate-y-2"
-          : recommended
-            ? "border-accent/25 bg-white/[0.04] hover:border-accent/40"
-            : "border-white/12 bg-white/[0.04] opacity-90 hover:border-white/25 hover:opacity-100")
-      }
-    >
-      {selected && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -inset-px -z-10 rounded-2xl bg-accent/20 blur-2xl"
-        />
-      )}
-      {recommended && (
-        <span className="absolute -top-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-accent px-3 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-white shadow-lg shadow-accent/40">
-          <Sparkles className="h-3 w-3" />
-          Recommended
-        </span>
-      )}
-
-      {/* Header is the selection target — no nested interactive elements. */}
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-pressed={selected}
-        className="block w-full cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 lg:cursor-pointer"
-      >
-        <span className="flex items-center justify-between">
-          <span className="font-body text-sm font-bold text-white">
-            {meta.label}
-          </span>
-          {selected && (
-            <span className="flex items-center gap-1 text-[0.6rem] font-bold uppercase tracking-wide text-accent">
-              <Check className="h-3 w-3" />
-              Selected
+    <div className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.04] backdrop-blur-sm">
+      {/* Cart header — count + live subtotal */}
+      <div className="border-b border-white/10 px-4 py-4 sm:px-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
+              <ShoppingCart className="h-5 w-5" />
             </span>
-          )}
-        </span>
-        <span className="block text-xs text-white/45">{meta.tagline}</span>
-
-        <span className="mt-3 block font-display text-2xl font-extrabold text-white">
-          {kit.name}
-        </span>
-        <span className="mt-1 flex items-baseline gap-2">
-          <span className="font-display text-3xl font-extrabold text-accent">
-            {formatPrice(kit.totalPrice)}
-          </span>
-          <span className="text-xs text-white/45">
-            {kit.products.length}{" "}
-            {kit.products.length === 1 ? "piece" : "pieces"}
-          </span>
-        </span>
-        <span className="mt-3 block text-sm leading-relaxed text-white/60">
-          {kit.description}
-        </span>
-      </button>
-
-      <div className="mt-5 flex flex-1 flex-col gap-2.5">
-        {kit.products.map((p) => (
-          <ProductRow
-            key={p.id}
-            product={p}
-            flash={flashId === p.id}
-            onSwap={() => onSwap(p)}
-            onInfo={() => onInfo(p)}
-          />
-        ))}
+            <div className="min-w-0">
+              <p className="font-display text-lg font-extrabold leading-tight text-white">
+                Your cart
+              </p>
+              <p className="truncate text-xs text-white/45">
+                {items.length} {items.length === 1 ? "item" : "items"} ·{" "}
+                {kit.name}
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-[0.6rem] uppercase tracking-wide text-white/40">
+              Subtotal
+            </p>
+            <p className="font-display text-2xl font-extrabold text-accent">
+              {formatPrice(subtotal)}
+            </p>
+          </div>
+        </div>
+        {kit.description && (
+          <p className="mt-2 text-xs leading-relaxed text-white/45">
+            {kit.description}
+          </p>
+        )}
       </div>
+
+      {/* Line items */}
+      {items.length === 0 ? (
+        <div className="px-5 py-16 text-center">
+          <p className="font-body text-sm font-bold text-white/70">
+            Your cart is empty.
+          </p>
+          <p className="mt-1 text-sm text-white/40">
+            Switch a build above, or retake the quiz to start fresh.
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-white/8">
+          {items.map((p) => (
+            <CartRow
+              key={p.id}
+              product={p}
+              flash={flashId === p.id}
+              onSwap={() => onSwap(p)}
+              onRemove={() => onRemove(p.id)}
+              onInfo={() => onInfo(p)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Buy-all footer */}
+      {items.length > 0 && (
+        <div className="border-t border-white/10 bg-navy-deep/40 px-4 py-4 sm:px-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              {savings > 0 && (
+                <p className="text-xs font-bold text-win">
+                  You save {formatPrice(savings)} vs. list price
+                </p>
+              )}
+              <p className="font-display text-xl font-extrabold text-white">
+                {items.length} {items.length === 1 ? "item" : "items"} ·{" "}
+                <span className="text-accent">{formatPrice(subtotal)}</span>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onBuyAll}
+              className="flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-body text-sm font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Buy all{items.length > 1 ? ` (${items.length})` : ""}
+            </button>
+          </div>
+          <p className="mt-2.5 text-[0.65rem] leading-snug text-white/35">
+            &ldquo;Buy all&rdquo; opens each item&rsquo;s store page in a new tab
+            — or buy pieces one at a time above. We may earn a commission, at no
+            cost to you.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
-function ProductRow({
+function CartRow({
   product: p,
   flash,
   onSwap,
+  onRemove,
   onInfo,
 }: {
   product: KitProduct;
   flash: boolean;
   onSwap: () => void;
+  onRemove: () => void;
   onInfo: () => void;
 }) {
   const [imgOk, setImgOk] = useState(true);
@@ -394,20 +416,19 @@ function ProductRow({
   return (
     <motion.div
       animate={{
-        borderColor: flash ? "rgba(232,84,42,0.7)" : "rgba(255,255,255,0.1)",
-        backgroundColor: flash ? "rgba(232,84,42,0.12)" : "rgba(8,17,36,0.4)",
+        backgroundColor: flash ? "rgba(232,84,42,0.12)" : "rgba(0,0,0,0)",
       }}
       transition={{ duration: 0.45, ease: EASE }}
-      className="flex items-center gap-3 rounded-xl border p-2.5"
+      className="flex items-start gap-3 px-4 py-3.5 sm:px-5"
     >
       {/* Thumb + info opens the product detail panel */}
       <button
         type="button"
         onClick={onInfo}
         aria-label={`Details for ${p.name}`}
-        className="group flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left transition-colors hover:bg-white/[0.03] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+        className="group flex min-w-0 flex-1 items-start gap-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
       >
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
           {imgOk && p.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -425,11 +446,11 @@ function ProductRow({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1 truncate font-body text-sm font-bold text-white">
+          <p className="flex items-center gap-1 font-body text-sm font-bold text-white">
             <span className="truncate">{p.name}</span>
             <Info className="h-3 w-3 shrink-0 text-white/30 transition-colors group-hover:text-accent" />
           </p>
-          <div className="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-white/45">
+          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[0.7rem] text-white/45">
             <span className="flex items-center gap-0.5">
               <Star className="h-2.5 w-2.5 fill-accent text-accent" />
               {p.rating}
@@ -444,14 +465,7 @@ function ProductRow({
               </>
             )}
             <span className="text-white/20">·</span>
-            <span className="font-bold text-white/70">
-              {formatPrice(price)}
-            </span>
-            {p.salePrice && (
-              <span className="text-white/30 line-through">
-                {formatPrice(p.price)}
-              </span>
-            )}
+            <span className="text-white/50">{categoryLabel(p.category)}</span>
           </div>
           {/* Plain-English reason this pick is good */}
           {p.expertVerdict && (
@@ -462,31 +476,50 @@ function ProductRow({
         </div>
       </button>
 
-      {/* Swap — secondary */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onSwap();
-        }}
-        aria-label={`Swap ${p.name}`}
-        title="Swap this product"
-        className="flex h-9 shrink-0 items-center gap-1 rounded-lg border border-white/10 px-2.5 text-[0.7rem] font-bold text-white/55 transition-all duration-200 hover:border-accent/50 hover:bg-accent/10 hover:text-accent"
-      >
-        <Repeat2 className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">Swap</span>
-      </button>
-
-      {/* Buy — primary */}
-      <a
-        href={buyUrl(p)}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
-        onClick={(e) => e.stopPropagation()}
-        className="flex h-9 shrink-0 items-center rounded-lg bg-accent px-3 text-xs font-bold text-white transition-colors hover:bg-accent-hover"
-      >
-        Buy
-      </a>
+      {/* Price + actions */}
+      <div className="flex shrink-0 flex-col items-end gap-2">
+        <div className="text-right leading-tight">
+          <span className="block font-display text-base font-extrabold text-white">
+            {formatPrice(price)}
+          </span>
+          {p.salePrice && (
+            <span className="block text-[0.65rem] text-white/30 line-through">
+              {formatPrice(p.price)}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onSwap}
+            aria-label={`Swap ${p.name}`}
+            title="Swap this product"
+            className="flex h-8 items-center gap-1 rounded-lg border border-white/10 px-2 text-[0.7rem] font-bold text-white/55 transition-all duration-200 hover:border-accent/50 hover:bg-accent/10 hover:text-accent"
+          >
+            <Repeat2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Swap</span>
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label={`Remove ${p.name}`}
+            title="Remove from cart"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/45 transition-all duration-200 hover:border-red-400/50 hover:bg-red-500/10 hover:text-red-400"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+          <a
+            href={buyUrl(p)}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            onClick={(e) => e.stopPropagation()}
+            className="flex h-8 items-center gap-1 rounded-lg bg-accent px-3 text-xs font-bold text-white transition-colors hover:bg-accent-hover"
+          >
+            Buy
+            <ArrowUpRight className="h-3 w-3" />
+          </a>
+        </div>
+      </div>
     </motion.div>
   );
 }
