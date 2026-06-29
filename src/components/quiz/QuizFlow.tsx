@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  AnimatePresence,
-  motion,
-  MotionConfig,
-  type Variants,
-} from "framer-motion";
+import { motion, MotionConfig, type Variants } from "framer-motion";
 import {
   ArrowLeft,
   Boxes,
@@ -71,20 +66,21 @@ const OPTION_ICONS: Record<string, LucideIcon> = {
   "full-home-gym": LayoutGrid,
 };
 
-/* Screens slide in from the direction of travel and blur out. */
+/* Screens slide in from the direction of travel and fade. No blur filter:
+   animating `filter: blur()` hangs under framer-motion 12 + React 19, which
+   froze screens mid-transition (and stalled exit, so the next question never
+   mounted). A plain slide + fade is reliable and reads the same. */
 const screenVariants: Variants = {
-  enter: (dir: number) => ({ opacity: 0, x: 64 * dir, filter: "blur(6px)" }),
+  enter: (dir: number) => ({ opacity: 0, x: 56 * dir }),
   center: {
     opacity: 1,
     x: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
   },
   exit: (dir: number) => ({
     opacity: 0,
-    x: -64 * dir,
-    filter: "blur(6px)",
-    transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+    x: -56 * dir,
+    transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
   }),
 };
 
@@ -195,10 +191,7 @@ export default function QuizFlow() {
     const minDelay = new Promise<void>((r) => setTimeout(r, 2400));
     (async () => {
       try {
-        const [data] = await Promise.all([
-          requestKit(finalAnswers),
-          minDelay,
-        ]);
+        const [data] = await Promise.all([requestKit(finalAnswers), minDelay]);
         saveKit(data);
         setKit({ status: "done", data });
       } catch {
@@ -261,12 +254,21 @@ export default function QuizFlow() {
       if (Number.isInteger(n) && n >= 1 && n <= q.options.length) {
         const opt = q.options[n - 1];
         if (q.multi) toggleOwned(opt.id);
-        else selectSingle(q.key as Exclude<QuizQuestion["key"], "owned">, opt.id);
+        else
+          selectSingle(q.key as Exclude<QuizQuestion["key"], "owned">, opt.id);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, step, answers.owned.length, goBack, submit, toggleOwned, selectSingle]);
+  }, [
+    phase,
+    step,
+    answers.owned.length,
+    goBack,
+    submit,
+    toggleOwned,
+    selectSingle,
+  ]);
 
   const progress = phase === "quiz" ? (step + 1) / QUESTIONS.length : 1;
 
@@ -326,69 +328,73 @@ export default function QuizFlow() {
           {/* Screens — single keyed child: AnimatePresence mode="wait"
               only swaps reliably when the child stays in one slot. */}
           <div className="flex flex-1 flex-col justify-center py-10">
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={phase === "quiz" ? `q-${step}` : phase}
-                custom={direction}
-                variants={screenVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-              >
-                {phase === "quiz" ? (
-                  <>
-                    <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-                      {question.title}
-                    </h1>
-                    <p className="mt-3 text-white/60">{question.subtitle}</p>
+            {/* Keyed screen, no AnimatePresence: changing the key remounts the
+                screen so the enter animation replays and the outgoing screen
+                unmounts instantly. AnimatePresence exit animations are avoided
+                on purpose — their completion callback can hang under
+                framer-motion 12 + React 19, which froze the quiz between
+                questions (progress advanced but the screen never swapped). */}
+            <motion.div
+              key={phase === "quiz" ? `q-${step}` : phase}
+              custom={direction}
+              variants={screenVariants}
+              initial="enter"
+              animate="center"
+              className="min-w-0"
+            >
+              {phase === "quiz" ? (
+                <>
+                  <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+                    {question.title}
+                  </h1>
+                  <p className="mt-3 text-white/60">{question.subtitle}</p>
 
-                    {question.multi ? (
-                      <OwnedScreen
-                        owned={answers.owned}
-                        onToggle={toggleOwned}
-                        onSubmit={submit}
-                      />
-                    ) : (
-                      <div className="mt-9 grid gap-3 sm:grid-cols-2">
-                        {question.options.map((opt, i) => (
-                          <OptionCard
-                            key={opt.id}
-                            index={i}
-                            label={opt.label}
-                            hint={opt.hint}
-                            icon={OPTION_ICONS[opt.id]}
-                            selected={answers[question.key] === opt.id}
-                            onSelect={() =>
-                              selectSingle(
-                                question.key as Exclude<
-                                  QuizQuestion["key"],
-                                  "owned"
-                                >,
-                                opt.id,
-                              )
-                            }
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </>
-                ) : phase === "returning" ? (
-                  <ReturningPanel
-                    answers={answers}
-                    onResults={showResults}
-                    onNew={startNew}
-                  />
-                ) : phase === "building" ? (
-                  <BuildingScreen />
-                ) : (
-                  <ReadyPanel
-                    kit={kit}
-                    onRetake={retake}
-                    onRetry={() => startBuild(answers)}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
+                  {question.multi ? (
+                    <OwnedScreen
+                      owned={answers.owned}
+                      onToggle={toggleOwned}
+                      onSubmit={submit}
+                    />
+                  ) : (
+                    <div className="mt-9 grid gap-3 sm:grid-cols-2">
+                      {question.options.map((opt, i) => (
+                        <OptionCard
+                          key={opt.id}
+                          index={i}
+                          label={opt.label}
+                          hint={opt.hint}
+                          icon={OPTION_ICONS[opt.id]}
+                          selected={answers[question.key] === opt.id}
+                          onSelect={() =>
+                            selectSingle(
+                              question.key as Exclude<
+                                QuizQuestion["key"],
+                                "owned"
+                              >,
+                              opt.id,
+                            )
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : phase === "returning" ? (
+                <ReturningPanel
+                  answers={answers}
+                  onResults={showResults}
+                  onNew={startNew}
+                />
+              ) : phase === "building" ? (
+                <BuildingScreen />
+              ) : (
+                <ReadyPanel
+                  kit={kit}
+                  onRetake={retake}
+                  onRetry={() => startBuild(answers)}
+                />
+              )}
+            </motion.div>
           </div>
         </div>
       </main>
@@ -662,8 +668,8 @@ function ReadyPanel({
         That one&apos;s on us.
       </h1>
       <p className="mt-4 max-w-md text-white/60">
-        The kit service didn&apos;t respond — your answers are saved, so give
-        it another go. The comparison tool is open either way.
+        The kit service didn&apos;t respond — your answers are saved, so give it
+        another go. The comparison tool is open either way.
       </p>
       <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
         <button
