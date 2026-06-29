@@ -14,6 +14,7 @@ import {
   ShoppingCart,
   Trash2,
   ArrowUpRight,
+  Plus,
 } from "lucide-react";
 import {
   KIT_TIER_META,
@@ -226,7 +227,7 @@ export default function KitResult({
         <FbtPanel
           accessories={accessories}
           kit={selectedKit}
-          onAddBundle={addAccessories}
+          onAdd={addAccessories}
         />
       )}
 
@@ -529,30 +530,13 @@ function CartRow({
 function FbtPanel({
   accessories,
   kit,
-  onAddBundle,
+  onAdd,
 }: {
   accessories: KitProduct[];
   kit: Kit;
-  onAddBundle: (accs: KitProduct[]) => void;
+  onAdd: (accs: KitProduct[]) => void;
 }) {
   const inKit = new Set(kit.products.map((p) => p.id));
-  /* Which accessories are ticked for the bundle (Amazon-style). Defaults to
-     every one not already in the kit. */
-  const [picked, setPicked] = useState<Set<string>>(
-    () => new Set(accessories.filter((a) => !inKit.has(a.id)).map((a) => a.id)),
-  );
-
-  function togglePick(id: string) {
-    setPicked((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  const toAdd = accessories.filter((a) => picked.has(a.id) && !inKit.has(a.id));
-  const addonTotal = toAdd.reduce((s, a) => s + priceOf(a), 0);
 
   return (
     <section className="mt-16">
@@ -564,48 +548,19 @@ function FbtPanel({
         Complete your setup
       </h2>
       <p className="mt-1 text-sm text-white/50">
-        Picked for your {KIT_TIER_META[kit.type].label} — tick the ones you want
-        and add them in one go.
+        Hand-picked for your {KIT_TIER_META[kit.type].label}. Here&rsquo;s why
+        each one earns its place — add the ones you want.
       </p>
 
-      <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-3 sm:p-5">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {accessories.map((a) => (
-            <AccessoryCard
-              key={a.id}
-              product={a}
-              inKit={inKit.has(a.id)}
-              picked={picked.has(a.id)}
-              onToggle={() => togglePick(a.id)}
-            />
-          ))}
-        </div>
-
-        {/* Bundle bar — combined total + add-all, like Amazon's "Add all to cart" */}
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-5">
-          <div>
-            <p className="text-xs text-white/45">
-              {toAdd.length > 0
-                ? `${toAdd.length} selected · adds ${formatPrice(addonTotal)}`
-                : "Nothing selected"}
-            </p>
-            <p className="font-display text-2xl font-extrabold text-white">
-              Kit + extras{" "}
-              <span className="text-accent">
-                {formatPrice(kit.totalPrice + addonTotal)}
-              </span>
-            </p>
-          </div>
-          <button
-            type="button"
-            disabled={toAdd.length === 0}
-            onClick={() => onAddBundle(toAdd)}
-            className="flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-body text-sm font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
-          >
-            <PackagePlus className="h-4 w-4" />
-            {toAdd.length > 0 ? `Add ${toAdd.length} to kit` : "Add to kit"}
-          </button>
-        </div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {accessories.map((a) => (
+          <AccessoryCard
+            key={a.id}
+            product={a}
+            inKit={inKit.has(a.id)}
+            onAdd={() => onAdd([a])}
+          />
+        ))}
       </div>
     </section>
   );
@@ -614,89 +569,91 @@ function FbtPanel({
 function AccessoryCard({
   product: a,
   inKit,
-  picked,
-  onToggle,
+  onAdd,
 }: {
   product: KitProduct;
   inKit: boolean;
-  picked: boolean;
-  onToggle: () => void;
+  onAdd: () => void;
 }) {
   const [imgOk, setImgOk] = useState(true);
   const price = priceOf(a);
 
-  const inner = (
-    <>
-      <div className="relative aspect-square overflow-hidden bg-white">
-        {imgOk && a.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={a.image}
-            alt={a.name}
-            loading="lazy"
-            onError={() => setImgOk(false)}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center font-display text-xl font-bold text-navy">
-            {a.brand.charAt(0)}
-          </span>
-        )}
-        {inKit ? (
-          <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-win px-2 py-0.5 text-[0.6rem] font-bold text-white shadow">
-            <Check className="h-3 w-3" />
-            In kit
-          </span>
-        ) : (
-          <span
-            aria-hidden
-            className={
-              "absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-md border-2 shadow transition-colors " +
-              (picked
-                ? "border-accent bg-accent text-white"
-                : "border-white/70 bg-black/30 text-transparent")
-            }
-          >
-            <Check className="h-3 w-3" />
-          </span>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col p-3 text-left">
-        <p className="truncate font-body text-sm font-bold text-white">
-          {a.name}
-        </p>
-        <p className="text-[0.7rem] text-white/45">{a.brand}</p>
-        <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-white/55">
-          <Star className="h-2.5 w-2.5 fill-accent text-accent" />
-          {a.rating}
-          <span className="text-white/20">·</span>
-          <span className="font-bold text-white/80">{formatPrice(price)}</span>
-        </div>
-      </div>
-    </>
-  );
-
-  const cls =
-    "flex flex-col overflow-hidden rounded-2xl border bg-white/[0.04] backdrop-blur-sm transition-all duration-300 " +
-    (inKit
-      ? "border-win/40 shadow-lg shadow-win/10"
-      : picked
-        ? "border-accent/60 shadow-lg shadow-accent/15"
-        : "border-white/12 hover:-translate-y-1 hover:border-accent/40");
-
-  return inKit ? (
-    <div className={cls}>{inner}</div>
-  ) : (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={picked}
+  return (
+    <div
       className={
-        cls +
-        " text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        "flex flex-col rounded-2xl border bg-white/[0.04] p-4 backdrop-blur-sm transition-colors duration-300 " +
+        (inKit ? "border-win/40" : "border-white/12 hover:border-accent/40")
       }
     >
-      {inner}
-    </button>
+      <div className="flex flex-1 flex-col">
+        <div className="flex items-start gap-3">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white">
+            {imgOk && a.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={a.image}
+                alt={a.name}
+                loading="lazy"
+                onError={() => setImgOk(false)}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="font-display text-xl font-bold text-navy">
+                {a.brand.charAt(0)}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-body text-sm font-bold text-white">{a.name}</p>
+            <p className="text-[0.7rem] text-white/45">{a.brand}</p>
+            <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-white/55">
+              <Star className="h-2.5 w-2.5 fill-accent text-accent" />
+              {a.rating}
+              <span className="text-white/20">·</span>
+              <span className="font-bold text-white/80">
+                {formatPrice(price)}
+              </span>
+              {a.salePrice && (
+                <span className="text-white/30 line-through">
+                  {formatPrice(a.price)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* The AI "why people add it" reason, grounded in the kit. */}
+        {a.whyAdd && (
+          <p className="mt-3 text-[0.78rem] leading-relaxed text-white/65">
+            <span className="font-bold text-accent">Why add it:</span>{" "}
+            {a.whyAdd}
+          </p>
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={onAdd}
+        disabled={inKit}
+        className={
+          "mt-4 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-bold transition-colors " +
+          (inKit
+            ? "cursor-default bg-win/15 text-win"
+            : "bg-accent text-white hover:bg-accent-hover")
+        }
+      >
+        {inKit ? (
+          <>
+            <Check className="h-3.5 w-3.5" />
+            In your cart
+          </>
+        ) : (
+          <>
+            <Plus className="h-3.5 w-3.5" />
+            Add to cart
+          </>
+        )}
+      </button>
+    </div>
   );
 }

@@ -25,6 +25,9 @@ export type KitProduct = {
   gymgearScore?: number;
   scoreBreakdown?: ScoreFacet[];
   awards?: string[];
+  /* FBT — one-line "why add this" copy for the frequently-bought-together
+     panel (Groq, grounded in the kit; deterministic fallback). */
+  whyAdd?: string;
 };
 
 export type ScoreFacet = {
