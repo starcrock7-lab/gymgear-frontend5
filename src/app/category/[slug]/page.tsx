@@ -4,7 +4,11 @@ import { notFound } from "next/navigation";
 import { Star, ArrowUpRight, ChevronRight, Trophy } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { getCategories, getCategoryProducts } from "@/lib/catalog";
+import {
+  getCategories,
+  getCategoryProducts,
+  NOINDEX_CATEGORIES,
+} from "@/lib/catalog";
 import { buyUrl, formatPrice } from "@/lib/kit";
 
 export const revalidate = 3600;
@@ -51,6 +55,9 @@ export async function generateMetadata({
       `owner rating, value, and review confidence. Top pick: ${top.name} ` +
       `(${top.gymgearScore ?? "—"}/100, ${formatPrice(priceOf(top))}).`,
     alternates: { canonical: `/category/${slug}` },
+    robots: NOINDEX_CATEGORIES.has(slug)
+      ? { index: false, follow: true }
+      : undefined,
   };
 }
 

@@ -1,5 +1,10 @@
 import type { MetadataRoute } from "next";
-import { getCategories, getAllProducts } from "@/lib/catalog";
+import {
+  getCategories,
+  getAllProducts,
+  NOINDEX_CATEGORIES,
+} from "@/lib/catalog";
+import { GUIDES } from "@/lib/guides";
 
 const BASE = "https://gymgearcompare.com";
 
@@ -12,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: { path: string; priority: number }[] = [
     { path: "", priority: 1 },
     { path: "/gear", priority: 0.9 },
+    { path: "/guides", priority: 0.8 },
     { path: "/methodology", priority: 0.6 },
     { path: "/about", priority: 0.5 },
     { path: "/disclosure", priority: 0.4 },
@@ -35,6 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   for (const c of cats) {
+    if (NOINDEX_CATEGORIES.has(c.key)) continue;
     entries.push({
       url: `${BASE}/category/${c.key}`,
       lastModified: now,
@@ -43,11 +50,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
   for (const p of products) {
+    if (NOINDEX_CATEGORIES.has(p.category)) continue;
     entries.push({
       url: `${BASE}/gear/${p.id}`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,
+    });
+  }
+  for (const g of GUIDES) {
+    entries.push({
+      url: `${BASE}/guides/${g.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
     });
   }
 

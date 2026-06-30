@@ -4,7 +4,11 @@ import { notFound } from "next/navigation";
 import { Star, Check, ArrowUpRight, ChevronRight, Trophy } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { getAllProducts, getProductWithPeers } from "@/lib/catalog";
+import {
+  getAllProducts,
+  getProductWithPeers,
+  NOINDEX_CATEGORIES,
+} from "@/lib/catalog";
 import { buyUrl, formatPrice, categoryLabel } from "@/lib/kit";
 
 export const revalidate = 3600;
@@ -39,6 +43,9 @@ export async function generateMetadata({
         ? p.expertVerdict
         : `Our independent take on the ${p.name}.`),
     alternates: { canonical: `/gear/${p.id}` },
+    robots: NOINDEX_CATEGORIES.has(p.category)
+      ? { index: false, follow: true }
+      : undefined,
   };
 }
 

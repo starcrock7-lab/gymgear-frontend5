@@ -18,6 +18,10 @@ const SITE_ORIGIN =
    keeps every generated page fresh without a redeploy. */
 export const CATALOG_REVALIDATE = 3600;
 
+/* Categories we keep out of the index/sitemap. Fat burners are a YMYL /
+   health-claim risk for AdSense, so we render the pages but don't index them. */
+export const NOINDEX_CATEGORIES = new Set(["fatburners"]);
+
 async function serverFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     headers: {
