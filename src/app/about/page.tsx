@@ -1,97 +1,126 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Scale, Home, ShieldCheck } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "About GymGear Compare — who's behind it",
+  title: "Why GymGear Compare exists — our mission",
   description:
-    "Why GymGear Compare exists, who builds it, and how the GymGear Score keeps our rankings independent of who pays.",
+    "Getting in shape is hard enough. GymGear Compare exists to make the starting part easier — honest scores, the right home-gym gear for your space and budget, and the accessories that actually help.",
   alternates: { canonical: "/about" },
 };
+
+const VALUES = [
+  {
+    icon: Scale,
+    h: "Honest over comprehensive",
+    body: "Anyone can list every product. We score what's worth your money on one open rubric, and say plainly where a pick falls short.",
+  },
+  {
+    icon: Home,
+    h: "Built for your space and budget",
+    body: "Most advice assumes a big garage and an open wallet. We start from the room and the money you actually have.",
+  },
+  {
+    icon: ShieldCheck,
+    h: "Independent, always",
+    body: "No brand can pay to rank higher. Affiliate commissions keep the site free; they never move a score.",
+  },
+];
 
 export default function AboutPage() {
   return (
     <>
       <SiteNav />
       <main className="min-h-[70vh] bg-off">
-        <section className="bg-navy px-5 py-14 text-center text-white">
-          <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Why this exists
+        <section className="bg-navy px-5 py-16 text-center text-white">
+          <p className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
+            Our mission
+          </p>
+          <h1 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+            Starting shouldn&rsquo;t be the hard part
           </h1>
-          <p className="mx-auto mt-3 max-w-xl text-white/60">
-            Buying home-gym gear is confusing and expensive. We built the tool
-            we wished we&rsquo;d had.
+          <p className="mx-auto mt-4 max-w-xl text-white/60">
+            Training is hard enough. Working out what to buy to begin
+            shouldn&rsquo;t be. That gap is the whole reason this exists.
           </p>
         </section>
 
         <div className="mx-auto max-w-3xl space-y-6 px-5 py-12 leading-relaxed text-ink-2">
-          {/* TODO(Roe): personalise this — your name, your real home-gym story,
-              a photo. First-person detail is the single biggest trust signal. */}
           <p>
-            I&rsquo;m Roe, and I built GymGear Compare after spending far too
-            many evenings with twenty browser tabs open, trying to work out
-            whether one power rack was actually better than another or just
-            better at marketing. The specs all looked the same. The reviews all
-            said &ldquo;great product.&rdquo; Nothing told me what genuinely
-            mattered for a small garage and a real budget.
+            Getting in shape is genuinely hard — and I&rsquo;ve lived it. I lost
+            the weight, then fell for lifting and trained my way into
+            bodybuilding (amateur, not pro, but I take it seriously). The
+            training was the hard part it&rsquo;s supposed to be. What
+            surprised me was how hard the <em>easy</em> part was: just figuring
+            out what to actually buy to get started.
           </p>
           <p>
-            So I started scoring gear the way I wished someone would: a single,
-            consistent rubric applied to everything, in the open. That became
-            the{" "}
-            <Link
-              href="/methodology"
-              className="font-medium text-accent underline-offset-2 hover:underline"
-            >
-              GymGear Score
-            </Link>{" "}
-            — every product judged on build quality, owner rating, value for
-            money, and how much review evidence backs it up, weighted by what
-            actually matters for that category.
+            Twenty browser tabs, identical-looking spec sheets, reviews that all
+            said &ldquo;great product,&rdquo; and marketing dressed up as advice.
+            Nothing told me what genuinely mattered for a real budget and a
+            small space. If it was that confusing for someone willing to dig,
+            it&rsquo;s enough to make a lot of people give up before they start.
+
           </p>
 
           <div>
-            <h2 className="font-display text-xl font-extrabold text-ink">
-              What we are — and what we&rsquo;re not
+            <h2 className="font-display text-2xl font-extrabold tracking-tight text-ink">
+              What GymGear Compare is for
             </h2>
-            <p className="mt-2">
-              We&rsquo;re an independent comparison site, not a lab and not a
-              brand. Where a verdict is hands-on, we say so; where it&rsquo;s
-              drawn from published expert reviews and real owner ratings, we say
-              that too. We&rsquo;d rather be honest about how we know something
-              than pretend we tested every plate in a warehouse. That
-              transparency is the whole point.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="font-display text-xl font-extrabold text-ink">
-              How we stay independent
-            </h2>
-            <p className="mt-2">
-              The site is funded by affiliate commissions, and that never
-              touches a score. No brand can pay to rank higher or buy placement
-              — the rubric runs on the data, not on who pays. The full breakdown
-              is on our{" "}
+            <p className="mt-3">
+              To take that confusion off your plate. We score every piece of gear
+              on one transparent rubric — the{" "}
               <Link
-                href="/disclosure"
+                href="/methodology"
                 className="font-medium text-accent underline-offset-2 hover:underline"
               >
-                disclosure page
-              </Link>
-              .
+                GymGear Score
+              </Link>{" "}
+              — so you can see, in one number with the reasoning shown, what&rsquo;s
+              worth buying. We help you{" "}
+              <Link
+                href="/quiz"
+                className="font-medium text-accent underline-offset-2 hover:underline"
+              >
+                build a home gym
+              </Link>{" "}
+              that fits your space and your budget, and we point you to the
+              accessories that genuinely make the journey easier — not the ones
+              with the fattest margin.
             </p>
           </div>
 
+          <div className="grid gap-4 sm:grid-cols-3">
+            {VALUES.map((v) => (
+              <div
+                key={v.h}
+                className="rounded-2xl border border-line bg-white p-5"
+              >
+                <v.icon className="h-6 w-6 text-accent" />
+                <p className="mt-3 font-display font-bold text-ink">{v.h}</p>
+                <p className="mt-1 text-sm leading-relaxed text-ink-2">
+                  {v.body}
+                </p>
+              </div>
+            ))}
+          </div>
+
           <p>
-            Got a correction, a product we&rsquo;ve missed, or a disagreement
-            with a score? That feedback makes the site better —{" "}
+            The goal is simple: make it a little easier for one more person to
+            start training — and to keep going. If the site helps you take that
+            first step, it&rsquo;s done its job.
+          </p>
+
+          <p className="text-sm text-ink-3">
+            Spotted something wrong, or think we&rsquo;ve scored a product
+            unfairly? That feedback makes this better —{" "}
             <Link
               href="/contact"
               className="font-medium text-accent underline-offset-2 hover:underline"
             >
-              get in touch
+              tell us
             </Link>
             .
           </p>
