@@ -35,7 +35,9 @@ export async function generateMetadata({
     description:
       `${p.name} by ${p.brand}: GymGear Score ${p.gymgearScore ?? "—"}/100, ` +
       `${p.rating}/5 from ${p.reviewCount.toLocaleString()} owners, ${formatPrice(price)}. ` +
-      (p.expertVerdict || `Our independent take on the ${p.name}.`),
+      (typeof p.expertVerdict === "string" && p.expertVerdict
+        ? p.expertVerdict
+        : `Our independent take on the ${p.name}.`),
     alternates: { canonical: `/gear/${p.id}` },
   };
 }
@@ -73,7 +75,15 @@ export default async function ProductPage({
 
   const price = priceOf(p);
   const catLabel = category?.label ?? categoryLabel(p.category);
-  const specs = Object.entries(p.specs ?? {});
+  // Defensive: some catalog rows have mis-ordered p() args (specs/verdict
+  // swapped), so guard against non-object specs and non-string verdicts.
+  const specs =
+    p.specs && typeof p.specs === "object" && !Array.isArray(p.specs)
+      ? Object.entries(p.specs).filter(([, v]) => typeof v === "string")
+      : [];
+  const verdict = typeof p.expertVerdict === "string" ? p.expertVerdict : "";
+  const verdictSource =
+    typeof p.expertSource === "string" ? p.expertSource : "";
   const rank =
     peers.length && typeof p.gymgearScore === "number"
       ? peers.filter((x) => (x.gymgearScore ?? 0) > (p.gymgearScore ?? 0)).length + 1
@@ -234,17 +244,15 @@ export default async function ProductPage({
           )}
 
           {/* Expert verdict — the "why" */}
-          {p.expertVerdict && (
+          {verdict && (
             <section className="mt-8">
               <h2 className="font-display text-2xl font-extrabold tracking-tight text-ink">
                 Our verdict
               </h2>
-              <p className="mt-3 text-lg leading-relaxed text-ink-2">
-                {p.expertVerdict}
-              </p>
-              {p.expertSource && (
+              <p className="mt-3 text-lg leading-relaxed text-ink-2">{verdict}</p>
+              {verdictSource && (
                 <p className="mt-2 text-sm text-ink-3">
-                  Assessment informed by {p.expertSource}.
+                  Assessment informed by {verdictSource}.
                 </p>
               )}
             </section>

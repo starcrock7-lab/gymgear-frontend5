@@ -11,6 +11,7 @@ import {
 
 const navLinks = [
   { href: "/quiz", label: "Build My Kit" },
+  { href: "/gear", label: "Browse Gear" },
   { href: "/compare", label: "Compare Tool" },
   { href: "/extras", label: "Gear & Extras" },
   { href: "/sponsors", label: "Partners" },
@@ -116,7 +117,19 @@ export default function SiteFooter() {
             cost to you. Verdicts stay independent.
           </p>
         </div>
-        <div className="flex gap-5 text-xs font-medium">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium">
+          <Link href="/about" className="transition-colors hover:text-white">
+            About
+          </Link>
+          <Link href="/methodology" className="transition-colors hover:text-white">
+            How we score
+          </Link>
+          <Link href="/disclosure" className="transition-colors hover:text-white">
+            Disclosure
+          </Link>
+          <Link href="/contact" className="transition-colors hover:text-white">
+            Contact
+          </Link>
           <Link href="/privacy" className="transition-colors hover:text-white">
             Privacy
           </Link>

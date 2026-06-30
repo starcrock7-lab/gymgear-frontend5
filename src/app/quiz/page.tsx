@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Build Your Kit — GymGear Compare",
   description:
     "Answer 5 quick questions about your goal, budget, and space. Our AI assembles three personalized gym equipment kits from 160 real products.",
+  robots: { index: false, follow: true },
 };
 
 export default function QuizPage() {

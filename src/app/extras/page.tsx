@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Gear, Recovery & Supplements — GymGear Compare",
   description:
     "Round out your home gym — browse the best lifting gear, recovery accessories, supplements, and apparel, each with honest ratings and prices.",
+  robots: { index: false, follow: true },
 };
 
 export default function ExtrasPage() {

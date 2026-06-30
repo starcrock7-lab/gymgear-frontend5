@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Compare Gym Gear — GymGear Compare",
   description:
     "Pick any products in a category and see a side-by-side spec breakdown, prices, ratings, and which is the best value.",
+  // Interactive tool (no server content) — Google indexes the product/category
+  // pages instead; still follow the links out of here.
+  robots: { index: false, follow: true },
 };
 
 export default function ComparePage() {
