@@ -33,21 +33,23 @@ export async function requestKit(answers: QuizAnswers): Promise<KitResponse> {
   return (await res.json()) as KitResponse;
 }
 
-/* All products in a category, for swapping a pick in a kit. The category is
-   stamped onto each so swapped products keep the field the kit relies on. */
+/* Products in a category, for the compare/browse tools and kit swaps. Goes
+   through our own cached Next route (not the Render backend directly), so a
+   sleeping backend never makes the browser wait — the route serves cached,
+   stale-while-revalidate data. */
 export async function requestAlternatives(
   category: string,
 ): Promise<KitProduct[]> {
-  const res = await apiFetch(`/api/products/${category}`);
+  const res = await fetch(`/api/catalog/products/${category}`);
   if (!res.ok) throw new Error(`Products request failed (${res.status})`);
-  const data = (await res.json()) as { products: Omit<KitProduct, "category">[] };
-  return data.products.map((p) => ({ ...p, category }));
+  const data = (await res.json()) as { products: KitProduct[] };
+  return (data.products ?? []).map((p) => ({ ...p, category }));
 }
 
-/* The full category list (grouped) for the comparison tool. */
+/* The full category list (grouped) for the comparison tool — cached route. */
 export async function requestCategories(): Promise<Category[]> {
-  const res = await apiFetch("/api/categories");
+  const res = await fetch(`/api/catalog/categories`);
   if (!res.ok) throw new Error(`Categories request failed (${res.status})`);
   const data = (await res.json()) as { categories: Category[] };
-  return data.categories;
+  return data.categories ?? [];
 }
