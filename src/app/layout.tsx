@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
-const syne = Syne({
-  variable: "--font-syne",
+// Body: Inter — the readable, low-quirk sans the tech world runs on.
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+// Headings: Space Grotesk — sharp, techy, energetic without Syne's fatigue.
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const SITE_URL = "https://gymgearcompare.com";
@@ -58,7 +62,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${syne.variable} ${dmSans.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

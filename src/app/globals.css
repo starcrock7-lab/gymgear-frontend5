@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --accent: #e8542a;
-  --accent-deep: #c94020;
-  --accent-hover: #d4421a;
+  /* Sharper palette: punchier accent for the things that matter, crisper
+     near-black body text, and a darker secondary grey so prose stays easy. */
+  --accent: #f0531e;
+  --accent-deep: #c23c14;
+  --accent-hover: #dc4718;
   --navy: #0d1b35;
   --navy-deep: #081124;
-  --ink: #161410;
-  --ink-2: #706b63;
-  --ink-3: #aca59b;
+  --ink: #131009;
+  --ink-2: #565049;
+  --ink-3: #948d83;
   --off: #f8f7f5;
   --line: #e6e1da;
   --win: #15803d;
@@ -26,14 +28,14 @@
   --color-off: var(--off);
   --color-line: var(--line);
   --color-win: var(--win);
-  --font-display: var(--font-syne);
-  --font-body: var(--font-dm-sans);
+  --font-display: var(--font-space);
+  --font-body: var(--font-inter);
 }
 
 body {
   background: var(--off);
   color: var(--ink);
-  font-family: var(--font-dm-sans), sans-serif;
+  font-family: var(--font-inter), sans-serif;
   /* Comfortable body leading; sized text utilities set their own, so this only
      relaxes un-sized prose. Display headings stay tight via their utilities. */
   line-height: 1.6;
