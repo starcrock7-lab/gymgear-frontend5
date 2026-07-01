@@ -11,7 +11,6 @@ import {
 } from "framer-motion";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import SmoothScroll from "@/components/SmoothScroll";
 import CursorLight from "@/components/ui/cursor-light";
 import IntroLoader from "@/components/ui/intro-loader";
 import AuroraBackground from "@/components/ui/aurora-background";
@@ -61,7 +60,7 @@ export default function Home() {
   const hintOpacity = useTransform(scrollY, [0, 160], [1, 0]);
 
   return (
-    <SmoothScroll>
+    <>
       <IntroLoader onComplete={() => setIntroDone(true)} />
       <SiteNav />
 
@@ -234,6 +233,6 @@ export default function Home() {
       </section>
 
       <SiteFooter />
-    </SmoothScroll>
+    </>
   );
 }
