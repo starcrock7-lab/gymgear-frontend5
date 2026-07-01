@@ -9,7 +9,6 @@ import {
   useTransform,
   type Variants,
 } from "framer-motion";
-import { ClipboardList, Sparkles, ShieldCheck } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -21,46 +20,7 @@ import { TextScramble } from "@/components/ui/text-scramble";
 import { ButtonColorful } from "@/components/ui/button-colorful";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { HighlightButton } from "@/components/ui/highlight-button";
-import FlowCard, { type FlowStep } from "@/components/ui/flow-card";
-
-const steps: FlowStep[] = [
-  {
-    n: "01",
-    icon: <ClipboardList className="h-4.5 w-4.5" />,
-    title: "Answer 5 questions",
-    body: "Your goal, budget, space, setup size, and what you already own. Takes under a minute.",
-    details: [
-      "Goal — build strength, lose weight, get fit, or full home gym",
-      "Budget — from under $300 to $2,000+",
-      "Space — apartment corner up to a full garage",
-      "Tell it what you already own, it builds around it",
-    ],
-  },
-  {
-    n: "02",
-    icon: <Sparkles className="h-4.5 w-4.5" />,
-    title: "AI builds 3 kits",
-    body: "Best Value, Best Match, and Best Quality — assembled from 160 real products with live prices.",
-    details: [
-      "Best Value — the cheapest route to your goal",
-      "Best Match — balanced for your exact answers",
-      "Best Quality — buy once, cry once",
-      "160 real products across 20 categories, live prices",
-    ],
-  },
-  {
-    n: "03",
-    icon: <ShieldCheck className="h-4.5 w-4.5" />,
-    title: "Buy with confidence",
-    body: "Every pick explained in plain English, with direct buy links. Swap anything you don't like.",
-    details: [
-      "Plain-English reason behind every pick",
-      "Swap any product for an alternative in one click",
-      "Send picks into the comparison tool side by side",
-      "Direct buy links — same price, zero markup",
-    ],
-  },
-];
+import GymGearStory from "@/components/ui/gymgear-story";
 
 const heroStagger: Variants = {
   hidden: {},
@@ -231,23 +191,8 @@ export default function Home() {
         />
       </section>
 
-      {/* How it works */}
-      <section className="mx-auto max-w-6xl px-5 py-20">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl"
-        >
-          How it works
-        </motion.h2>
-        <div className="mt-12 grid items-start gap-6 sm:grid-cols-3">
-          {steps.map((s, i) => (
-            <FlowCard key={s.n} step={s} index={i} />
-          ))}
-        </div>
-      </section>
+      {/* Scroll story — pins and peels through the pitch */}
+      <GymGearStory />
 
       {/* CTA band: aurora + flowing paths + scramble */}
       <section className="relative overflow-hidden bg-navy-deep py-28 text-white">
