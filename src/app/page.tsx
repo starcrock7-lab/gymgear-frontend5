@@ -9,6 +9,7 @@ import {
   useTransform,
   type Variants,
 } from "framer-motion";
+import { ClipboardList, Sparkles, ShieldCheck } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import CursorLight from "@/components/ui/cursor-light";
@@ -19,7 +20,7 @@ import { TextScramble } from "@/components/ui/text-scramble";
 import { ButtonColorful } from "@/components/ui/button-colorful";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { HighlightButton } from "@/components/ui/highlight-button";
-import GymGearStory from "@/components/ui/gymgear-story";
+import FlowCard, { type FlowStep } from "@/components/ui/flow-card";
 
 const heroStagger: Variants = {
   hidden: {},
@@ -52,6 +53,52 @@ const wordRise: Variants = {
 
 const heroLine1 = "Your perfect home gym.".split(" ");
 const heroLine2 = "Built in 60 seconds.".split(" ");
+
+const steps: FlowStep[] = [
+  {
+    n: "01",
+    icon: <ClipboardList className="h-4.5 w-4.5" />,
+    title: "Answer 5 questions",
+    body: "Your goal, budget, space, setup size, and what you already own. Takes under a minute.",
+    details: [
+      "Goal — build strength, lose weight, get fit, or full home gym",
+      "Budget — from under $300 to $2,000+",
+      "Space — apartment corner up to a full garage",
+      "Tell it what you already own, it builds around it",
+    ],
+  },
+  {
+    n: "02",
+    icon: <Sparkles className="h-4.5 w-4.5" />,
+    title: "AI builds 3 kits",
+    body: "Best Value, Best Match, and Best Quality — assembled from 160 real products with live prices.",
+    details: [
+      "Best Value — the cheapest route to your goal",
+      "Best Match — balanced for your exact answers",
+      "Best Quality — buy once, cry once",
+      "160 real products across 20 categories, live prices",
+    ],
+  },
+  {
+    n: "03",
+    icon: <ShieldCheck className="h-4.5 w-4.5" />,
+    title: "Buy with confidence",
+    body: "Every pick explained in plain English, with direct buy links. Swap anything you don't like.",
+    details: [
+      "Plain-English reason behind every pick",
+      "Swap any product for an alternative in one click",
+      "Send picks into the comparison tool side by side",
+      "Direct buy links — same price, zero markup",
+    ],
+  },
+];
+
+/* One staggered reveal for the tiles — tune the per-tile entrance in
+   FlowCard's TILE_REVEAL; this container just cascades them on scroll. */
+const tileContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.14, delayChildren: 0.05 } },
+};
 
 export default function Home() {
   const router = useRouter();
@@ -190,8 +237,29 @@ export default function Home() {
         />
       </section>
 
-      {/* Scroll story — pins and peels through the pitch */}
-      <GymGearStory />
+      {/* How it works — tiles cascade in on scroll (one staggered transition) */}
+      <section className="mx-auto max-w-6xl px-5 py-20">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl"
+        >
+          How it works
+        </motion.h2>
+        <motion.div
+          variants={tileContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-80px" }}
+          className="mt-12 grid items-start gap-6 sm:grid-cols-3"
+        >
+          {steps.map((s) => (
+            <FlowCard key={s.n} step={s} />
+          ))}
+        </motion.div>
+      </section>
 
       {/* CTA band: aurora + flowing paths + scramble */}
       <section className="relative overflow-hidden bg-navy-deep py-28 text-white">

@@ -35,19 +35,26 @@ const detailVariants: Variants = {
   },
 };
 
+/* The scroll-reveal transition for the tiles — CHANGE THIS to reshape the
+   entrance vibe (e.g. swap y/scale for x to slide in, or add filter blur).
+   The parent grid staggers these, so each tile plays in sequence. */
+export const TILE_REVEAL: Variants = {
+  hidden: { opacity: 0, y: 44, scale: 0.96 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
 /**
  * How-it-works panel: 3D tilt toward the cursor with an ember glow tracking
  * it, content lifted on translateZ layers, scroll-scrubbed progress track,
  * and a detail list that unfolds on hover. Touch devices (no hover) get the
  * details permanently expanded instead of never.
  */
-export default function FlowCard({
-  step,
-  index,
-}: {
-  step: FlowStep;
-  index: number;
-}) {
+export default function FlowCard({ step }: { step: FlowStep }) {
   const ref = React.useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = React.useState(false);
   // SSR assumes a hover device; touch devices correct after hydration and
@@ -96,14 +103,7 @@ export default function FlowCard({
       onMouseMove={onMouseMove}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={onMouseLeave}
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{
-        duration: 0.6,
-        delay: index * 0.12,
-        ease: [0.22, 1, 0.36, 1],
-      }}
+      variants={TILE_REVEAL}
       style={{
         rotateX,
         rotateY,
