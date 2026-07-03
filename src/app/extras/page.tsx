@@ -4,7 +4,7 @@ import SiteFooter from "@/components/SiteFooter";
 import GearFinder from "@/components/extras/GearFinder";
 
 export const metadata: Metadata = {
-  title: "Gear, Recovery & Supplements — GymGear Compare",
+  title: "Gear, Recovery & Supplements",
   description:
     "Round out your home gym — browse the best lifting gear, recovery accessories, supplements, and apparel, each with honest ratings and prices.",
   robots: { index: false, follow: true },

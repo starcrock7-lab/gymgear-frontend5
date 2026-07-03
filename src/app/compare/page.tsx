@@ -4,7 +4,7 @@ import SiteFooter from "@/components/SiteFooter";
 import CompareTool from "@/components/compare/CompareTool";
 
 export const metadata: Metadata = {
-  title: "Compare Gym Gear — GymGear Compare",
+  title: "Compare Gym Gear",
   description:
     "Pick any products in a category and see a side-by-side spec breakdown, prices, ratings, and which is the best value.",
   // Interactive tool (no server content) — Google indexes the product/category

@@ -31,11 +31,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const data = await getProductWithPeers(slug);
-  if (!data) return { title: "Product not found — GymGear Compare" };
+  if (!data) return { title: "Product not found" };
   const { product: p } = data;
   const price = p.salePrice ?? p.price;
   return {
-    title: `${p.name} review & GymGear Score — GymGear Compare`,
+    title: `${p.name} review & GymGear Score`,
     description:
       `${p.name} by ${p.brand}: GymGear Score ${p.gymgearScore ?? "—"}/100, ` +
       `${p.rating}/5 from ${p.reviewCount.toLocaleString()} owners, ${formatPrice(price)}. ` +
@@ -168,7 +168,21 @@ export default async function ProductPage({
                 )}
               </div>
               <div className="mt-2 flex items-center gap-1.5 text-sm text-ink-2">
-                <Star className="h-4 w-4 fill-accent text-accent" />
+                <span className="relative inline-flex" aria-hidden>
+                  <span className="flex text-line">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <Star key={i} className="h-4 w-4 shrink-0 fill-current" />
+                    ))}
+                  </span>
+                  <span
+                    className="absolute inset-y-0 left-0 flex overflow-hidden text-accent"
+                    style={{ width: `${(Math.min(p.rating, 5) / 5) * 100}%` }}
+                  >
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <Star key={i} className="h-4 w-4 shrink-0 fill-current" />
+                    ))}
+                  </span>
+                </span>
                 <span className="font-bold text-ink">{p.rating}</span>
                 <span className="text-ink-3">
                   from {p.reviewCount.toLocaleString()} owner reviews

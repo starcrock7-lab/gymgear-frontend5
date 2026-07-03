@@ -3,7 +3,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "How we score — GymGear Compare",
+  title: "How we score",
   description:
     "The GymGear Score methodology: one transparent, weighted rubric across build quality, owner rating, value, and review confidence. Data-derived — and honest about it.",
 };

@@ -3,7 +3,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Affiliate disclosure — GymGear Compare",
+  title: "Affiliate disclosure",
   description:
     "How GymGear Compare makes money: affiliate commissions that never influence our scores or rankings. Full transparency on our independence.",
   alternates: { canonical: "/disclosure" },

@@ -46,7 +46,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const { category, ranked } = await load(slug);
   if (!category || !ranked.length)
-    return { title: "Category not found — GymGear Compare" };
+    return { title: "Category not found" };
   const top = ranked[0];
   return {
     title: `Best ${category.label} (2026) — ranked by GymGear Score`,

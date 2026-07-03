@@ -8,7 +8,7 @@ import { getCategories } from "@/lib/catalog";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Browse all gym gear, ranked — GymGear Compare",
+  title: "Browse all gym gear, ranked",
   description:
     "Every category we score: barbells, racks, benches, dumbbells, supplements, apparel and more — each ranked by the GymGear Score.",
   alternates: { canonical: "/gear" },

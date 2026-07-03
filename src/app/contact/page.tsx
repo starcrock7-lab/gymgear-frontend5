@@ -4,7 +4,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Contact — GymGear Compare",
+  title: "Contact",
   description:
     "Reach GymGear Compare with corrections, product suggestions, partnership questions, or feedback on a score.",
   alternates: { canonical: "/contact" },

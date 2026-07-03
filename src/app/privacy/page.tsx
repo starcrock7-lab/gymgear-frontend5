@@ -3,7 +3,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — GymGear Compare",
+  title: "Privacy Policy",
   description:
     "How GymGear Compare collects, uses, and protects your information.",
 };

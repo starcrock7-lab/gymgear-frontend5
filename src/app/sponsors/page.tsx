@@ -4,7 +4,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Partner With Us — GymGear Compare",
+  title: "Partner With Us",
   description:
     "Put your brand in front of fitness buyers actively comparing gym equipment, clothing, and supplements.",
 };
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 const FORMSPREE = "https://formspree.io/f/xpznkgqr";
 
 const stats = [
-  { n: "160+", l: "Products listed" },
-  { n: "20+", l: "Categories" },
+  { n: "250+", l: "Products listed" },
+  { n: "29", l: "Categories" },
   { n: "High", l: "Buyer intent" },
   { n: "3", l: "Ad formats" },
 ];

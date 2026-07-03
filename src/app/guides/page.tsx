@@ -6,7 +6,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { GUIDES } from "@/lib/guides";
 
 export const metadata: Metadata = {
-  title: "Buying guides — GymGear Compare",
+  title: "Buying guides",
   description:
     "Straight-talking home-gym buying guides: the best pick for each category by GymGear Score, plus exactly what to check before you spend.",
   alternates: { canonical: "/guides" },

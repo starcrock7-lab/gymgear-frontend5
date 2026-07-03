@@ -71,12 +71,12 @@ const steps: FlowStep[] = [
     n: "02",
     icon: <Sparkles className="h-4.5 w-4.5" />,
     title: "AI builds 3 kits",
-    body: "Best Value, Best Match, and Best Quality — assembled from 160 real products with live prices.",
+    body: "Best Value, Best Match, and Best Quality — assembled from 250+ real products with live prices.",
     details: [
       "Best Value — the cheapest route to your goal",
       "Best Match — balanced for your exact answers",
       "Best Quality — buy once, cry once",
-      "160 real products across 20 categories, live prices",
+      "250+ real products across 29 categories, live prices",
     ],
   },
   {
@@ -208,7 +208,7 @@ export default function Home() {
             </LiquidButton>
           </motion.div>
           <motion.p variants={fadeUp} className="mt-5 text-xs text-white/40">
-            No account needed · 160+ products · 20 categories
+            No account needed · 250+ products · 29 categories · 100% independent
           </motion.p>
 
           {/* Scroll hint, fades as you move (Vectr hero__scroll-btn) */}

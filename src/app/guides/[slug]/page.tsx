@@ -21,7 +21,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const g = getGuide(slug);
-  if (!g) return { title: "Guide not found — GymGear Compare" };
+  if (!g) return { title: "Guide not found" };
   return {
     title: g.metaTitle,
     description: g.metaDescription,
