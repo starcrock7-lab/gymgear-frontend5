@@ -58,10 +58,28 @@ export default async function GearIndexPage() {
                     <Link
                       key={c.key}
                       href={`/category/${c.key}`}
-                      className="flex items-center justify-between rounded-xl border border-line bg-white px-4 py-3 transition-colors hover:border-accent/40"
+                      className="group flex items-center gap-3 rounded-xl border border-line bg-white p-2.5 pr-4 transition-colors hover:border-accent/40"
                     >
-                      <span className="font-bold text-ink">{c.label}</span>
-                      <ChevronRight className="h-4 w-4 text-ink-3" />
+                      {c.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- remote unsplash thumb, fixed size
+                        <img
+                          src={c.image}
+                          alt=""
+                          loading="lazy"
+                          className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <span className="h-12 w-12 shrink-0 rounded-lg bg-navy/10" />
+                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-bold text-ink">
+                          {c.label}
+                        </span>
+                        <span className="block text-xs text-ink-3">
+                          {c.count} products ranked
+                        </span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-ink-3 transition-transform group-hover:translate-x-0.5" />
                     </Link>
                   ))}
                 </div>

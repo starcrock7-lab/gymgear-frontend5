@@ -45,6 +45,8 @@ export type Category = {
   label: string;
   group: string;
   count: number;
+  /** Lead category photo (browse-page thumbnails); older backends omit it. */
+  image?: string;
 };
 
 export type Kit = {
