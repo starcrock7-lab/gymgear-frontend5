@@ -125,10 +125,6 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-navy/40" />
           <div className="absolute inset-0 bg-gradient-to-b from-navy/70 via-transparent to-navy/50" />
-          <div
-            aria-hidden
-            className="animate-scanline absolute left-0 h-px w-full bg-gradient-to-r from-transparent via-accent/60 to-transparent shadow-[0_0_14px_rgba(232,84,42,0.55)]"
-          />
         </div>
         <CursorLight />
 

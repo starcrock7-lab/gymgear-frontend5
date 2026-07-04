@@ -93,20 +93,6 @@ body {
   }
 }
 
-/* Thin scan line sweeping the hero photo (hero-futuristic feel). */
-@keyframes scanline {
-  0% {
-    top: -8%;
-  }
-  100% {
-    top: 108%;
-  }
-}
-
-.animate-scanline {
-  animation: scanline 9s linear infinite;
-}
-
 /* Slow drift on the hero photo — the "moving background". */
 @keyframes kenburns {
   from {
@@ -154,10 +140,6 @@ body {
   .animate-aurora,
   .animate-kenburns {
     animation: none;
-  }
-
-  .animate-scanline {
-    display: none;
   }
 
   .gg-skeleton::after {
