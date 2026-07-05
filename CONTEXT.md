@@ -96,34 +96,31 @@ Comparison tool stays as secondary path for people who already know what they wa
 - [ ] TikTok/Reels comparison videos using live site
 - [ ] Google SEO articles ("Best home gym under $500 2026")
 
-## Current state of the repo
+## Current state of the repo (updated 2026-07-03)
 
 ### What exists (working, live)
-- gymgearcompare.com — live on Vercel
-- index.html — homepage (hero, 3 category cards, how it works)
-- app.html — comparison app (160 products, 20 categories, AI verdict)
-- sponsors.html — brand partnership page with Formspree contact form
-- server.js / render-server.js — Express backend on Render with all 160 products hardcoded
+- gymgearcompare.com — **Next.js 16 app live on Vercel** (old static-HTML site archived in `legacy/` — never edit it)
+- Quiz → kit funnel: `/quiz` → sessionStorage → backend `POST /api/kit` → 3-tier KitResult with product swap
+- `/compare` tool, `/extras` gear finder, `/gear` + `/category` browse, `/guides`, `/methodology` (GymGear Score rubric)
+- Express backend on Render (`server.js` — 160 hardcoded products + `/api/kit`)
 - Amazon Associates tag active (gymgearcompar-20)
-- Google Analytics (G-SY0CTG82TB) + AdSense wired
 
 ### What doesn't work yet
 - Weekly price refresh (search.js exists but GitHub Action not active)
 - Real product images (using emoji — waiting for Amazon PA API approval at 3 sales)
 - Affiliate URLs mostly empty (applications in progress)
-- Kit builder (not built yet — Phase 3)
+- SEO product pages, kit social sharing ("Phase 5" leftovers)
 
 ## Key files
 
 ### Frontend (C:\Users\nirka\Documents\gymgear-frontend-final)
-- `index.html` — homepage
-- `app.html` — comparison tool
-- `sponsors.html` — partnership page
-- `CLAUDE.md` — full technical briefing (read this for implementation details)
-- `CONTEXT.md` — this file (decisions + roadmap)
+- `src/app/` — Next.js App Router pages (quiz, compare, extras, gear, guides, methodology…)
+- `src/lib/` — `api.ts` (apiFetch/requestKit), `quiz.ts`, `kit.ts` (GymGear Score types), `catalog.ts`, `guides.ts`
+- `README.md` — route map + module map (read this for implementation details)
+- `CLAUDE.md` — working rules · `CONTEXT.md` — this file (decisions + roadmap)
 
 ### Backend (C:\Users\nirka\Documents\gymgear-backend-new)
-- `render-server.js` — main server (all 160 products + API routes)
+- `server.js` — main server (all 160 products + API routes incl. `/api/kit`)
 - `search.js` — weekly AI refresh script (not active)
 - `weekly-refresh.yml` — GitHub Action for refresh (not active)
 
