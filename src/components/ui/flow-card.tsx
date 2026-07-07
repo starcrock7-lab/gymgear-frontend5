@@ -18,14 +18,13 @@ export interface FlowStep {
   details: string[];
 }
 
-/* The scroll-reveal transition for the tiles — CHANGE THIS to reshape the
-   entrance vibe (e.g. swap y/scale for x to slide in, or add filter blur).
+/* Scroll entrance is fade+scale only — the rise now belongs to hover (per
+   Roe: cards lift when the mouse is on them, settle back when it leaves).
    The parent grid staggers these, so each tile plays in sequence. */
 export const TILE_REVEAL: Variants = {
-  hidden: { opacity: 0, y: 44, scale: 0.96 },
+  hidden: { opacity: 0, scale: 0.96 },
   show: {
     opacity: 1,
-    y: 0,
     scale: 1,
     transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
   },
@@ -76,6 +75,10 @@ export default function FlowCard({ step }: { step: FlowStep }) {
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       variants={TILE_REVEAL}
+      whileHover={{
+        y: -12,
+        transition: { type: "spring", stiffness: 280, damping: 22 },
+      }}
       style={{
         rotateX,
         rotateY,

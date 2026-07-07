@@ -43,6 +43,16 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Hover-mounted shader halo fade-in (HoverHalo on the money CTAs). */
+@keyframes halo-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Space garnish for the dark sections — two star layers (different tile
    sizes read as depth). Pure CSS, no requests, sits behind content. */
 .starfield {

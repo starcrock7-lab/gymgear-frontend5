@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   motion,
   useScroll,
@@ -53,6 +53,42 @@ const wordRise: Variants = {
 
 const heroLine1 = "Your perfect home gym.".split(" ");
 const heroLine2 = "Built in 60 seconds.".split(" ");
+
+/* Shader halo that exists only while its button is hovered — the canvas
+   mounts on enter (so it costs nothing at rest) and fades in. */
+function HoverHalo({ children }: { children: ReactNode }) {
+  const [hot, setHot] = useState(false);
+  return (
+    <span
+      className="relative inline-flex"
+      onMouseEnter={() => setHot(true)}
+      onMouseLeave={() => setHot(false)}
+    >
+      {hot && (
+        <span className="pointer-events-none absolute -inset-3 animate-[halo-in_0.35s_ease-out]">
+          <PulsingBorder
+            colors={["#ff8a5c", "#e8542a", "#b13a16"]}
+            colorBack="#00000000"
+            roundness={0.35}
+            thickness={0.09}
+            softness={0.85}
+            intensity={0.55}
+            bloom={0.6}
+            spots={3}
+            spotSize={0.5}
+            pulse={0.35}
+            smoke={0.35}
+            smokeSize={0.6}
+            speed={0.45}
+            scale={1}
+            style={{ width: "100%", height: "100%" }}
+          />
+        </span>
+      )}
+      {children}
+    </span>
+  );
+}
 
 const steps: FlowStep[] = [
   {
@@ -178,32 +214,14 @@ export default function Home() {
             variants={fadeUp}
             className="pointer-events-auto mt-10 flex flex-wrap items-center justify-center gap-4"
           >
-            {/* Shader halo behind the money button — ambient, slow pulse */}
-            <span className="relative inline-flex">
-              <PulsingBorder
-                colors={["#ff8a5c", "#e8542a", "#b13a16"]}
-                colorBack="#00000000"
-                roundness={0.35}
-                thickness={0.09}
-                softness={0.85}
-                intensity={0.55}
-                bloom={0.6}
-                spots={3}
-                spotSize={0.5}
-                pulse={0.35}
-                smoke={0.35}
-                smokeSize={0.6}
-                speed={0.45}
-                scale={1}
-                className="pointer-events-none absolute -inset-3"
-                style={{ width: "auto", height: "auto" }}
-              />
+            {/* Shader halo ignites only on hover (was always-on: laggy) */}
+            <HoverHalo>
               <ButtonColorful
                 label="Start the Quiz"
                 onClick={() => router.push("/quiz")}
                 className="relative h-14 rounded-xl px-8 font-body text-lg font-bold shadow-lg shadow-accent/30 transition-shadow duration-300 hover:shadow-[0_0_30px_rgba(232,84,42,0.55)]"
               />
-            </span>
+            </HoverHalo>
             {/* Liquid glass edges ignite orange on hover (same glow language
                 as the wallpaper) */}
             <LiquidButton
@@ -341,33 +359,16 @@ export default function Home() {
             One minute of questions. Three kits built for your space, your
             budget, your goals.
           </p>
-          <div className="relative mt-9">
-            {/* Shader halo — same ambient pulse as the hero CTA */}
-            <PulsingBorder
-              colors={["#ff8a5c", "#e8542a", "#b13a16"]}
-              colorBack="#00000000"
-              roundness={0.35}
-              thickness={0.09}
-              softness={0.85}
-              intensity={0.55}
-              bloom={0.6}
-              spots={3}
-              spotSize={0.5}
-              pulse={0.35}
-              smoke={0.35}
-              smokeSize={0.6}
-              speed={0.45}
-              scale={1}
-              className="pointer-events-none absolute -inset-3"
-              style={{ width: "auto", height: "auto" }}
-            />
-            {/* Glow bloom on hover — no 3D lift */}
-            <HighlightButton
-              onClick={() => router.push("/quiz")}
-              className="relative h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_36px_rgba(232,84,42,0.6)] hover:brightness-110"
-            >
-              Build my kit →
-            </HighlightButton>
+          <div className="mt-9">
+            {/* Shader halo on hover + glow bloom — no 3D lift */}
+            <HoverHalo>
+              <HighlightButton
+                onClick={() => router.push("/quiz")}
+                className="relative h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_36px_rgba(232,84,42,0.6)] hover:brightness-110"
+              >
+                Build my kit →
+              </HighlightButton>
+            </HoverHalo>
           </div>
         </motion.div>
       </section>
