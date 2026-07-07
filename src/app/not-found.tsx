@@ -28,7 +28,7 @@ export default function NotFound() {
           </Link>
           <Link
             href="/"
-            className="rounded-xl border border-line bg-white px-5 py-2.5 font-body text-sm font-bold text-ink transition-colors hover:border-accent/40"
+            className="rounded-xl border border-line bg-card px-5 py-2.5 font-body text-sm font-bold text-ink transition-colors hover:border-accent/40"
           >
             Back home
           </Link>

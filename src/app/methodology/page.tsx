@@ -50,7 +50,7 @@ export default function MethodologyPage() {
         </section>
 
         <div className="mx-auto max-w-3xl px-5 py-12">
-          <div className="rounded-2xl border border-line bg-white p-5">
+          <div className="rounded-2xl border border-line bg-card p-5">
             <p className="font-display text-lg font-bold text-ink">
               The honest version, first
             </p>
@@ -72,7 +72,7 @@ export default function MethodologyPage() {
             {FACETS.map((f) => (
               <div
                 key={f.name}
-                className="rounded-xl border border-line bg-white p-4"
+                className="rounded-xl border border-line bg-card p-4"
               >
                 <p className="font-display font-bold text-ink">{f.name}</p>
                 <p className="mt-1 text-sm text-ink-2">{f.desc}</p>
@@ -99,7 +99,7 @@ export default function MethodologyPage() {
             {AWARDS.map(([name, desc]) => (
               <div
                 key={name}
-                className="flex gap-3 rounded-xl border border-line bg-white p-4"
+                className="flex gap-3 rounded-xl border border-line bg-card p-4"
               >
                 <span className="self-start shrink-0 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-bold text-accent">
                   {name}

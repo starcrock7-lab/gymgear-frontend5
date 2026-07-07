@@ -215,7 +215,7 @@ export default async function ProductPage({
 
           {/* GymGear Score — proprietary data, the information-gain core */}
           {typeof p.gymgearScore === "number" && (
-            <section className="mt-12 rounded-2xl border border-line bg-white p-6">
+            <section className="mt-12 rounded-2xl border border-line bg-card p-6">
               <div className="flex flex-wrap items-center gap-5">
                 <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl bg-accent text-white shadow-lg shadow-accent/30">
                   <span className="font-display text-3xl font-extrabold leading-none">
@@ -291,7 +291,7 @@ export default async function ProductPage({
               <h2 className="font-display text-2xl font-extrabold tracking-tight text-ink">
                 Specs
               </h2>
-              <dl className="mt-4 overflow-hidden rounded-2xl border border-line bg-white">
+              <dl className="mt-4 overflow-hidden rounded-2xl border border-line bg-card">
                 {specs.map(([k, v], i) => (
                   <div
                     key={k}
@@ -319,7 +319,7 @@ export default async function ProductPage({
                   <Link
                     key={x.id}
                     href={`/gear/${x.id}`}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-line bg-white px-4 py-3 transition-colors hover:border-accent/40"
+                    className="flex items-center justify-between gap-4 rounded-xl border border-line bg-card px-4 py-3 transition-colors hover:border-accent/40"
                   >
                     <span className="flex items-center gap-2 truncate">
                       {typeof x.gymgearScore === "number" && (
@@ -354,7 +354,7 @@ export default async function ProductPage({
           )}
 
           {/* Buy footer */}
-          <div className="mt-12 rounded-2xl border border-line bg-white p-6 text-center">
+          <div className="mt-12 rounded-2xl border border-line bg-card p-6 text-center">
             <p className="font-display text-lg font-bold text-ink">
               Ready to buy the {p.name}?
             </p>

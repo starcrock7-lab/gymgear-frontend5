@@ -113,7 +113,7 @@ export default async function GuidePage({
             {picks.map(({ label, p }) => (
               <div
                 key={p.id}
-                className="flex flex-col rounded-2xl border border-line bg-white p-4"
+                className="flex flex-col rounded-2xl border border-line bg-card p-4"
               >
                 <span className="flex items-center gap-1 text-[0.65rem] font-bold uppercase tracking-wide text-accent">
                   <Award className="h-3 w-3" />
@@ -184,7 +184,7 @@ export default async function GuidePage({
 
           <Link
             href={`/category/${g.category}`}
-            className="mt-10 inline-flex items-center gap-1 rounded-xl bg-ink px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-ink/90"
+            className="mt-10 inline-flex items-center gap-1 rounded-xl bg-accent px-5 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(232,84,42,0.5)]"
           >
             See the full ranking
             <ChevronRight className="h-4 w-4" />

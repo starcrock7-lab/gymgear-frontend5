@@ -96,7 +96,7 @@ export default function AboutPage() {
             {VALUES.map((v) => (
               <div
                 key={v.h}
-                className="rounded-2xl border border-line bg-white p-5"
+                className="rounded-2xl border border-line bg-card p-5"
               >
                 <v.icon className="h-6 w-6 text-accent" />
                 <p className="mt-3 font-display font-bold text-ink">{v.h}</p>

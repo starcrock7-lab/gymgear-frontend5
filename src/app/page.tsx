@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -12,7 +11,7 @@ import {
 import { ClipboardList, Sparkles, ShieldCheck } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import CursorLight from "@/components/ui/cursor-light";
+import DumbbellWall from "@/components/ui/dumbbell-wall";
 import IntroLoader from "@/components/ui/intro-loader";
 import AuroraBackground from "@/components/ui/aurora-background";
 import FloatingPaths from "@/components/ui/background-paths";
@@ -111,28 +110,16 @@ export default function Home() {
       <IntroLoader onComplete={() => setIntroDone(true)} />
       <SiteNav />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-navy text-white">
-        {/* Moving photo backdrop: slow Ken Burns drift + navy veils for text */}
-        <div aria-hidden className="absolute inset-0 overflow-hidden">
-          <Image
-            src="/hero.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="animate-kenburns object-cover"
-          />
-          <div className="absolute inset-0 bg-navy/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-navy/70 via-transparent to-navy/50" />
-        </div>
-        <CursorLight />
+      {/* Hero — full first viewport (immersive: nothing below bleeds in),
+          dumbbell-wallpaper backdrop whose edges ignite around the cursor */}
+      <section className="relative flex min-h-[calc(100svh-4rem)] flex-col overflow-hidden bg-navy text-white">
+        <DumbbellWall />
 
         <motion.div
           variants={heroStagger}
           initial="hidden"
           animate={introDone ? "show" : "hidden"}
-          className="relative mx-auto flex max-w-4xl flex-col items-center px-5 pt-24 pb-32 text-center"
+          className="pointer-events-none relative mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center px-5 py-16 text-center"
         >
           <motion.p
             variants={fadeUp}
@@ -188,17 +175,19 @@ export default function Home() {
           </motion.p>
           <motion.div
             variants={fadeUp}
-            className="mt-10 flex flex-wrap items-center justify-center gap-4"
+            className="pointer-events-auto mt-10 flex flex-wrap items-center justify-center gap-4"
           >
             <ButtonColorful
               label="Start the Quiz"
               onClick={() => router.push("/quiz")}
-              className="h-14 rounded-xl px-8 font-body text-lg font-bold shadow-lg shadow-accent/30"
+              className="h-14 rounded-xl px-8 font-body text-lg font-bold shadow-lg shadow-accent/30 transition-shadow duration-300 hover:shadow-[0_0_30px_rgba(232,84,42,0.55)]"
             />
+            {/* Liquid glass edges ignite orange on hover (same glow language
+                as the wallpaper) */}
             <LiquidButton
               size="xl"
               onClick={() => router.push("/compare")}
-              className="h-14 font-body text-lg font-bold text-white/90 hover:text-white"
+              className="h-14 font-body text-lg font-bold text-white/90 ring-1 ring-transparent transition-all duration-300 hover:text-white hover:ring-accent/70 hover:shadow-[0_0_24px_rgba(232,84,42,0.45),inset_0_0_14px_rgba(232,84,42,0.18)]"
             >
               Just compare products
             </LiquidButton>
@@ -227,38 +216,69 @@ export default function Home() {
             </motion.span>
           </motion.div>
         </motion.div>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-off to-transparent"
-        />
       </section>
 
-      {/* How it works — tiles cascade in on scroll (one staggered transition) */}
-      <section className="mx-auto max-w-6xl px-5 py-20">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl"
-        >
-          How it works
-        </motion.h2>
+      {/* How it works — dark tech section; tiles cascade in on scroll */}
+      <section className="relative overflow-hidden bg-navy-deep py-24">
+        {/* Circuit-grid backdrop + ember glows for depth */}
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_75%_80%_at_50%_40%,#000_50%,transparent_100%)]"
+        />
+        <div
+          aria-hidden
+          className="absolute -left-32 top-16 h-72 w-72 rounded-full bg-accent/10 blur-[110px]"
+        />
+        <div
+          aria-hidden
+          className="absolute -right-24 bottom-10 h-80 w-80 rounded-full bg-accent/[0.07] blur-[120px]"
+        />
+
+        {/* Seam between sections: a glow line that draws itself on scroll */}
         <motion.div
-          variants={tileContainer}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-80px" }}
-          className="mt-12 grid items-start gap-6 sm:grid-cols-3"
-        >
-          {steps.map((s) => (
-            <FlowCard key={s.n} step={s} />
-          ))}
-        </motion.div>
+          aria-hidden
+          initial={{ scaleX: 0, opacity: 0 }}
+          whileInView={{ scaleX: 1, opacity: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-x-16 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent shadow-[0_0_16px_rgba(232,84,42,0.7)]"
+        />
+
+        <div className="relative mx-auto max-w-6xl px-5">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="text-center font-display text-3xl font-bold tracking-tight text-white sm:text-4xl"
+          >
+            How it works
+          </motion.h2>
+          <motion.div
+            variants={tileContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-80px" }}
+            className="mt-14 grid items-stretch gap-6 sm:grid-cols-3"
+          >
+            {steps.map((s) => (
+              <FlowCard key={s.n} step={s} />
+            ))}
+          </motion.div>
+        </div>
       </section>
 
       {/* CTA band: aurora + flowing paths + scramble */}
       <section className="relative overflow-hidden bg-navy-deep py-28 text-white">
+        {/* Seam glow line between sections */}
+        <motion.div
+          aria-hidden
+          initial={{ scaleX: 0, opacity: 0 }}
+          whileInView={{ scaleX: 1, opacity: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-x-16 top-0 z-10 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent shadow-[0_0_14px_rgba(232,84,42,0.6)]"
+        />
         <AuroraBackground />
         <div className="text-white/40">
           <FloatingPaths position={1} />
@@ -286,9 +306,10 @@ export default function Home() {
             budget, your goals.
           </p>
           <div className="mt-9">
+            {/* Glow bloom on hover — no 3D lift */}
             <HighlightButton
               onClick={() => router.push("/quiz")}
-              className="h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0"
+              className="h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_36px_rgba(232,84,42,0.6)] hover:brightness-110"
             >
               Build my kit →
             </HighlightButton>

@@ -44,7 +44,7 @@ export default function PrivacyPage() {
       </section>
 
       <main className="mx-auto max-w-3xl px-5 py-14">
-        <p className="mb-8 inline-block rounded-lg border border-line bg-white px-4 py-2 text-sm text-ink-3">
+        <p className="mb-8 inline-block rounded-lg border border-line bg-card px-4 py-2 text-sm text-ink-3">
           Last updated: June 8, 2026
         </p>
 

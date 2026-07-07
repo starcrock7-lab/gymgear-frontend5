@@ -32,7 +32,7 @@ export default function GuidesIndexPage() {
               <Link
                 key={g.slug}
                 href={`/guides/${g.slug}`}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-white p-5 transition-colors hover:border-accent/40"
+                className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-card p-5 transition-colors hover:border-accent/40"
               >
                 <span className="flex items-center gap-3">
                   <BookOpen className="h-5 w-5 shrink-0 text-accent" />

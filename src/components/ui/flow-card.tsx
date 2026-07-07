@@ -3,7 +3,6 @@
 import * as React from "react";
 import {
   motion,
-  AnimatePresence,
   useMotionValue,
   useSpring,
   useScroll,
@@ -19,22 +18,6 @@ export interface FlowStep {
   details: string[];
 }
 
-function subscribeHoverMedia(onChange: () => void) {
-  const mq = window.matchMedia("(hover: hover)");
-  mq.addEventListener("change", onChange);
-  return () => mq.removeEventListener("change", onChange);
-}
-
-const detailVariants: Variants = {
-  hidden: { opacity: 0, height: 0, marginTop: 0 },
-  visible: {
-    opacity: 1,
-    height: "auto",
-    marginTop: "0.9rem",
-    transition: { duration: 0.32, ease: [0.25, 1, 0.5, 1] },
-  },
-};
-
 /* The scroll-reveal transition for the tiles — CHANGE THIS to reshape the
    entrance vibe (e.g. swap y/scale for x to slide in, or add filter blur).
    The parent grid staggers these, so each tile plays in sequence. */
@@ -49,21 +32,13 @@ export const TILE_REVEAL: Variants = {
 };
 
 /**
- * How-it-works panel: 3D tilt toward the cursor with an ember glow tracking
- * it, content lifted on translateZ layers, scroll-scrubbed progress track,
- * and a detail list that unfolds on hover. Touch devices (no hover) get the
- * details permanently expanded instead of never.
+ * How-it-works panel (dark tech variant): 3D tilt toward the cursor with an
+ * ember glow tracking it, content lifted on translateZ layers, a
+ * scroll-scrubbed progress track, and the detail list always visible so the
+ * cards read tall and full on every device.
  */
 export default function FlowCard({ step }: { step: FlowStep }) {
   const ref = React.useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = React.useState(false);
-  // SSR assumes a hover device; touch devices correct after hydration and
-  // get the details permanently expanded.
-  const canHover = React.useSyncExternalStore(
-    subscribeHoverMedia,
-    () => window.matchMedia("(hover: hover)").matches,
-    () => true,
-  );
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -91,17 +66,14 @@ export default function FlowCard({ step }: { step: FlowStep }) {
   const onMouseLeave = () => {
     rx.set(0);
     ry.set(0);
-    setHovered(false);
   };
 
-  const glow = useMotionTemplate`radial-gradient(180px circle at ${mx}% ${my}%, rgba(232, 84, 42, 0.13), transparent 65%)`;
-  const expanded = canHover ? hovered : true;
+  const glow = useMotionTemplate`radial-gradient(200px circle at ${mx}% ${my}%, rgba(232, 84, 42, 0.16), transparent 65%)`;
 
   return (
     <motion.div
       ref={ref}
       onMouseMove={onMouseMove}
-      onMouseEnter={() => setHovered(true)}
       onMouseLeave={onMouseLeave}
       variants={TILE_REVEAL}
       style={{
@@ -110,7 +82,7 @@ export default function FlowCard({ step }: { step: FlowStep }) {
         transformPerspective: 900,
         transformStyle: "preserve-3d",
       }}
-      className="group relative rounded-2xl border border-line bg-white p-7 shadow-sm transition-shadow duration-300 hover:border-accent/40 hover:shadow-xl hover:shadow-accent/10"
+      className="group relative flex h-full flex-col rounded-2xl border border-white/12 bg-white/[0.04] p-8 backdrop-blur-sm transition-all duration-300 hover:border-accent/60 hover:shadow-[0_0_30px_rgba(232,84,42,0.18),inset_0_0_20px_rgba(232,84,42,0.05)]"
     >
       {/* Cursor-tracked ember glow */}
       <motion.div
@@ -121,59 +93,51 @@ export default function FlowCard({ step }: { step: FlowStep }) {
       {/* Faint grid texture for depth */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-2xl bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:28px_28px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_40%,#000_60%,transparent_100%)]"
+        className="pointer-events-none absolute inset-0 rounded-2xl bg-[linear-gradient(to_right,#ffffff09_1px,transparent_1px),linear-gradient(to_bottom,#ffffff09_1px,transparent_1px)] bg-[size:28px_28px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_40%,#000_60%,transparent_100%)]"
       />
 
       <div
         style={{ transform: "translateZ(28px)", transformStyle: "preserve-3d" }}
         className="relative"
       >
-        <div className="h-0.5 w-full overflow-hidden rounded bg-line">
+        <div className="h-0.5 w-full overflow-hidden rounded bg-white/10">
           <motion.div
             style={{ scaleX: scrollYProgress }}
-            className="h-full origin-left bg-accent"
+            className="h-full origin-left bg-accent shadow-[0_0_8px_rgba(232,84,42,0.8)]"
           />
         </div>
 
-        <div className="mt-5 flex items-center justify-between">
-          <p className="font-body text-sm font-bold text-accent transition-transform duration-300 group-hover:scale-110 group-hover:[transform-origin:left]">
+        <div className="mt-6 flex items-center justify-between">
+          <p className="font-display text-2xl font-extrabold text-accent/90 transition-all duration-300 group-hover:[text-shadow:0_0_16px_rgba(232,84,42,0.7)]">
             {step.n}
           </p>
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent transition-all duration-300 group-hover:bg-accent group-hover:text-white">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent transition-all duration-300 group-hover:border-accent group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_0_18px_rgba(232,84,42,0.6)]">
             {step.icon}
           </span>
         </div>
 
         <h3
           style={{ transform: "translateZ(14px)" }}
-          className="mt-3 font-display text-xl font-bold text-ink"
+          className="mt-4 font-display text-2xl font-bold text-white"
         >
           {step.title}
         </h3>
-        <p className="mt-2 text-sm leading-relaxed text-ink-2">{step.body}</p>
+        <p className="mt-2.5 text-sm leading-relaxed text-white/60">
+          {step.body}
+        </p>
 
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.ul
-              key="details"
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={detailVariants}
-              className="overflow-hidden border-t border-line"
+        {/* Details always visible — the card reads tall and complete */}
+        <ul className="mt-6 border-t border-white/10 pt-1.5">
+          {step.details.map((d) => (
+            <li
+              key={d}
+              className="mt-3 flex items-start gap-2.5 text-[0.8rem] leading-relaxed text-white/55"
             >
-              {step.details.map((d) => (
-                <li
-                  key={d}
-                  className="mt-2.5 flex items-start gap-2 text-xs leading-relaxed text-ink-2"
-                >
-                  <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-accent" />
-                  {d}
-                </li>
-              ))}
-            </motion.ul>
-          )}
-        </AnimatePresence>
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-accent shadow-[0_0_6px_rgba(232,84,42,0.9)]" />
+              {d}
+            </li>
+          ))}
+        </ul>
       </div>
     </motion.div>
   );

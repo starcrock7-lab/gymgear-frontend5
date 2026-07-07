@@ -8,12 +8,17 @@
   --accent-hover: #dc4718;
   --navy: #0d1b35;
   --navy-deep: #081124;
-  --ink: #131009;
-  --ink-2: #565049;
-  --ink-3: #948d83;
-  --off: #f8f7f5;
-  --line: #e6e1da;
-  --win: #15803d;
+  /* Dark-theme flip (2026-07-07 redesign): the old light "content layer"
+     tokens now resolve to the same dark futuristic surface language as the
+     homepage — every page keyed to ink/off/line went dark in one move.
+     card = the solid raised surface that replaced white cards. */
+  --ink: #f1f4fa;
+  --ink-2: #a3adc2;
+  --ink-3: #667192;
+  --off: #081124;
+  --line: rgba(255, 255, 255, 0.12);
+  --win: #2fbf62;
+  --card: #0f1d3d;
 }
 
 @theme inline {
@@ -28,8 +33,14 @@
   --color-off: var(--off);
   --color-line: var(--line);
   --color-win: var(--win);
+  --color-card: var(--card);
   --font-display: var(--font-space);
   --font-body: var(--font-inter);
+}
+
+html {
+  /* Anchor jumps glide between sections (UX: smooth scroll). */
+  scroll-behavior: smooth;
 }
 
 body {

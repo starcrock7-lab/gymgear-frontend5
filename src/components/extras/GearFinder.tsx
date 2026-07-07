@@ -89,8 +89,8 @@ export default function GearFinder() {
             className={
               "rounded-full px-4 py-2 text-sm font-bold transition-colors " +
               (group === g.key
-                ? "bg-ink text-white"
-                : "bg-white text-ink-2 ring-1 ring-line hover:text-ink")
+                ? "bg-accent text-white shadow-[0_0_16px_rgba(232,84,42,0.35)]"
+                : "bg-card text-ink-2 ring-1 ring-line hover:text-ink")
             }
           >
             {g.label}
@@ -109,7 +109,7 @@ export default function GearFinder() {
               "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors " +
               (cat === c.key
                 ? "bg-accent/10 text-accent ring-1 ring-accent/40"
-                : "text-ink-2 hover:bg-white hover:text-ink")
+                : "text-ink-2 hover:bg-card hover:text-ink")
             }
           >
             {c.label}
@@ -155,7 +155,7 @@ function FinderCard({
   onDetail: () => void;
 }) {
   return (
-    <SpotlightCard className="flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-2xl hover:shadow-accent/15">
+    <SpotlightCard className="flex flex-col overflow-hidden rounded-2xl border border-line bg-card transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-2xl hover:shadow-accent/15">
       <button
         type="button"
         onClick={onDetail}
@@ -218,7 +218,7 @@ function FinderCard({
 
 function SkeletonCard() {
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-white">
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-card">
       <Skeleton className="aspect-square rounded-none" />
       <div className="flex flex-1 flex-col gap-2 p-3">
         <Skeleton className="h-3.5 w-4/5" />

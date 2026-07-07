@@ -21,7 +21,7 @@ export default function AddToCartButton({
   const idle =
     variant === "dark"
       ? "border border-white/20 bg-white/5 text-white/90 hover:-translate-y-0.5 hover:border-accent/60 hover:bg-accent/10 hover:text-accent"
-      : "border border-line bg-white text-ink hover:-translate-y-0.5 hover:border-accent/60 hover:text-accent";
+      : "border border-line bg-card text-ink hover:-translate-y-0.5 hover:border-accent/60 hover:text-accent";
   return (
     <button
       type="button"

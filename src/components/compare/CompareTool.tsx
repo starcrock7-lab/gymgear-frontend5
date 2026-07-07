@@ -176,8 +176,8 @@ export default function CompareTool() {
                 className={
                   "rounded-full px-4 py-2 text-sm font-bold transition-colors " +
                   (group === g.key
-                    ? "bg-ink text-white"
-                    : "bg-white text-ink-2 ring-1 ring-line hover:text-ink")
+                    ? "bg-accent text-white shadow-[0_0_16px_rgba(232,84,42,0.35)]"
+                    : "bg-card text-ink-2 ring-1 ring-line hover:text-ink")
                 }
               >
                 {g.label}
@@ -196,7 +196,7 @@ export default function CompareTool() {
                   "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors " +
                   (cat === c.key
                     ? "bg-accent/10 text-accent ring-1 ring-accent/40"
-                    : "text-ink-2 hover:bg-white hover:text-ink")
+                    : "text-ink-2 hover:bg-card hover:text-ink")
                 }
               >
                 {c.label}
@@ -302,7 +302,7 @@ function ProductCard({
   return (
     <SpotlightCard
       className={
-        "flex flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-300 " +
+        "flex flex-col overflow-hidden rounded-2xl border bg-card transition-all duration-300 " +
         (selected
           ? "border-accent shadow-lg shadow-accent/10"
           : "border-line hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-2xl hover:shadow-accent/15")
@@ -364,7 +364,7 @@ function ProductCard({
               ? "bg-accent text-white"
               : disabled
                 ? "cursor-not-allowed bg-off text-ink-3"
-                : "bg-ink text-white hover:bg-ink/90")
+                : "bg-accent text-white hover:bg-accent-hover")
           }
         >
           {selected ? (
@@ -388,7 +388,7 @@ function ProductCard({
 
 function SkeletonCard() {
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-white">
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-card">
       <Skeleton className="aspect-square rounded-none" />
       <div className="flex flex-1 flex-col gap-2 p-3">
         <Skeleton className="h-3.5 w-4/5" />
@@ -515,7 +515,7 @@ function ComparisonMatrix({
         <button
           type="button"
           onClick={copyLink}
-          className="flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink-2 transition-colors hover:border-accent/40 hover:text-ink"
+          className="flex items-center gap-1.5 rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-ink-2 transition-colors hover:border-accent/40 hover:text-ink"
         >
           {copied ? (
             <>
@@ -535,7 +535,7 @@ function ComparisonMatrix({
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <SpotlightCard
           glow="var(--win)"
-          className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition-colors hover:border-win/40"
+          className="flex items-center gap-3 rounded-xl border border-line bg-card p-4 transition-colors hover:border-win/40"
         >
           <BadgeDollarSign className="relative z-[1] h-5 w-5 shrink-0 text-win" />
           <p className="relative z-[1] text-sm text-ink-2">
@@ -544,7 +544,7 @@ function ComparisonMatrix({
         </SpotlightCard>
         <SpotlightCard
           glow="var(--accent)"
-          className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition-colors hover:border-accent/40"
+          className="flex items-center gap-3 rounded-xl border border-line bg-card p-4 transition-colors hover:border-accent/40"
         >
           <Trophy className="relative z-[1] h-5 w-5 shrink-0 text-accent" />
           <p className="relative z-[1] text-sm text-ink-2">
@@ -555,11 +555,11 @@ function ComparisonMatrix({
       </div>
 
       {/* Matrix */}
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-line bg-white">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-line bg-card">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-line">
-              <th className="sticky left-0 z-[2] w-32 bg-white p-4" />
+              <th className="sticky left-0 z-[2] w-32 bg-card p-4" />
               {products.map((p) => (
                 <th key={p.id} className="p-4 align-top">
                   <button
@@ -691,7 +691,7 @@ function ComparisonMatrix({
               </Row>
             ))}
             <tr>
-              <td className="sticky left-0 z-[1] bg-white p-4" />
+              <td className="sticky left-0 z-[1] bg-card p-4" />
               {products.map((p) => (
                 <td key={p.id} className="p-4 align-top">
                   <a

@@ -38,7 +38,7 @@ export default function ContactPage() {
 
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="mt-8 flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 py-4 font-display text-lg font-bold text-ink transition-colors hover:border-accent/40"
+            className="mt-8 flex items-center justify-center gap-2 rounded-xl border border-line bg-card px-6 py-4 font-display text-lg font-bold text-ink transition-colors hover:border-accent/40"
           >
             <Mail className="h-5 w-5 text-accent" />
             {CONTACT_EMAIL}

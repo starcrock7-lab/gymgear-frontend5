@@ -58,7 +58,7 @@ export default async function GearIndexPage() {
                     <Link
                       key={c.key}
                       href={`/category/${c.key}`}
-                      className="group flex items-center gap-3 rounded-xl border border-line bg-white p-2.5 pr-4 transition-colors hover:border-accent/40"
+                      className="group flex items-center gap-3 rounded-xl border border-line bg-card p-2.5 pr-4 transition-colors hover:border-accent/40"
                     >
                       {c.image ? (
                         // eslint-disable-next-line @next/next/no-img-element -- remote unsplash thumb, fixed size

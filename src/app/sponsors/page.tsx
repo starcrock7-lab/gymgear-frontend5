@@ -52,7 +52,7 @@ const reasons = [
 ];
 
 const field =
-  "w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-accent";
+  "w-full rounded-lg border border-line bg-card px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-accent";
 
 export default function SponsorsPage() {
   return (
@@ -92,7 +92,7 @@ export default function SponsorsPage() {
           {reasons.map((r) => (
             <div
               key={r.title}
-              className="rounded-2xl border border-line bg-white p-6 transition-shadow hover:shadow-lg"
+              className="rounded-2xl border border-line bg-card p-6 transition-shadow hover:shadow-lg"
             >
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
                 <r.icon className="h-5 w-5" />

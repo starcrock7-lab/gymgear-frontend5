@@ -129,7 +129,7 @@ export default async function CategoryPage({
             {ranked.map((p, i) => (
               <div
                 key={p.id}
-                className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-4 sm:flex-row sm:items-center"
+                className="flex flex-col gap-4 rounded-2xl border border-line bg-card p-4 sm:flex-row sm:items-center"
               >
                 <div className="flex min-w-0 flex-1 items-center gap-4">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-off font-display text-sm font-extrabold text-ink-2">

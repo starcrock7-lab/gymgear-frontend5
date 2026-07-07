@@ -70,6 +70,13 @@ Groq only wrote copy), so "AI picks your kit" was never literally true.
 - **Deal detection is request-time-free:** derived from cached catalog fields
   at render, no scheduled job needed until copy/expiry phases.
 
+## Design refresh — techy/futuristic dark (2026-07-07, Roe-directed)
+
+- **Whole site is dark now.** The light "content layer" died via token flip in `globals.css` (`--ink/--ink-2/--ink-3/--off/--line` resolve dark; new `--card` = raised surface that replaced white cards). `bg-white` is RESERVED for product-image/brand-initial tiles only. The `bg-ink text-white` chip idiom is dead (inverts to white-on-white) — use accent chips.
+- **Glow is the interaction language** (not lifts): nav links get glowing underline sweep + the nav's bottom line ignites on hover; buttons bloom (`hover:shadow-[0_0_..rgba(232,84,42,..)]`) instead of translate-y.
+- **Hero:** dumbbell-pattern wallpaper (`ui/dumbbell-wall.tsx` — masked SVG tile, cursor-following clip-circle ignites the edges orange; disabled on `hover: none` devices or taps stick the glow). Full-viewport immersive (`min-h-[100svh-4rem]`), no light bleed from below.
+- **How-it-works:** dark tech section (grid backdrop + ember glows + seam glow-lines that draw on scroll); FlowCards are tall glass cards with details always visible.
+
 ## Permission model
 - State what you're about to do before writing/acting
 - Never commit API keys or secrets to any file

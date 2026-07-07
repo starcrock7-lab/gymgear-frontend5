@@ -57,7 +57,12 @@ export default function SiteNav() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/10 bg-navy/90 backdrop-blur-md">
+    <nav className="group/nav sticky top-0 z-50 border-b border-white/10 bg-navy/90 backdrop-blur-md">
+      {/* The line between nav and page ignites while the nav is hovered */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-accent to-transparent opacity-0 shadow-[0_0_14px_rgba(232,84,42,0.8)] transition-opacity duration-500 group-hover/nav:opacity-100"
+      />
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <Link
           href="/"
@@ -76,9 +81,14 @@ export default function SiteNav() {
             <Link
               key={l.href}
               href={l.href}
-              className="text-sm font-medium text-white/70 transition-colors hover:text-white"
+              className="group/link relative text-sm font-medium text-white/70 transition-all duration-300 hover:text-white hover:[text-shadow:0_0_14px_rgba(232,84,42,0.75)]"
             >
               {l.label}
+              {/* Underline sweeps in with a glow */}
+              <span
+                aria-hidden
+                className="absolute -bottom-1.5 left-0 h-px w-full origin-left scale-x-0 bg-gradient-to-r from-accent to-accent/30 shadow-[0_0_10px_rgba(232,84,42,0.9)] transition-transform duration-300 group-hover/link:scale-x-100"
+              />
             </Link>
           ))}
           <button
@@ -95,7 +105,7 @@ export default function SiteNav() {
           </button>
           <Link
             href="/quiz"
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white transition-all hover:-translate-y-px hover:bg-accent-hover"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white shadow-md shadow-accent/20 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_22px_rgba(232,84,42,0.65)]"
           >
             Build My Kit →
           </Link>
