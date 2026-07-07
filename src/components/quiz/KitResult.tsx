@@ -18,6 +18,7 @@ import {
   BadgePercent,
 } from "lucide-react";
 import { findDeals, dealsSavings, dealsPitch, productDeal } from "@/lib/deals";
+import { useCart, cartAdd } from "@/lib/cart";
 import {
   KIT_TIER_META,
   buyUrl,
@@ -304,6 +305,9 @@ function Cart({
   const subtotal = kit.totalPrice;
   const listTotal = items.reduce((s, p) => s + p.price, 0);
   const savings = Math.round(listTotal - subtotal);
+  /* Live: true once every line item is in the global cart. */
+  const cartIds = new Set(useCart().map((p) => p.id));
+  const allInCart = items.length > 0 && items.every((p) => cartIds.has(p.id));
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.04] backdrop-blur-sm">
@@ -384,14 +388,41 @@ function Cart({
                 <span className="text-accent">{formatPrice(subtotal)}</span>
               </p>
             </div>
-            <button
-              type="button"
-              onClick={onBuyAll}
-              className="flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-body text-sm font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              Buy all{items.length > 1 ? ` (${items.length})` : ""}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Bridge into the site-wide cart (Phase 8) — keeps this
+                  tier's picks reachable from any page via the nav badge. */}
+              <button
+                type="button"
+                onClick={() => cartAdd(items)}
+                disabled={allInCart}
+                className={
+                  "flex items-center gap-2 rounded-xl border px-5 py-3 font-body text-sm font-bold transition-all duration-300 " +
+                  (allInCart
+                    ? "cursor-default border-win/40 bg-win/10 text-win"
+                    : "border-white/20 bg-white/5 text-white/90 hover:-translate-y-0.5 hover:border-accent/60 hover:text-accent")
+                }
+              >
+                {allInCart ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    In your cart
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Add kit to cart
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={onBuyAll}
+                className="flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-body text-sm font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Buy all{items.length > 1 ? ` (${items.length})` : ""}
+              </button>
+            </div>
           </div>
           <p className="mt-2.5 text-[0.65rem] leading-snug text-white/35">
             &ldquo;Buy all&rdquo; opens each item&rsquo;s store page in a new tab

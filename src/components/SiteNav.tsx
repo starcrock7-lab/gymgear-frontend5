@@ -2,9 +2,31 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, Search, X } from "lucide-react";
+import { Menu, Search, ShoppingCart, X } from "lucide-react";
 import { LogoMark } from "@/components/ui/logo-mark";
 import SearchModal from "@/components/SearchModal";
+import { useCart } from "@/lib/cart";
+
+/* Cart icon + live count. Its own component so the useCart subscription
+   re-renders just the badge, not the whole nav. */
+function CartLink({ onClick }: { onClick?: () => void }) {
+  const count = useCart().length;
+  return (
+    <Link
+      href="/cart"
+      onClick={onClick}
+      aria-label={`Cart, ${count} ${count === 1 ? "item" : "items"}`}
+      className="relative flex h-10 w-10 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+    >
+      <ShoppingCart className="h-5 w-5" />
+      {count > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[0.6rem] font-bold text-white">
+          {count}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 const NAV_LINKS = [
   { href: "/gear", label: "Gear" },
@@ -77,10 +99,12 @@ export default function SiteNav() {
           >
             Build My Kit →
           </Link>
+          <CartLink />
         </div>
 
-        {/* Mobile: search + menu toggles */}
+        {/* Mobile: cart + search + menu toggles */}
         <div className="flex items-center sm:hidden">
+          <CartLink onClick={close} />
           <button
             type="button"
             onClick={() => setSearchOpen(true)}

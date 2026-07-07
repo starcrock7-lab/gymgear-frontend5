@@ -123,8 +123,14 @@ See the 2026-07-06 decisions section — the LLM never sources prices/expiry.
 - [ ] **v2 — expiry + timers (Roe: "remember to add this"):** add `expiresAt` per deal to the catalog (backend repo, public — no secrets); real countdown timers in the strip; on expiry show regular price immediately and queue that ONE product for a targeted re-check (not a full catalog scan); holiday/seasonal specials theming. Needs a data source that knows end dates (curated by hand, or Keepa/PA-API when unlocked)
 - [ ] v2+ — live price source (Keepa or Amazon PA-API — PA-API also unlocks real product images at 3 sales) replaces hand-curated salePrice
 
-### Phase 8 — Cart system rework (flagged by Roe 2026-07-06)
-- [ ] Change the cart system — scope TBD with Roe (current: per-tier kit-as-cart in KitResult with swap/remove/add-accessory, "Buy all" opens one tab per item since affiliate links have no shared checkout). Capture requirements before building.
+### Phase 8 — Cart system rework (scoped with Roe 2026-07-07)
+Chosen scope: **site-wide persistent cart** + **better buy/checkout flow**. Explicitly NOT chosen: merging the 3 kit tiers into one cart — tier carts in KitResult stay, they bridge into the global cart.
+- [x] `src/lib/cart.ts` — global cart: localStorage `gymgear.cart.v1`, dedupe by product id (no quantities — gym gear is buy-once), add/remove/clear, React 19 `useSyncExternalStore` hook, zero new deps (2026-07-07)
+- [x] `src/lib/checkout.ts` — buy-flow upgrade: extract ASIN from product `url`/`affiliateUrl` (`/dp/<ASIN>`); Amazon items → ONE bulk add-to-cart link (`amazon.com/gp/aws/cart/add.html` + AssociateTag, still earns commission); non-Amazon items grouped per retailer (Rogue, Rep…) — replaces "Buy all opens N tabs" (2026-07-07)
+- [x] `/cart` page — dark theme wrapper (body default is light — pages own their bg), line items + remove, deals strip reused, retailer-grouped checkout, affiliate disclosure (2026-07-07)
+- [x] Nav cart icon + live count badge (SiteNav, desktop + mobile) (2026-07-07)
+- [x] Add-to-cart from `/gear/[slug]` + `/compare` (AddToCartButton, dark/light variants) + KitResult "Add kit to cart" bridge; FBT accessory add still feeds the selected tier (2026-07-07)
+- [ ] Later: add-to-cart on /extras + category pages; "Buy all" in KitResult could route through checkout groups too
 
 ## Current state of the repo (updated 2026-07-03)
 

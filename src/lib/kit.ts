@@ -102,7 +102,7 @@ export function kitTotal(products: KitProduct[]): number {
 }
 
 /* Amazon Associates tag — every buy link earns commission through it. */
-const AMAZON_TAG = "gymgearcompar-20";
+export const AMAZON_TAG = "gymgearcompar-20";
 
 /* The buy link for a product. Prefer the backend-supplied affiliate link;
    otherwise build an Amazon affiliate search from the name + brand. We never

@@ -23,6 +23,7 @@ import {
   type KitProduct,
 } from "@/lib/kit";
 import ProductModal from "@/components/quiz/ProductModal";
+import AddToCartButton from "@/components/AddToCartButton";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -702,6 +703,11 @@ function ComparisonMatrix({
                     Buy {formatPrice(priceOf(p))}
                     <ArrowUpRight className="h-3 w-3" />
                   </a>
+                  <AddToCartButton
+                    product={p}
+                    variant="light"
+                    className="mt-2 w-full !px-3 !py-2 !text-xs"
+                  />
                 </td>
               ))}
             </tr>
