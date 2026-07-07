@@ -20,7 +20,7 @@ Stack: **Next 16.2.9 (App Router, `src/`), React 19.2.4, Tailwind v4, framer-mot
 6. Next 16 conventions over memory: check `node_modules/next/dist/docs/` when touching routing, metadata, or server/client component boundaries (per AGENTS.md).
 
 ## Key flows (detail in README)
-- **Quiz → kit:** `/quiz` (`QuizFlow.tsx`) stores answers in sessionStorage `gymgear.quiz.v1` (option ids in `src/lib/quiz.ts`) → `requestKit()` → backend `POST /api/kit` → `KitResult.tsx` (3 tiers, swap via `SwapModal`).
+- **Quiz → kit:** `/quiz` (`QuizFlow.tsx`) stores answers in sessionStorage `gymgear.quiz.v1` (option ids in `src/lib/quiz.ts`) → `requestKit()` → local `POST /api/kit` (`src/app/api/kit/route.ts`, deterministic port of the backend kit builder — keep in lockstep with server.js) → `KitResult.tsx` (3 tiers, swap via `SwapModal`).
 - **Compare:** `/compare` (`CompareTool.tsx`) — pick 2–4 in a category → spec matrix + best-value verdict.
 - **Catalog:** local Next API routes `src/app/api/catalog/*` + `src/lib/catalog.ts`.
 

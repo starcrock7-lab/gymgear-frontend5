@@ -1,5 +1,6 @@
-/* Shapes returned by the backend /api/kit route. The server owns all product
-   data; the frontend only renders it. Keep in sync with server.js hydrateKits. */
+/* Shapes returned by /api/kit — our local Next route (src/app/api/kit), a
+   port of the backend builder; keep in sync with server.js hydrateKits. The
+   catalog owns all product data; the frontend only renders it. */
 
 export type KitProduct = {
   id: string;

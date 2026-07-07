@@ -15,7 +15,9 @@ import {
   Trash2,
   ArrowUpRight,
   Plus,
+  BadgePercent,
 } from "lucide-react";
+import { findDeals, dealsSavings, dealsPitch, productDeal } from "@/lib/deals";
 import {
   KIT_TIER_META,
   buyUrl,
@@ -338,6 +340,10 @@ function Cart({
         )}
       </div>
 
+      {/* Live deals in this cart — derived from curated sale prices
+          (lib/deals.ts), recomputes on every swap/remove/add. */}
+      <DealsStrip products={items} />
+
       {/* Line items */}
       {items.length === 0 ? (
         <div className="px-5 py-16 text-center">
@@ -398,6 +404,33 @@ function Cart({
   );
 }
 
+/* "We find you deals" — the strip only renders when the cart really holds
+   sale-priced picks, with a templated pitch (Groq-written weekly copy is
+   phase 1.5, countdown timers phase 2 — see CONTEXT.md Phase 7). */
+function DealsStrip({ products }: { products: KitProduct[] }) {
+  const deals = findDeals(products);
+  if (!deals.length) return null;
+  const save = dealsSavings(deals);
+  return (
+    <div className="flex items-start gap-2.5 border-b border-white/10 bg-win/[0.06] px-4 py-3 sm:px-5">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-win/15 text-win">
+        <BadgePercent className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs font-bold text-win">
+          {deals.length === 1
+            ? "One of your picks is on sale"
+            : `${deals.length} of your picks are on sale`}{" "}
+          · you save {formatPrice(save)}
+        </p>
+        <p className="mt-0.5 text-[0.72rem] leading-snug text-white/50">
+          {dealsPitch(deals)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function CartRow({
   product: p,
   flash,
@@ -413,6 +446,7 @@ function CartRow({
 }) {
   const [imgOk, setImgOk] = useState(true);
   const price = priceOf(p);
+  const deal = productDeal(p);
 
   return (
     <motion.div
@@ -483,9 +517,14 @@ function CartRow({
           <span className="block font-display text-base font-extrabold text-white">
             {formatPrice(price)}
           </span>
-          {p.salePrice && (
-            <span className="block text-[0.65rem] text-white/30 line-through">
-              {formatPrice(p.price)}
+          {deal && (
+            <span className="flex items-center justify-end gap-1 text-[0.65rem]">
+              <span className="text-white/30 line-through">
+                {formatPrice(p.price)}
+              </span>
+              <span className="rounded bg-win/15 px-1 py-px font-bold text-win">
+                {deal.pct}% off
+              </span>
             </span>
           )}
         </div>

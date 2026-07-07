@@ -50,6 +50,26 @@ Comparison tool stays as secondary path for people who already know what they wa
 - **Deploy:** Vercel (same as now, auto-deploy on push)
 - **Free API constraint:** Groq free tier for kit builder, Anthropic for comparisons
 
+## Deals engine + local kit builder decisions (2026-07-05 / 2026-07-06)
+
+Supersedes the "AI stack — kit generation" line above. Verified 2026-07-05: the
+backend LLM never picked products (deterministic builder always owned the cart;
+Groq only wrote copy), so "AI picks your kit" was never literally true.
+
+- **Kit builder runs locally** (`src/app/api/kit/route.ts`, port of server.js
+  KIT BUILDER) over the ISR-cached catalog — Render cold starts (free tier
+  sleeps 15 min) can no longer stall the quiz's conversion moment. Keep it in
+  lockstep with server.js.
+- **Positioning:** sell "instant kits from expert-rated gear + we flag live
+  deals," not "AI picks your kit." The AI's real job is reasoning/copy, not
+  selection — selection is computable and must stay deterministic.
+- **Deals engine, hard rule:** the LLM never sources a price or an expiry
+  date. Three separated roles: data layer (curated salePrice now, live price
+  source later) → deterministic logic (detect sales/combos, enforce expiry —
+  `src/lib/deals.ts`) → LLM (batched weekly, writes only the pitch copy).
+- **Deal detection is request-time-free:** derived from cached catalog fields
+  at render, no scheduled job needed until copy/expiry phases.
+
 ## Permission model
 - State what you're about to do before writing/acting
 - Never commit API keys or secrets to any file
@@ -96,11 +116,21 @@ Comparison tool stays as secondary path for people who already know what they wa
 - [ ] TikTok/Reels comparison videos using live site
 - [ ] Google SEO articles ("Best home gym under $500 2026")
 
+### Phase 7 — Deals engine ("we find you deals")
+See the 2026-07-06 decisions section — the LLM never sources prices/expiry.
+- [x] **v1 — deterministic detection (2026-07-06):** `src/lib/deals.ts` derives deals from curated salePrice fields; DealsStrip in the cart (count + total savings + templated pitch, honest urgency only) + per-row "% off" chips; recomputes on swap/remove/add
+- [ ] **v1.5 — weekly AI pitch copy:** GitHub Action (weekly cron) makes ONE batched Groq call to write pitch copy for all live deals → committed/cached JSON artifact the frontend reads; templated copy stays as fallback. Bounded API load: a handful of calls per week, never per user
+- [ ] **v2 — expiry + timers (Roe: "remember to add this"):** add `expiresAt` per deal to the catalog (backend repo, public — no secrets); real countdown timers in the strip; on expiry show regular price immediately and queue that ONE product for a targeted re-check (not a full catalog scan); holiday/seasonal specials theming. Needs a data source that knows end dates (curated by hand, or Keepa/PA-API when unlocked)
+- [ ] v2+ — live price source (Keepa or Amazon PA-API — PA-API also unlocks real product images at 3 sales) replaces hand-curated salePrice
+
+### Phase 8 — Cart system rework (flagged by Roe 2026-07-06)
+- [ ] Change the cart system — scope TBD with Roe (current: per-tier kit-as-cart in KitResult with swap/remove/add-accessory, "Buy all" opens one tab per item since affiliate links have no shared checkout). Capture requirements before building.
+
 ## Current state of the repo (updated 2026-07-03)
 
 ### What exists (working, live)
 - gymgearcompare.com — **Next.js 16 app live on Vercel** (old static-HTML site archived in `legacy/` — never edit it)
-- Quiz → kit funnel: `/quiz` → sessionStorage → backend `POST /api/kit` → 3-tier KitResult with product swap
+- Quiz → kit funnel: `/quiz` → sessionStorage → **local** `POST /api/kit` (Next route, deterministic port of the backend builder over the ISR catalog cache — Render cold starts can't stall it) → 3-tier KitResult with product swap + deals strip
 - `/compare` tool, `/extras` gear finder, `/gear` + `/category` browse, `/guides`, `/methodology` (GymGear Score rubric)
 - Express backend on Render (`server.js` — 160 hardcoded products + `/api/kit`)
 - Amazon Associates tag active (gymgearcompar-20)

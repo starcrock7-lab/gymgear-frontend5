@@ -23,10 +23,15 @@ export async function apiFetch(
 }
 
 /* POST the quiz answers, get three kits back. Throws on network/HTTP error
-   so the caller can show a retry. */
+   so the caller can show a retry. Goes to our own Next route (src/app/api/
+   kit), not the Render backend — kit building is the conversion moment, and
+   a sleeping free-tier backend used to cost the first visitor a 30–60s cold
+   start right at the "Building your kit" screen. The local route builds from
+   the same ISR-cached catalog the /api/catalog/* routes use. */
 export async function requestKit(answers: QuizAnswers): Promise<KitResponse> {
-  const res = await apiFetch("/api/kit", {
+  const res = await fetch("/api/kit", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(answers),
   });
   if (!res.ok) {

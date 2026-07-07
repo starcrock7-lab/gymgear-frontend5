@@ -47,13 +47,15 @@ Next **16.2.9** (App Router, `src/` layout) · React **19.2.4** · Tailwind **v4
 
 ```
 /quiz (QuizFlow) — 5 answers → sessionStorage["gymgear.quiz.v1"]
-  → requestKit() (lib/api.ts) → POST {backend}/api/kit  (X-Site-Key header)
-      backend: deterministic cart builder picks products (budget/space/owned-aware);
-               Groq writes only kit name/description; template fallback on error
+  → requestKit() (lib/api.ts) → POST /api/kit  (our own Next route — never Render)
+      src/app/api/kit/route.ts: deterministic cart builder (port of server.js KIT
+      BUILDER; budget/space/owned-aware, templated copy) over the same ISR-cached
+      catalog as /api/catalog/* — so a sleeping Render backend can't stall the
+      quiz's conversion moment with a 30–60s cold start
   → KitResult renders 3 tiers; SwapModal swaps via /api/products/:cat and recomputes totals
 ```
 
-The backend owns product selection and all price data — the LLM can never produce a bad cart. Buy links resolve `affiliateUrl || url` (Amazon tag `gymgearcompar-20`).
+The catalog owns product selection and all price data. Keep `src/app/api/kit/route.ts` selection logic in lockstep with the backend's server.js KIT BUILDER section. Buy links resolve `affiliateUrl || url` (Amazon tag `gymgearcompar-20`).
 
 ## Runbook
 
