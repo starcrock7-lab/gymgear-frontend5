@@ -185,7 +185,7 @@ export default function KitResult({
                 className={
                   "relative rounded-xl px-5 py-2.5 text-center transition-all duration-200 sm:px-7 " +
                   (on
-                    ? "bg-accent text-white shadow-lg shadow-accent/25"
+                    ? "bg-accent text-white shadow-[0_0_26px_rgba(232,84,42,0.55)]"
                     : "text-white/65 hover:bg-white/5 hover:text-white")
                 }
               >

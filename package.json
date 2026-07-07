@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@paper-design/shaders-react": "^0.0.77",
     "@radix-ui/react-slot": "^1.2.5",
     "@vercel/analytics": "^2.0.1",
     "class-variance-authority": "^0.7.1",

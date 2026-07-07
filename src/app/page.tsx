@@ -19,6 +19,7 @@ import { TextScramble } from "@/components/ui/text-scramble";
 import { ButtonColorful } from "@/components/ui/button-colorful";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { HighlightButton } from "@/components/ui/highlight-button";
+import { PulsingBorder } from "@/components/ui/pulsing-border";
 import FlowCard, { type FlowStep } from "@/components/ui/flow-card";
 
 const heroStagger: Variants = {
@@ -177,11 +178,32 @@ export default function Home() {
             variants={fadeUp}
             className="pointer-events-auto mt-10 flex flex-wrap items-center justify-center gap-4"
           >
-            <ButtonColorful
-              label="Start the Quiz"
-              onClick={() => router.push("/quiz")}
-              className="h-14 rounded-xl px-8 font-body text-lg font-bold shadow-lg shadow-accent/30 transition-shadow duration-300 hover:shadow-[0_0_30px_rgba(232,84,42,0.55)]"
-            />
+            {/* Shader halo behind the money button — ambient, slow pulse */}
+            <span className="relative inline-flex">
+              <PulsingBorder
+                colors={["#ff8a5c", "#e8542a", "#b13a16"]}
+                colorBack="#00000000"
+                roundness={0.35}
+                thickness={0.09}
+                softness={0.85}
+                intensity={0.55}
+                bloom={0.6}
+                spots={3}
+                spotSize={0.5}
+                pulse={0.35}
+                smoke={0.35}
+                smokeSize={0.6}
+                speed={0.45}
+                scale={1}
+                className="pointer-events-none absolute -inset-3"
+                style={{ width: "auto", height: "auto" }}
+              />
+              <ButtonColorful
+                label="Start the Quiz"
+                onClick={() => router.push("/quiz")}
+                className="relative h-14 rounded-xl px-8 font-body text-lg font-bold shadow-lg shadow-accent/30 transition-shadow duration-300 hover:shadow-[0_0_30px_rgba(232,84,42,0.55)]"
+              />
+            </span>
             {/* Liquid glass edges ignite orange on hover (same glow language
                 as the wallpaper) */}
             <LiquidButton
@@ -244,7 +266,18 @@ export default function Home() {
           className="absolute inset-x-16 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent shadow-[0_0_16px_rgba(232,84,42,0.7)]"
         />
 
-        <div className="relative mx-auto max-w-6xl px-5">
+        {/* Star speckle — the "gym equipment in space" garnish */}
+        <div aria-hidden className="starfield absolute inset-0 opacity-70" />
+
+        {/* Section transition 1 (hero → how): whole block rises out of the
+            seam as you scroll into it */}
+        <motion.div
+          initial={{ opacity: 0, y: 90 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-140px" }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="relative mx-auto max-w-6xl px-5"
+        >
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -265,7 +298,7 @@ export default function Home() {
               <FlowCard key={s.n} step={s} />
             ))}
           </motion.div>
-        </div>
+        </motion.div>
       </section>
 
       {/* CTA band: aurora + flowing paths + scramble */}
@@ -284,11 +317,14 @@ export default function Home() {
           <FloatingPaths position={1} />
           <FloatingPaths position={-1} />
         </div>
+        {/* Star speckle continues the space backdrop */}
+        <div aria-hidden className="starfield absolute inset-0 opacity-60" />
+        {/* Section transition 2 (how → CTA): rise + settle-in scale */}
         <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0, y: 80, scale: 0.96 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: "-140px" }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="relative mx-auto flex max-w-3xl flex-col items-center px-5 text-center"
         >
           <TextScramble
@@ -305,11 +341,30 @@ export default function Home() {
             One minute of questions. Three kits built for your space, your
             budget, your goals.
           </p>
-          <div className="mt-9">
+          <div className="relative mt-9">
+            {/* Shader halo — same ambient pulse as the hero CTA */}
+            <PulsingBorder
+              colors={["#ff8a5c", "#e8542a", "#b13a16"]}
+              colorBack="#00000000"
+              roundness={0.35}
+              thickness={0.09}
+              softness={0.85}
+              intensity={0.55}
+              bloom={0.6}
+              spots={3}
+              spotSize={0.5}
+              pulse={0.35}
+              smoke={0.35}
+              smokeSize={0.6}
+              speed={0.45}
+              scale={1}
+              className="pointer-events-none absolute -inset-3"
+              style={{ width: "auto", height: "auto" }}
+            />
             {/* Glow bloom on hover — no 3D lift */}
             <HighlightButton
               onClick={() => router.push("/quiz")}
-              className="h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_36px_rgba(232,84,42,0.6)] hover:brightness-110"
+              className="relative h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_36px_rgba(232,84,42,0.6)] hover:brightness-110"
             >
               Build my kit →
             </HighlightButton>
