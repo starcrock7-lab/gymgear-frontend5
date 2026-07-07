@@ -1,0 +1,44 @@
+# Deals engine v1.5 (CONTEXT.md Phase 7): every Monday, one batched Groq
+# call writes a pitch per live deal into src/data/deal-pitches.json. Commit
+# only when the file changed; the commit triggers a Vercel rebuild that
+# bundles the fresh copy. If Groq/catalog are down the script exits 0 and
+# nothing is committed — templated copy in src/lib/deals.ts always covers.
+#
+# Repo secrets required (Settings → Secrets → Actions):
+#   GROQ_API_KEY — Groq free-tier key (never in code; both repos are public)
+#   SITE_KEY     — backend gate key (same value as Render's SITE_KEY env)
+name: weekly-deal-pitches
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC — "start of the week" scan
+  workflow_dispatch: {} # manual run for testing / after adding sale prices
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Refresh deal pitches
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SITE_KEY: ${{ secrets.SITE_KEY }}
+        run: node scripts/refresh-deal-pitches.mjs
+      - name: Commit if changed
+        run: |
+          if git diff --quiet src/data/deal-pitches.json; then
+            echo "pitches unchanged — no commit, no deploy"
+            exit 0
+          fi
+          # Vercel only accepts deploys authored by this email.
+          git config user.name "deal-pitch-bot"
+          git config user.email "starcrock7@gmail.com"
+          git add src/data/deal-pitches.json
+          git commit -m "chore: weekly deal pitch refresh"
+          git push

@@ -1,4 +1,10 @@
 import type { KitProduct } from "@/lib/kit";
+import pitchData from "@/data/deal-pitches.json";
+
+/* Weekly Groq-written pitch per sale product (deals engine v1.5) — refreshed
+   by .github/workflows/weekly-deal-pitches.yml, bundled at build time. Empty
+   map until the workflow's repo secrets are set; templates cover always. */
+const AI_PITCH: Record<string, string> = pitchData.pitches;
 
 /* Deals engine, deterministic layer (v1). Derives every deal from the
    curated salePrice/discount fields already in the cached catalog — no new
@@ -47,7 +53,11 @@ export function dealsPitch(deals: Deal[]): string {
   const name = (d: Deal) => d.product.name;
   if (deals.length === 1) {
     const d = deals[0];
-    return `The ${name(d)} is ${d.pct}% off right now. Sale prices can end without notice, so it is a smart time to lock it in.`;
+    /* AI line when the weekly job wrote one for this product; template else. */
+    return (
+      AI_PITCH[d.product.id] ||
+      `The ${name(d)} is ${d.pct}% off right now. Sale prices can end without notice, so it is a smart time to lock it in.`
+    );
   }
   if (deals.length === 2) {
     return `The ${name(deals[0])} and the ${name(deals[1])} are both discounted right now. Deals rotate all the time, so buying them while the discounts overlap saves you the most.`;
