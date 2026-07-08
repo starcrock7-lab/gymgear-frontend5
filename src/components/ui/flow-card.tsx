@@ -18,17 +18,15 @@ export interface FlowStep {
   details: string[];
 }
 
-/* Deck deal: each card snaps up fast with a little tilt and springs
-   straight, one after another — quick and playful, not a slow fade. The
-   hover lift/grow lives on the card itself. */
+/* Straight entrance — cards rise in level (no tilt), quick spring, one
+   after another. The hover jump/grow lives on the card itself. */
 export const TILE_REVEAL: Variants = {
-  hidden: { opacity: 0, y: 42, scale: 0.9, rotate: -2.5 },
+  hidden: { opacity: 0, y: 36, scale: 0.94 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    rotate: 0,
-    transition: { type: "spring", stiffness: 420, damping: 26 },
+    transition: { type: "spring", stiffness: 420, damping: 28 },
   },
 };
 

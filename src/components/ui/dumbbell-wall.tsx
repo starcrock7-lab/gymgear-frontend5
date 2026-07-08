@@ -11,9 +11,13 @@ import * as React from "react";
    cursor — just shapes lighting under the pointer. Touch devices never
    hover, so the wall simply rests. */
 
-const CELL = 120;
-const COLS = 18; // 2160px wide — covers ultrawide, parent clips the rest
-const ROWS = 9; // 1080px tall
+/* Art is drawn on a 120px grid, then scaled down so the wall reads as a
+   dense wallpaper rather than a few big props. */
+const ART = 120;
+const CELL = 78;
+const SCALE = CELL / ART;
+const COLS = 28; // ~2180px wide — covers ultrawide, parent clips the rest
+const ROWS = 14; // ~1090px tall
 
 /* One dumbbell's parts, local coords (drawn at 0..120, rotated 45°). */
 const PARTS = [
@@ -42,10 +46,11 @@ export default function DumbbellWall() {
             fill 900ms ease 350ms,
             filter 900ms ease 350ms;
         }
-        .db-part:hover {
+        /* Hover anywhere on a dumbbell -> the WHOLE dumbbell ignites */
+        g:hover > .db-part {
           fill: rgba(232,84,42,0.28);
           stroke: #ff8a5c;
-          filter: drop-shadow(0 0 5px rgba(232,84,42,0.95)) drop-shadow(0 0 14px rgba(232,84,42,0.5));
+          filter: drop-shadow(0 0 4px rgba(232,84,42,0.95)) drop-shadow(0 0 12px rgba(232,84,42,0.5));
           transition-duration: 50ms;
           transition-delay: 0ms;
         }
@@ -70,8 +75,8 @@ export default function DumbbellWall() {
         {CELLS.map(({ cx, cy }, i) => (
           <g
             key={i}
-            transform={`translate(${cx} ${cy}) rotate(45 ${CELL / 2} ${CELL / 2})`}
-            strokeWidth="2.5"
+            transform={`translate(${cx} ${cy}) scale(${SCALE}) rotate(45 ${ART / 2} ${ART / 2})`}
+            strokeWidth="3"
             strokeLinecap="round"
           >
             {PARTS.map((p, j) => (
