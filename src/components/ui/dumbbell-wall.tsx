@@ -28,10 +28,10 @@ const PARTS = [
   { x: 106, y: 50, w: 8, h: 20 }, // outer plate R
 ];
 
-const CELLS = Array.from({ length: COLS * ROWS }, (_, i) => ({
-  cx: (i % COLS) * CELL,
-  cy: Math.floor(i / COLS) * CELL,
-}));
+/* Per-row cells with one buffer column on each side: rows drift ±one cell
+   and loop, so the pattern must extend past both edges to never show gaps. */
+const ROW_IDX = Array.from({ length: ROWS }, (_, r) => r);
+const ROW_CELLS = Array.from({ length: COLS + 2 }, (_, i) => (i - 1) * CELL);
 
 /* Clear the pattern out of the middle so the dumbbells frame the headline
    instead of sitting behind it; they fade in toward the edges. On the
@@ -61,6 +61,16 @@ export default function DumbbellWall() {
           transition-duration: 0ms;
           transition-delay: 0ms;
         }
+        /* Conveyor drift: each row slides exactly one cell then loops (the
+           loop frame is identical -> seamless), and neighbors run opposite
+           directions. Transform-only, GPU-composited. */
+        @keyframes db-drift-a { from { transform: translateX(-${CELL}px); } to { transform: translateX(0); } }
+        @keyframes db-drift-b { from { transform: translateX(0); } to { transform: translateX(-${CELL}px); } }
+        .db-row-a { animation: db-drift-a 26s linear infinite; }
+        .db-row-b { animation: db-drift-b 26s linear infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .db-row-a, .db-row-b { animation: none; }
+        }
       `}</style>
 
       {/* Different backdrop: a cosmic radial (gym gear in space) instead of
@@ -74,7 +84,7 @@ export default function DumbbellWall() {
         style={{ maskImage: FRAME_MASK, WebkitMaskImage: FRAME_MASK }}
       >
         <svg
-          width={COLS * CELL}
+          width={(COLS + 2) * CELL}
           height={ROWS * CELL}
           className="absolute left-0 top-0"
         >
@@ -86,23 +96,30 @@ export default function DumbbellWall() {
               <stop offset="1" stopColor="rgba(255,255,255,0.32)" />
             </linearGradient>
           </defs>
-          {CELLS.map(({ cx, cy }, i) => (
-            <g
-              key={i}
-              transform={`translate(${cx} ${cy}) scale(${SCALE}) rotate(45 ${ART / 2} ${ART / 2})`}
-              strokeWidth="3"
-              strokeLinecap="round"
-            >
-              {PARTS.map((p, j) => (
-                <rect
-                  key={j}
-                  className="db-part"
-                  x={p.x}
-                  y={p.y}
-                  width={p.w}
-                  height={p.h}
-                  rx="4"
-                />
+          {/* Each row is one conveyor; neighbors drift opposite ways. The
+              row <g> carries ONLY the CSS animation (a CSS transform would
+              override an attribute transform, so cells keep their own). */}
+          {ROW_IDX.map((row) => (
+            <g key={row} className={row % 2 ? "db-row-b" : "db-row-a"}>
+              {ROW_CELLS.map((cx) => (
+                <g
+                  key={cx}
+                  transform={`translate(${cx} ${row * CELL}) scale(${SCALE}) rotate(45 ${ART / 2} ${ART / 2})`}
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                >
+                  {PARTS.map((p, j) => (
+                    <rect
+                      key={j}
+                      className="db-part"
+                      x={p.x}
+                      y={p.y}
+                      width={p.w}
+                      height={p.h}
+                      rx="4"
+                    />
+                  ))}
+                </g>
               ))}
             </g>
           ))}
