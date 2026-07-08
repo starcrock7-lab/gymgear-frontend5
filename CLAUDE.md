@@ -18,6 +18,7 @@ Stack: **Next 16.2.9 (App Router, `src/`), React 19.2.4, Tailwind v4, framer-mot
 4. **Deploy commits must use git email `starcrock7@gmail.com`** or Vercel rejects the deploy.
 5. **`legacy/` is the retired static-HTML site (793 files) — never edit it**, never import from it, it's excluded from graphify. `.next/` and `node_modules/` are generated.
 6. Next 16 conventions over memory: check `node_modules/next/dist/docs/` when touching routing, metadata, or server/client component boundaries (per AGENTS.md).
+7. **Dark-theme invariants (site-wide dark since 2026-07-07):** the body background is still the light default — every page sets its own dark bg (`bg-navy` wrapper). `bg-card` is the raised-surface token; **`bg-white` is reserved for product-photo/brand-initial tiles only**. Never `bg-ink text-white` chips (white-on-white after the token flip) — use accent chips. No `backdrop-filter`/blur on elements that animate (re-raster jank). Hover language is orange glow, not translate-y lift.
 
 ## Key flows (detail in README)
 - **Quiz → kit:** `/quiz` (`QuizFlow.tsx`) stores answers in sessionStorage `gymgear.quiz.v1` (option ids in `src/lib/quiz.ts`) → `requestKit()` → local `POST /api/kit` (`src/app/api/kit/route.ts`, deterministic port of the backend kit builder — keep in lockstep with server.js) → `KitResult.tsx` (3 tiers, swap via `SwapModal`).
@@ -25,7 +26,7 @@ Stack: **Next 16.2.9 (App Router, `src/`), React 19.2.4, Tailwind v4, framer-mot
 - **Catalog:** local Next API routes `src/app/api/catalog/*` + `src/lib/catalog.ts`.
 
 ## Style
-Brand stays: orange `#e8542a`, navy `#0d1b35`, off-white `#f8f7f5`, Syne + DM Sans. Dark, premium, Whoop-inspired; token source of truth is `src/app/globals.css`.
+Brand: orange `#e8542a` accent, navy `#0d1b35`, Syne + DM Sans. Site-wide dark, techy/futuristic ("gym gear in space"), premium, Whoop-inspired; token source of truth is `src/app/globals.css` (dark-flipped `--off/--ink*/--line`, `--card` surface, `.starfield` utility). Hero wallpaper = `ui/dumbbell-wall.tsx` (SVG glass dumbbells, whole-dumbbell hover ignition — no cursor-following spotlights, they were rejected as laggy). Motion recipes: `smooth-motion` skill.
 
 ## Known issues / deferred
 - "Compare these" shortcut from a kit — deferred (kit products are cross-category; the tool compares within one category)

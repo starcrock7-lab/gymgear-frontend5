@@ -70,6 +70,18 @@ Groq only wrote copy), so "AI picks your kit" was never literally true.
 - **Deal detection is request-time-free:** derived from cached catalog fields
   at render, no scheduled job needed until copy/expiry phases.
 
+## Dark redesign decisions (2026-07-07/08)
+- Site-wide dark ("gym gear in space"): token flip in globals.css + `--card`
+  surface; `bg-white` demoted to product-photo tiles only. Rules in CLAUDE.md #7.
+- Hero wallpaper settled on inline-SVG glass dumbbells at 45° with
+  whole-dumbbell hover ignition after FIVE iterations — cursor-following
+  spotlights, animated turbulence, and liquid chase windows were all
+  REJECTED (laggy or "weird"). Don't propose them again.
+- Motion language: quick springs with gentle overshoot (cards 210/15, hover
+  pop 520/17), glow instead of lift, shader halos hover-mounted only, no
+  backdrop-blur on animated elements (the "clunky cards" root cause,
+  diagnosed from Roe's screen recording via frame-diff).
+
 ## Design refresh — techy/futuristic dark (2026-07-07, Roe-directed)
 
 - **Whole site is dark now.** The light "content layer" died via token flip in `globals.css` (`--ink/--ink-2/--ink-3/--off/--line` resolve dark; new `--card` = raised surface that replaced white cards). `bg-white` is RESERVED for product-image/brand-initial tiles only. The `bg-ink text-white` chip idiom is dead (inverts to white-on-white) — use accent chips.
