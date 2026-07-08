@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import {
   motion,
+  AnimatePresence,
   useScroll,
   useTransform,
   type Variants,
@@ -55,7 +56,8 @@ const heroLine1 = "Your perfect home gym.".split(" ");
 const heroLine2 = "Built in 60 seconds.".split(" ");
 
 /* Shader halo that exists only while its button is hovered — the canvas
-   mounts on enter (so it costs nothing at rest) and fades in. */
+   mounts on enter (nothing at rest) and pops in with the same soft elastic
+   spring as the how-it-works cards, then shrinks/fades out on leave. */
 function HoverHalo({ children }: { children: ReactNode }) {
   const [hot, setHot] = useState(false);
   return (
@@ -64,27 +66,39 @@ function HoverHalo({ children }: { children: ReactNode }) {
       onMouseEnter={() => setHot(true)}
       onMouseLeave={() => setHot(false)}
     >
-      {hot && (
-        <span className="pointer-events-none absolute -inset-3 animate-[halo-in_0.35s_ease-out]">
-          <PulsingBorder
-            colors={["#ff8a5c", "#e8542a", "#b13a16"]}
-            colorBack="#00000000"
-            roundness={0.35}
-            thickness={0.09}
-            softness={0.85}
-            intensity={0.55}
-            bloom={0.6}
-            spots={3}
-            spotSize={0.5}
-            pulse={0.35}
-            smoke={0.35}
-            smokeSize={0.6}
-            speed={0.45}
-            scale={1}
-            style={{ width: "100%", height: "100%" }}
-          />
-        </span>
-      )}
+      <AnimatePresence>
+        {hot && (
+          <motion.span
+            key="halo"
+            initial={{ opacity: 0, scale: 0.65 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              transition: { type: "spring", stiffness: 210, damping: 15, mass: 1 },
+            }}
+            exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.22, ease: "easeOut" } }}
+            className="pointer-events-none absolute -inset-3"
+          >
+            <PulsingBorder
+              colors={["#ff8a5c", "#e8542a", "#b13a16"]}
+              colorBack="#00000000"
+              roundness={0.35}
+              thickness={0.09}
+              softness={0.85}
+              intensity={0.55}
+              bloom={0.6}
+              spots={3}
+              spotSize={0.5}
+              pulse={0.35}
+              smoke={0.35}
+              smokeSize={0.6}
+              speed={0.45}
+              scale={1}
+              style={{ width: "100%", height: "100%" }}
+            />
+          </motion.span>
+        )}
+      </AnimatePresence>
       {children}
     </span>
   );
