@@ -33,70 +33,82 @@ const CELLS = Array.from({ length: COLS * ROWS }, (_, i) => ({
   cy: Math.floor(i / COLS) * CELL,
 }));
 
+/* Clear the pattern out of the middle so the dumbbells frame the headline
+   instead of sitting behind it; they fade in toward the edges. On the
+   viewport-sized wrapper, so the clear zone tracks the centered text. */
+const FRAME_MASK =
+  "radial-gradient(ellipse 54% 48% at 50% 46%, transparent 32%, #000 74%)";
+
 export default function DumbbellWall() {
   return (
     <div aria-hidden className="absolute inset-0 overflow-hidden">
-      {/* fast-in, hold, slow cool-out — the fun is in the timing */}
+      {/* Reactive ignition: lights the instant you touch a dumbbell, snaps
+          back quickly — feels alive as you sweep, not a slow ember. */}
       <style>{`
         .db-part {
           fill: rgba(255,255,255,0.035);
           stroke: url(#db-glass);
           transition:
-            stroke 900ms ease 350ms,
-            fill 900ms ease 350ms,
-            filter 900ms ease 350ms;
+            stroke 360ms ease 90ms,
+            fill 360ms ease 90ms,
+            filter 360ms ease 90ms;
         }
-        /* Hover anywhere on a dumbbell -> the WHOLE dumbbell ignites */
+        /* Hover anywhere on a dumbbell -> the WHOLE dumbbell ignites now */
         g:hover > .db-part {
-          fill: rgba(232,84,42,0.28);
-          stroke: #ff8a5c;
-          filter: drop-shadow(0 0 4px rgba(232,84,42,0.95)) drop-shadow(0 0 12px rgba(232,84,42,0.5));
-          transition-duration: 50ms;
+          fill: rgba(232,84,42,0.34);
+          stroke: #ff9a6a;
+          filter: drop-shadow(0 0 4px rgba(232,84,42,1)) drop-shadow(0 0 15px rgba(232,84,42,0.7));
+          transition-duration: 0ms;
           transition-delay: 0ms;
         }
       `}</style>
 
-      {/* Vignette under the pattern keeps the navy deep behind the text */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_45%,rgba(13,27,53,0.6)_0%,rgba(13,27,53,0.3)_55%,transparent_100%)]" />
+      {/* Different backdrop: a cosmic radial (gym gear in space) instead of
+          the flat navy used everywhere else, plus a faint starfield. */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_78%_at_50%_38%,#17294f_0%,#0d1b35_46%,#060c1b_100%)]" />
+      <div className="starfield absolute inset-0 opacity-50" />
 
-      <svg
-        width={COLS * CELL}
-        height={ROWS * CELL}
-        className="absolute left-0 top-0"
+      {/* Dumbbells, masked to frame the text (clear center → dense edges) */}
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ maskImage: FRAME_MASK, WebkitMaskImage: FRAME_MASK }}
       >
-        <defs>
-          {/* Glass stroke: bright catch-light at the ends, faint middle */}
-          <linearGradient id="db-glass" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="rgba(255,255,255,0.32)" />
-            <stop offset="0.5" stopColor="rgba(255,255,255,0.05)" />
-            <stop offset="1" stopColor="rgba(255,255,255,0.32)" />
-          </linearGradient>
-        </defs>
-        {CELLS.map(({ cx, cy }, i) => (
-          <g
-            key={i}
-            transform={`translate(${cx} ${cy}) scale(${SCALE}) rotate(45 ${ART / 2} ${ART / 2})`}
-            strokeWidth="3"
-            strokeLinecap="round"
-          >
-            {PARTS.map((p, j) => (
-              <rect
-                key={j}
-                className="db-part"
-                x={p.x}
-                y={p.y}
-                width={p.w}
-                height={p.h}
-                rx="4"
-              />
-            ))}
-          </g>
-        ))}
-      </svg>
+        <svg
+          width={COLS * CELL}
+          height={ROWS * CELL}
+          className="absolute left-0 top-0"
+        >
+          <defs>
+            {/* Glass stroke: bright catch-light at the ends, faint middle */}
+            <linearGradient id="db-glass" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="rgba(255,255,255,0.32)" />
+              <stop offset="0.5" stopColor="rgba(255,255,255,0.05)" />
+              <stop offset="1" stopColor="rgba(255,255,255,0.32)" />
+            </linearGradient>
+          </defs>
+          {CELLS.map(({ cx, cy }, i) => (
+            <g
+              key={i}
+              transform={`translate(${cx} ${cy}) scale(${SCALE}) rotate(45 ${ART / 2} ${ART / 2})`}
+              strokeWidth="3"
+              strokeLinecap="round"
+            >
+              {PARTS.map((p, j) => (
+                <rect
+                  key={j}
+                  className="db-part"
+                  x={p.x}
+                  y={p.y}
+                  width={p.w}
+                  height={p.h}
+                  rx="4"
+                />
+              ))}
+            </g>
+          ))}
+        </svg>
+      </div>
 
-      {/* Soft center veil above the glass (hover passes through it; the
-          molten orange still punches through) keeps the copy readable */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_55%_50%_at_50%_45%,rgba(13,27,53,0.5)_0%,rgba(13,27,53,0.22)_60%,transparent_100%)]" />
       {/* Soft floor fade into the next section */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-navy to-transparent" />
     </div>

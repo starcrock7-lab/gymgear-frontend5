@@ -26,7 +26,7 @@ export const TILE_REVEAL: Variants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 420, damping: 28 },
+    transition: { type: "spring", stiffness: 760, damping: 30 },
   },
 };
 
