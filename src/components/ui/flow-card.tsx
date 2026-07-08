@@ -18,15 +18,17 @@ export interface FlowStep {
   details: string[];
 }
 
-/* Straight entrance — cards rise in level (no tilt), quick spring, one
-   after another. The hover jump/grow lives on the card itself. */
+/* Entrance — a soft elastic pop: grow up from smaller/lower with one gentle
+   overshoot and settle (ζ≈0.5), so it lands smooth instead of snapping. The
+   card must NOT carry backdrop-blur while this runs — animating a blurred
+   surface re-rasterizes it every frame and is what made this feel clunky. */
 export const TILE_REVEAL: Variants = {
-  hidden: { opacity: 0, y: 36, scale: 0.94 },
+  hidden: { opacity: 0, y: 34, scale: 0.8 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 760, damping: 30 },
+    transition: { type: "spring", stiffness: 210, damping: 15, mass: 1 },
   },
 };
 
@@ -86,7 +88,7 @@ export default function FlowCard({ step }: { step: FlowStep }) {
         transformPerspective: 900,
         transformStyle: "preserve-3d",
       }}
-      className="group relative flex h-full flex-col rounded-2xl border border-white/12 bg-white/[0.04] p-8 backdrop-blur-sm transition-all duration-300 hover:border-accent/60 hover:shadow-[0_0_30px_rgba(232,84,42,0.18),inset_0_0_20px_rgba(232,84,42,0.05)]"
+      className="group relative flex h-full flex-col rounded-2xl border border-white/12 bg-white/[0.05] p-8 transition-[border-color,box-shadow] duration-300 will-change-transform hover:border-accent/60 hover:shadow-[0_0_30px_rgba(232,84,42,0.18),inset_0_0_20px_rgba(232,84,42,0.05)]"
     >
       {/* Cursor-tracked ember glow */}
       <motion.div
