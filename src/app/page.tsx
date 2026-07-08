@@ -133,7 +133,7 @@ const steps: FlowStep[] = [
    FlowCard's TILE_REVEAL; this container just cascades them on scroll. */
 const tileContainer: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.14, delayChildren: 0.05 } },
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.03 } },
 };
 
 export default function Home() {

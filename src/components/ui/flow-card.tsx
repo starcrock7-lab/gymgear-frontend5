@@ -18,15 +18,17 @@ export interface FlowStep {
   details: string[];
 }
 
-/* Scroll entrance is fade+scale only — the rise now belongs to hover (per
-   Roe: cards lift when the mouse is on them, settle back when it leaves).
-   The parent grid staggers these, so each tile plays in sequence. */
+/* Deck deal: each card snaps up fast with a little tilt and springs
+   straight, one after another — quick and playful, not a slow fade. The
+   hover lift/grow lives on the card itself. */
 export const TILE_REVEAL: Variants = {
-  hidden: { opacity: 0, scale: 0.96 },
+  hidden: { opacity: 0, y: 42, scale: 0.9, rotate: -2.5 },
   show: {
     opacity: 1,
+    y: 0,
     scale: 1,
-    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
+    rotate: 0,
+    transition: { type: "spring", stiffness: 420, damping: 26 },
   },
 };
 
