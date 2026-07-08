@@ -76,8 +76,9 @@ export default function FlowCard({ step }: { step: FlowStep }) {
       onMouseLeave={onMouseLeave}
       variants={TILE_REVEAL}
       whileHover={{
-        y: -12,
-        transition: { type: "spring", stiffness: 280, damping: 22 },
+        y: -14,
+        scale: 1.05,
+        transition: { type: "spring", stiffness: 300, damping: 20 },
       }}
       style={{
         rotateX,
