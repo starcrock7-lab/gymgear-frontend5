@@ -37,7 +37,7 @@ const CELLS = Array.from({ length: COLS * ROWS }, (_, i) => ({
    instead of sitting behind it; they fade in toward the edges. On the
    viewport-sized wrapper, so the clear zone tracks the centered text. */
 const FRAME_MASK =
-  "radial-gradient(ellipse 54% 48% at 50% 46%, transparent 32%, #000 74%)";
+  "radial-gradient(ellipse 56% 60% at 50% 46%, transparent 44%, #000 82%)";
 
 export default function DumbbellWall() {
   return (
