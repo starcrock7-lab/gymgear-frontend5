@@ -120,11 +120,11 @@ Groq only wrote copy), so "AI picks your kit" was never literally true.
 - [x] Product cards with price, sale strikethrough, rating, affiliate-first buy link
 - [x] Swap product UX (SwapModal, reuses /api/products/:cat, recomputes total)
 - [x] Mobile: tab layout
-- [ ] Compare shortcut — deferred to Phase 5 (needs the comparison tool to exist first)
+- [x] Compare shortcut (2026-07-08): each `/gear/[slug]` page has a "Compare side by side" button → `/compare?cat=<cat>&ids=<id>`; CompareTool preselects a single deep-linked id (2+ ids still open the full matrix, keeping share-restore intact)
 
 ### Phase 5 — Polish + SEO
 - [x] Port comparison tool to Next.js — `/compare` is the real tool: grouped category browse → select 2–4 → side-by-side spec matrix (cheapest + best-quality highlighted) + best-value verdict + Buy links + detail panel (CompareTool.tsx)
-- [ ] "Compare these" shortcut from a kit — deferred: kit products are cross-category, so they don't share a spec matrix; the standalone tool compares within one category
+- [x] "Compare these" resolved via the per-product route (2026-07-08): a whole kit is cross-category so it can't share one spec matrix, but every kit/cart product reaches its `/gear/[slug]` page (product detail → gear page) where "Compare side by side" deep-links it into the tool against category rivals
 - [x] Product pages for SEO — shipped as `/gear/[slug]` (250+ SSG pages with GymGear Score, peers, specs); dedicated "X vs Y" pages still unbuilt (idea, not committed)
 - [~] Activate weekly-refresh.yml — **superseded 2026-07-08**: search.js is an AI price-refresh, which violates the deals-engine hard rule (LLM never sources prices). Real pricing arrives via v2+ (Keepa/PA-API) below; do not activate search.js
 - [x] Social sharing for kit results (shareKit in KitResult — native share sheet + clipboard fallback; box was stale)

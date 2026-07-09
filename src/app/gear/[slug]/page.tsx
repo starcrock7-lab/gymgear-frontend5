@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Star, Check, ArrowUpRight, ChevronRight, Trophy } from "lucide-react";
+import { Star, Check, ArrowUpRight, ChevronRight, Trophy, Scale } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import AddToCartButton from "@/components/AddToCartButton";
@@ -343,13 +343,22 @@ export default async function ProductPage({
                   </Link>
                 ))}
               </div>
-              <Link
-                href={`/category/${p.category}`}
-                className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-accent hover:underline"
-              >
-                See the full {catLabel} ranking
-                <ChevronRight className="h-4 w-4" />
-              </Link>
+              <div className="mt-5 flex flex-wrap items-center gap-4">
+                <Link
+                  href={`/compare?cat=${p.category}&ids=${p.id}`}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_18px_rgba(232,84,42,0.5)]"
+                >
+                  <Scale className="h-4 w-4" />
+                  Compare side by side
+                </Link>
+                <Link
+                  href={`/category/${p.category}`}
+                  className="inline-flex items-center gap-1 text-sm font-bold text-accent hover:underline"
+                >
+                  See the full {catLabel} ranking
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
             </section>
           )}
 

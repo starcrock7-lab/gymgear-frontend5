@@ -116,7 +116,10 @@ export default function CompareTool() {
   }
   const isSelected = (id: string) => selected.some((p) => p.id === id);
 
-  /* Restore a shared comparison once its products have loaded. */
+  /* Restore from the URL once products load. A full shared comparison (2+
+     ids) opens the matrix; a single id — a "Compare this" deep link from a
+     product page — just preselects it so the user lands ready to pick a
+     rival in the same category. */
   useEffect(() => {
     if (!products || !pendingIds.current) return;
     const want = pendingIds.current;
@@ -125,6 +128,8 @@ export default function CompareTool() {
     if (picks.length >= 2) {
       setSelected(picks);
       setComparing(true);
+    } else if (picks.length === 1) {
+      setSelected(picks);
     }
   }, [products]);
 
