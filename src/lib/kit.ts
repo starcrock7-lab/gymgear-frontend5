@@ -116,6 +116,29 @@ export function buyUrl(p: KitProduct): string {
   return `https://www.amazon.com/s?k=${q}&tag=${AMAZON_TAG}`;
 }
 
+/* The Amazon ASIN in a /dp/<ASIN> buy link, or null. Source of truth for both
+   the one-click Amazon cart (checkout.ts) and the honest link labels below —
+   only an ASIN link can join Amazon's bulk add-to-cart. */
+export function amazonAsin(p: KitProduct): string | null {
+  for (const u of [p.affiliateUrl, p.url]) {
+    const m = u?.match(/\/dp\/([A-Z0-9]{10})(?:[/?]|$)/);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+/* What a product's buy button actually does, so the cart never lies about it:
+   - "amazon-cart": real Amazon product page → joins the one-click cart, earns.
+   - "amazon-search": dead brand URL fell back to an Amazon *search* → only
+     finds the item; label it "Find on Amazon", never as the brand's store.
+   - "direct": the brand's own product page → opens their store. */
+export type LinkKind = "amazon-cart" | "amazon-search" | "direct";
+export function linkKind(p: KitProduct): LinkKind {
+  if (amazonAsin(p)) return "amazon-cart";
+  if (/amazon\.[a-z.]+\/s\?/i.test(buyUrl(p))) return "amazon-search";
+  return "direct";
+}
+
 export function formatPrice(n: number): string {
   return `$${n.toLocaleString("en-US")}`;
 }

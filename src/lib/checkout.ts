@@ -1,20 +1,21 @@
-/* Checkout link builder (Phase 8 buy-flow upgrade). Replaces "Buy all opens
-   one tab per item": products with a known Amazon ASIN collapse into ONE
-   Amazon add-to-cart link (all items land in the buyer's Amazon cart in a
-   single tab, AssociateTag still earns the commission); everything else is
-   grouped per retailer so the buttons read "Checkout at Rogue Fitness (2)"
-   instead of a wall of tabs. */
+/* Checkout split (Amazon-first honest cart). Only products with a real Amazon
+   ASIN are truly "cartable": they collapse into ONE add-to-cart link so every
+   item lands in the buyer's Amazon cart in a single tab (AssociateTag earns the
+   commission). Everything else — brand-store pages and Amazon *search*
+   fallbacks — is bought individually with an honest per-item label (see
+   linkKind), never dressed up as a unified checkout that doesn't exist. */
 
-import { AMAZON_TAG, buyUrl, type KitProduct } from "@/lib/kit";
+import {
+  AMAZON_TAG,
+  amazonAsin,
+  buyUrl,
+  linkKind,
+  type KitProduct,
+} from "@/lib/kit";
 
-/* ASIN from a /dp/<ASIN> link — affiliate link first, then the store URL. */
-export function asinOf(p: KitProduct): string | null {
-  for (const u of [p.affiliateUrl, p.url]) {
-    const m = u?.match(/\/dp\/([A-Z0-9]{10})(?:[/?]|$)/);
-    if (m) return m[1];
-  }
-  return null;
-}
+/* Kept as the historical name; ASIN detection now lives in kit.ts so the cart
+   labels and the bulk-cart link can never disagree. */
+export const asinOf = amazonAsin;
 
 /* Amazon's bulk add-to-cart endpoint: ASIN.n / Quantity.n pairs. */
 export function amazonCartUrl(asins: string[]): string {
@@ -24,42 +25,22 @@ export function amazonCartUrl(asins: string[]): string {
   return `https://www.amazon.com/gp/aws/cart/add.html?AssociateTag=${AMAZON_TAG}&${parts.join("&")}`;
 }
 
-export type CheckoutGroup = {
-  retailer: string;
-  products: KitProduct[];
-  /** One URL for the whole group (Amazon bulk cart) — else buy per item. */
-  groupUrl: string | null;
+export type CartSplit = {
+  /** Real Amazon /dp items — the true one-click cart, all earn commission. */
+  cartable: KitProduct[];
+  /** Brand-store or Amazon-search items — bought individually, honestly. */
+  direct: KitProduct[];
+  /** Bulk add-to-cart URL for every cartable item in one tab, or null. */
+  amazonUrl: string | null;
 };
 
-/* Split cart items into checkout groups: one combined Amazon group first
-   (biggest, single-tab), then remaining retailers by item count. Items whose
-   only link is an Amazon *search* (no ASIN) can't join the bulk cart — they
-   stay individual under their retailer. */
-export function checkoutGroups(items: KitProduct[]): CheckoutGroup[] {
-  const amazon: KitProduct[] = [];
-  const rest = new Map<string, KitProduct[]>();
-  for (const p of items) {
-    if (asinOf(p)) {
-      amazon.push(p);
-    } else {
-      const key = p.retailer || "Store";
-      rest.set(key, [...(rest.get(key) ?? []), p]);
-    }
-  }
-  const groups: CheckoutGroup[] = [];
-  if (amazon.length) {
-    groups.push({
-      retailer: "Amazon",
-      products: amazon,
-      groupUrl: amazonCartUrl(amazon.map((p) => asinOf(p) as string)),
-    });
-  }
-  for (const [retailer, products] of [...rest.entries()].sort(
-    (a, b) => b[1].length - a[1].length,
-  )) {
-    groups.push({ retailer, products, groupUrl: null });
-  }
-  return groups;
+export function splitCart(items: KitProduct[]): CartSplit {
+  const cartable = items.filter((p) => amazonAsin(p));
+  const direct = items.filter((p) => !amazonAsin(p));
+  const amazonUrl = cartable.length
+    ? amazonCartUrl(cartable.map((p) => amazonAsin(p) as string))
+    : null;
+  return { cartable, direct, amazonUrl };
 }
 
-export { buyUrl };
+export { buyUrl, linkKind };

@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   ArrowUpRight,
   BadgePercent,
+  Search,
   ShoppingCart,
   Star,
   Trash2,
@@ -12,7 +13,7 @@ import {
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { useCart, cartRemove, cartClear } from "@/lib/cart";
-import { checkoutGroups } from "@/lib/checkout";
+import { splitCart, linkKind } from "@/lib/checkout";
 import { buyUrl, formatPrice, categoryLabel, type KitProduct } from "@/lib/kit";
 import { findDeals, dealsSavings, dealsPitch, endsInLabel } from "@/lib/deals";
 
@@ -24,6 +25,27 @@ export default function CartPage() {
   const items = useCart();
   const subtotal = items.reduce((s, p) => s + (p.salePrice ?? p.price), 0);
   const deals = findDeals(items);
+  /* Amazon-first honest split: the real one-click cart vs buy-direct items. */
+  const { cartable, direct, amazonUrl } = splitCart(items);
+  /* Buy-all fires ONE Amazon cart tab (all ASIN items) plus one tab per
+     non-Amazon item — its brand store when the page is live, else an Amazon
+     search. buyUrl() never resolves to a dead brand page, so no tab 404s. */
+  const brandCount = direct.filter((p) => linkKind(p) === "direct").length;
+  const searchCount = direct.length - brandCount;
+  const tabCount = (amazonUrl ? 1 : 0) + direct.length;
+  const tabParts: string[] = [];
+  if (cartable.length) tabParts.push(`${cartable.length} → Amazon cart`);
+  if (brandCount)
+    tabParts.push(`${brandCount} → brand ${brandCount === 1 ? "store" : "stores"}`);
+  if (searchCount) tabParts.push(`${searchCount} → Amazon search`);
+
+  function buyAll() {
+    if (typeof window === "undefined") return;
+    if (amazonUrl) window.open(amazonUrl, "_blank", "noopener,noreferrer");
+    for (const p of direct) {
+      window.open(buyUrl(p), "_blank", "noopener,noreferrer");
+    }
+  }
 
   return (
     <>
@@ -110,51 +132,65 @@ export default function CartPage() {
               </p>
             </div>
 
-            {/* Grouped checkout — Amazon items in one tab, rest per store. */}
-            <div className="mt-4 flex flex-col gap-3">
-              {checkoutGroups(items).map((g) =>
-                g.groupUrl ? (
-                  <a
-                    key={g.retailer}
-                    href={g.groupUrl}
-                    target="_blank"
-                    rel="noopener noreferrer sponsored"
-                    className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3.5 font-body text-sm font-bold text-white shadow-lg shadow-accent/30 transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    Add {g.products.length === 1 ? "1 item" : `all ${g.products.length} items`} to Amazon cart
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  </a>
-                ) : (
-                  <div
-                    key={g.retailer}
-                    className="rounded-xl border border-white/12 px-4 py-3"
-                  >
-                    <p className="text-xs font-bold text-white/70">
-                      At {g.retailer} ({g.products.length})
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {g.products.map((p) => (
-                        <a
-                          key={p.id}
-                          href={buyUrl(p)}
-                          target="_blank"
-                          rel="noopener noreferrer sponsored"
-                          className="flex items-center gap-1 rounded-lg bg-white/8 px-3 py-1.5 text-xs font-bold text-white/85 transition-colors hover:bg-accent hover:text-white"
-                        >
-                          {p.name}
-                          <ArrowUpRight className="h-3 w-3" />
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                ),
-              )}
+            {/* One action (the buy-all flow): Amazon items collapse into ONE
+                cart tab; every other item opens its own store — or an Amazon
+                search when the brand page is offline. buyUrl() never resolves
+                to a dead brand page, so no tab 404s. */}
+            <button
+              type="button"
+              onClick={buyAll}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3.5 font-body text-sm font-bold text-white shadow-lg shadow-accent/30 transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Buy all {items.length} {items.length === 1 ? "item" : "items"}
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </button>
+            <p className="mt-2 text-center text-[0.68rem] leading-snug text-white/45">
+              Opens {tabCount} {tabCount === 1 ? "tab" : "tabs"} · {tabParts.join(" · ")}
+            </p>
+
+            {/* Granular control — open any single item. Honest per-item label
+                so a button never claims a store it won't actually open. */}
+            <div className="mt-5">
+              <p className="text-[0.6rem] uppercase tracking-wide text-white/40">
+                Or buy individually
+              </p>
+              <div className="mt-2 flex flex-col gap-2">
+                {items.map((p) => {
+                  const kind = linkKind(p);
+                  const label =
+                    kind === "amazon-cart"
+                      ? "Buy on Amazon"
+                      : kind === "amazon-search"
+                        ? "Find on Amazon"
+                        : `Buy at ${p.retailer || "store"}`;
+                  return (
+                    <a
+                      key={p.id}
+                      href={buyUrl(p)}
+                      target="_blank"
+                      rel="noopener noreferrer sponsored"
+                      className="flex items-center justify-between gap-3 rounded-xl border border-white/12 px-4 py-2.5 transition-colors hover:border-accent/50 hover:bg-accent/5"
+                    >
+                      <span className="min-w-0 truncate font-body text-xs font-bold text-white/85">
+                        {p.name}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1 text-[0.72rem] font-bold text-accent">
+                        {kind === "amazon-search" ? <Search className="h-3 w-3" /> : null}
+                        {label}
+                        <ArrowUpRight className="h-3 w-3" />
+                      </span>
+                    </a>
+                  );
+                })}
+              </div>
             </div>
-            <p className="mt-3 text-[0.65rem] leading-snug text-white/35">
-              Amazon items land in your Amazon cart in one click; other stores
-              open their product page. We may earn a commission, at no cost to
-              you.
+
+            <p className="mt-4 text-[0.65rem] leading-snug text-white/35">
+              Amazon items drop into your Amazon cart in one tab; other items
+              open the brand&rsquo;s own store. A few whose brand page is offline
+              open an Amazon search instead. We may earn a commission, at no cost
+              to you.
             </p>
           </div>
         </>

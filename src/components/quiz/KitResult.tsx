@@ -38,7 +38,7 @@ import {
 } from "@/lib/kit";
 import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
-import { checkoutGroups } from "@/lib/checkout";
+import { splitCart } from "@/lib/checkout";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
@@ -141,20 +141,15 @@ export default function KitResult({
     );
   }
 
-  /* "Buy all" — grouped checkout (Phase 8): every item with an Amazon ASIN
-     collapses into ONE bulk add-to-cart tab (tag intact); remaining
-     retailers open one tab per item. Far fewer popups than one-per-item;
-     per-item Buy buttons remain the reliable fallback. */
+  /* "Buy all" (Amazon-first): every item with an Amazon ASIN collapses into
+     ONE bulk add-to-cart tab (tag intact); brand-store / search items open
+     individually. Per-item Buy buttons remain the reliable fallback. */
   function buyAll() {
     if (typeof window === "undefined") return;
-    for (const g of checkoutGroups(selectedKit.products)) {
-      if (g.groupUrl) {
-        window.open(g.groupUrl, "_blank", "noopener,noreferrer");
-      } else {
-        for (const p of g.products) {
-          window.open(buyUrl(p), "_blank", "noopener,noreferrer");
-        }
-      }
+    const { direct, amazonUrl } = splitCart(selectedKit.products);
+    if (amazonUrl) window.open(amazonUrl, "_blank", "noopener,noreferrer");
+    for (const p of direct) {
+      window.open(buyUrl(p), "_blank", "noopener,noreferrer");
     }
   }
 
