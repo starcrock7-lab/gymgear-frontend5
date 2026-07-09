@@ -99,7 +99,7 @@ Groq only wrote copy), so "AI picks your kit" was never literally true.
 ### Phase 1 — Next.js foundation
 - [x] Init Next.js project, port design system (CSS tokens, fonts, logo)
 - [x] Homepage with dark hero + "Start Quiz" CTA
-- [ ] Deploy to Vercel, confirm gymgearcompare.com still resolves (branch not pushed yet)
+- [x] Deploy to Vercel, gymgearcompare.com resolves (live since 2026-07 — box was stale)
 
 ### Phase 2 — Quiz flow (done 2026-06-11, on nextjs-rebuild)
 - [x] 5-screen quiz with animated transitions (one question per screen)
@@ -125,9 +125,9 @@ Groq only wrote copy), so "AI picks your kit" was never literally true.
 ### Phase 5 — Polish + SEO
 - [x] Port comparison tool to Next.js — `/compare` is the real tool: grouped category browse → select 2–4 → side-by-side spec matrix (cheapest + best-quality highlighted) + best-value verdict + Buy links + detail panel (CompareTool.tsx)
 - [ ] "Compare these" shortcut from a kit — deferred: kit products are cross-category, so they don't share a spec matrix; the standalone tool compares within one category
-- [ ] Product pages for SEO (e.g. /compare/rogue-ohio-vs-eleiko)
-- [ ] Activate weekly-refresh.yml (real pricing)
-- [ ] Social sharing for kit results
+- [x] Product pages for SEO — shipped as `/gear/[slug]` (250+ SSG pages with GymGear Score, peers, specs); dedicated "X vs Y" pages still unbuilt (idea, not committed)
+- [~] Activate weekly-refresh.yml — **superseded 2026-07-08**: search.js is an AI price-refresh, which violates the deals-engine hard rule (LLM never sources prices). Real pricing arrives via v2+ (Keepa/PA-API) below; do not activate search.js
+- [x] Social sharing for kit results (shareKit in KitResult — native share sheet + clipboard fallback; box was stale)
 - [ ] Real product images (once Amazon PA API approved)
 
 ### Phase 6 — Traffic
@@ -139,7 +139,7 @@ Groq only wrote copy), so "AI picks your kit" was never literally true.
 See the 2026-07-06 decisions section — the LLM never sources prices/expiry.
 - [x] **v1 — deterministic detection (2026-07-06):** `src/lib/deals.ts` derives deals from curated salePrice fields; DealsStrip in the cart (count + total savings + templated pitch, honest urgency only) + per-row "% off" chips; recomputes on swap/remove/add
 - [x] **v1.5 — weekly AI pitch copy (2026-07-07):** `.github/workflows/weekly-deal-pitches.yml` (Mondays 06:00 UTC + manual dispatch) runs `scripts/refresh-deal-pitches.mjs` — ONE batched Groq call writes a pitch per live deal → `src/data/deal-pitches.json` (bundled; commit only on change → Vercel rebuild). Quality gate drops bare "X% off" restatements; missing key never erases pitches; templates remain fallback. **Roe: add repo Actions secrets `GROQ_API_KEY` + `SITE_KEY` or the Monday run is a no-op** (first JSON was generated locally and committed, so pitches are live either way)
-- [ ] **v2 — expiry + timers (Roe: "remember to add this"):** add `expiresAt` per deal to the catalog (backend repo, public — no secrets); real countdown timers in the strip; on expiry show regular price immediately and queue that ONE product for a targeted re-check (not a full catalog scan); holiday/seasonal specials theming. Needs a data source that knows end dates (curated by hand, or Keepa/PA-API when unlocked)
+- [x] **v2 — expiry + timers, plumbing (2026-07-08):** optional `saleEndsAt` (ISO) flows backend `p()` → API → `KitProduct`; `deals.ts` drops expired sales from strips/pitches immediately; honest countdown chip ("ends in 7h") only when a real curated date is <72h out; pitch script skips expired. NO dates invented — Roe adds real ones to server.js as he learns them. Per-product re-check job deliberately skipped (over-engineering for a hand-curated catalog; the weekly pitch run re-reads everything anyway). Holiday theming deferred to a content pass
 - [ ] v2+ — live price source (Keepa or Amazon PA-API — PA-API also unlocks real product images at 3 sales) replaces hand-curated salePrice
 
 ### Phase 8 — Cart system rework (scoped with Roe 2026-07-07)
@@ -149,7 +149,7 @@ Chosen scope: **site-wide persistent cart** + **better buy/checkout flow**. Expl
 - [x] `/cart` page — dark theme wrapper (body default is light — pages own their bg), line items + remove, deals strip reused, retailer-grouped checkout, affiliate disclosure (2026-07-07)
 - [x] Nav cart icon + live count badge (SiteNav, desktop + mobile) (2026-07-07)
 - [x] Add-to-cart from `/gear/[slug]` + `/compare` (AddToCartButton, dark/light variants) + KitResult "Add kit to cart" bridge; FBT accessory add still feeds the selected tier (2026-07-07)
-- [ ] Later: add-to-cart on /extras + category pages; "Buy all" in KitResult could route through checkout groups too
+- [x] Add-to-cart on /extras (GearFinder cards) + category ranking rows; KitResult "Buy all" routes through checkout groups — one Amazon bulk tab + per-retailer tabs (2026-07-08)
 
 ## Current state of the repo (updated 2026-07-03)
 

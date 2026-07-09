@@ -14,7 +14,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { useCart, cartRemove, cartClear } from "@/lib/cart";
 import { checkoutGroups } from "@/lib/checkout";
 import { buyUrl, formatPrice, categoryLabel, type KitProduct } from "@/lib/kit";
-import { findDeals, dealsSavings, dealsPitch } from "@/lib/deals";
+import { findDeals, dealsSavings, dealsPitch, endsInLabel } from "@/lib/deals";
 
 /* The global cart (Phase 8): everything added from gear pages, compare, or a
    quiz kit, persisted in localStorage. Checkout is grouped — one Amazon
@@ -81,6 +81,11 @@ export default function CartPage() {
                     ? "One of your items is on sale"
                     : `${deals.length} of your items are on sale`}{" "}
                   · you save {formatPrice(dealsSavings(deals))}
+                  {endsInLabel(deals[0]) && (
+                    <span className="ml-1.5 rounded bg-win/15 px-1.5 py-px">
+                      {endsInLabel(deals[0])}
+                    </span>
+                  )}
                 </p>
                 <p className="mt-0.5 text-[0.72rem] leading-snug text-white/50">
                   {dealsPitch(deals)}

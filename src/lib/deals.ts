@@ -23,13 +23,37 @@ export type Deal = {
   pct: number;
 };
 
+/* Deals v2: a sale with a known, PASSED end date is not a deal anymore —
+   the strip and pitches drop it immediately, even if the catalog still
+   carries the stale salePrice. No date on the product = no expiry logic. */
+function expired(p: KitProduct): boolean {
+  if (!p.saleEndsAt) return false;
+  const t = Date.parse(p.saleEndsAt);
+  return Number.isFinite(t) && t <= Date.now();
+}
+
 export function productDeal(p: KitProduct): Deal | null {
-  if (!p.salePrice || p.salePrice >= p.price) return null;
+  if (!p.salePrice || p.salePrice >= p.price || expired(p)) return null;
   return {
     product: p,
     save: p.price - p.salePrice,
     pct: Math.round((1 - p.salePrice / p.price) * 100),
   };
+}
+
+/* Honest countdown — only when a real end date exists and is close enough
+   to matter (< 72h). Returns e.g. "ends in 7h" / "ends in 2d", else null.
+   Never shown without curated data; we never fake urgency. */
+export function endsInLabel(d: Deal): string | null {
+  const raw = d.product.saleEndsAt;
+  if (!raw) return null;
+  const ms = Date.parse(raw) - Date.now();
+  if (!Number.isFinite(ms) || ms <= 0) return null;
+  const hours = ms / 3.6e6;
+  if (hours > 72) return null;
+  if (hours >= 48) return "ends in 2d";
+  if (hours >= 1) return `ends in ${Math.round(hours)}h`;
+  return "ends within the hour";
 }
 
 /* Every live deal in a set of products, biggest saving first. */

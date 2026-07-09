@@ -20,8 +20,8 @@ export default function AddToCartButton({
   const inCart = useCart().some((p) => p.id === product.id);
   const idle =
     variant === "dark"
-      ? "border border-white/20 bg-white/5 text-white/90 hover:-translate-y-0.5 hover:border-accent/60 hover:bg-accent/10 hover:text-accent"
-      : "border border-line bg-card text-ink hover:-translate-y-0.5 hover:border-accent/60 hover:text-accent";
+      ? "border border-white/20 bg-white/5 text-white/90 hover:border-accent/60 hover:bg-accent/10 hover:text-accent hover:shadow-[0_0_16px_rgba(232,84,42,0.25)]"
+      : "border border-line bg-card text-ink hover:border-accent/60 hover:text-accent hover:shadow-[0_0_16px_rgba(232,84,42,0.25)]";
   return (
     <button
       type="button"

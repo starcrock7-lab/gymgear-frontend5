@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Star, ArrowUpRight, ChevronRight, Trophy } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import AddToCartButton from "@/components/AddToCartButton";
 import {
   getCategories,
   getCategoryProducts,
@@ -190,15 +191,21 @@ export default async function CategoryPage({
                     <div className="font-display text-lg font-bold text-ink">
                       {formatPrice(priceOf(p))}
                     </div>
-                    <a
-                      href={buyUrl(p)}
-                      target="_blank"
-                      rel="noopener noreferrer sponsored"
-                      className="mt-1 inline-flex items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-accent-hover"
-                    >
-                      Check price
-                      <ArrowUpRight className="h-3 w-3" />
-                    </a>
+                    <div className="mt-1 flex items-center justify-end gap-1.5">
+                      <AddToCartButton
+                        product={p}
+                        className="rounded-lg px-3 py-1.5 text-xs"
+                      />
+                      <a
+                        href={buyUrl(p)}
+                        target="_blank"
+                        rel="noopener noreferrer sponsored"
+                        className="inline-flex items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-accent-hover"
+                      >
+                        Check price
+                        <ArrowUpRight className="h-3 w-3" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

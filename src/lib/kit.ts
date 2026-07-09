@@ -21,6 +21,8 @@ export type KitProduct = {
   bestChoice: boolean;
   salePrice?: number;
   discount?: number;
+  /** Deals v2 — hand-curated sale end (ISO); absent = end date unknown. */
+  saleEndsAt?: string;
   category: string;
   /* F4 — GymGear Score rubric (data/spec-derived, see /methodology). */
   gymgearScore?: number;

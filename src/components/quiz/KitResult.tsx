@@ -17,7 +17,13 @@ import {
   Plus,
   BadgePercent,
 } from "lucide-react";
-import { findDeals, dealsSavings, dealsPitch, productDeal } from "@/lib/deals";
+import {
+  findDeals,
+  dealsSavings,
+  dealsPitch,
+  productDeal,
+  endsInLabel,
+} from "@/lib/deals";
 import { useCart, cartAdd } from "@/lib/cart";
 import {
   KIT_TIER_META,
@@ -32,6 +38,7 @@ import {
 } from "@/lib/kit";
 import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
+import { checkoutGroups } from "@/lib/checkout";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
@@ -134,13 +141,20 @@ export default function KitResult({
     );
   }
 
-  /* "Buy all" — open each line item's store page. Affiliate links are
-     per-product (no shared checkout), so we fire one tab per item from the
-     single user click. Per-item Buy buttons remain the reliable fallback. */
+  /* "Buy all" — grouped checkout (Phase 8): every item with an Amazon ASIN
+     collapses into ONE bulk add-to-cart tab (tag intact); remaining
+     retailers open one tab per item. Far fewer popups than one-per-item;
+     per-item Buy buttons remain the reliable fallback. */
   function buyAll() {
     if (typeof window === "undefined") return;
-    for (const p of selectedKit.products) {
-      window.open(buyUrl(p), "_blank", "noopener,noreferrer");
+    for (const g of checkoutGroups(selectedKit.products)) {
+      if (g.groupUrl) {
+        window.open(g.groupUrl, "_blank", "noopener,noreferrer");
+      } else {
+        for (const p of g.products) {
+          window.open(buyUrl(p), "_blank", "noopener,noreferrer");
+        }
+      }
     }
   }
 
@@ -442,6 +456,8 @@ function DealsStrip({ products }: { products: KitProduct[] }) {
   const deals = findDeals(products);
   if (!deals.length) return null;
   const save = dealsSavings(deals);
+  /* Real countdown only — needs a curated end date within 72h (deals v2). */
+  const ends = endsInLabel(deals[0]);
   return (
     <div className="flex items-start gap-2.5 border-b border-white/10 bg-win/[0.06] px-4 py-3 sm:px-5">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-win/15 text-win">
@@ -453,6 +469,11 @@ function DealsStrip({ products }: { products: KitProduct[] }) {
             ? "One of your picks is on sale"
             : `${deals.length} of your picks are on sale`}{" "}
           · you save {formatPrice(save)}
+          {ends && (
+            <span className="ml-1.5 rounded bg-win/15 px-1.5 py-px">
+              {ends}
+            </span>
+          )}
         </p>
         <p className="mt-0.5 text-[0.72rem] leading-snug text-white/50">
           {dealsPitch(deals)}

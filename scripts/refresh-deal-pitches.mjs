@@ -55,6 +55,8 @@ for (const cat of cats) {
   const products = (await get(`/api/products/${cat}`))?.products ?? [];
   for (const p of products) {
     if (!p.salePrice || p.salePrice >= p.price) continue;
+    /* Deals v2: skip sales whose curated end date has passed. */
+    if (p.saleEndsAt && Date.parse(p.saleEndsAt) <= Date.now()) continue;
     deals.push({
       id: p.id,
       name: p.name,
