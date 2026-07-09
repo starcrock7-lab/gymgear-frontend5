@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { Star, Check, ArrowUpRight, ChevronRight, Trophy, Scale } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import AddToCartButton from "@/components/AddToCartButton";
 import {
   getAllProducts,
   getProductWithPeers,
@@ -199,11 +198,6 @@ export default async function ProductPage({
                 Check price at {p.retailer}
                 <ArrowUpRight className="h-4 w-4" />
               </a>
-              <AddToCartButton
-                product={p}
-                variant="light"
-                className="mt-2 h-12 w-full"
-              />
               <p className="mt-2 text-center text-[0.7rem] text-ink-3">
                 We may earn a commission, at no extra cost to you.{" "}
                 <Link href="/disclosure" className="underline">

@@ -5,7 +5,6 @@ import { Loader2, Star, ArrowUpRight } from "lucide-react";
 import { requestCategories, requestAlternatives } from "@/lib/api";
 import { buyUrl, formatPrice, type Category, type KitProduct } from "@/lib/kit";
 import ProductModal from "@/components/quiz/ProductModal";
-import AddToCartButton from "@/components/AddToCartButton";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -212,10 +211,6 @@ function FinderCard({
           Buy {formatPrice(priceOf(p))}
           <ArrowUpRight className="h-3 w-3" />
         </a>
-        <AddToCartButton
-          product={p}
-          className="mt-1.5 rounded-lg px-3 py-2 text-xs"
-        />
       </div>
     </SpotlightCard>
   );

@@ -11,7 +11,6 @@ import {
   Info,
   Share2,
   PackagePlus,
-  ShoppingCart,
   Trash2,
   ArrowUpRight,
   Plus,
@@ -24,7 +23,6 @@ import {
   productDeal,
   endsInLabel,
 } from "@/lib/deals";
-import { useCart, cartAdd } from "@/lib/cart";
 import {
   KIT_TIER_META,
   buyUrl,
@@ -38,7 +36,6 @@ import {
 } from "@/lib/kit";
 import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
-import { splitCart } from "@/lib/checkout";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
@@ -141,18 +138,6 @@ export default function KitResult({
     );
   }
 
-  /* "Buy all" (Amazon-first): every item with an Amazon ASIN collapses into
-     ONE bulk add-to-cart tab (tag intact); brand-store / search items open
-     individually. Per-item Buy buttons remain the reliable fallback. */
-  function buyAll() {
-    if (typeof window === "undefined") return;
-    const { direct, amazonUrl } = splitCart(selectedKit.products);
-    if (amazonUrl) window.open(amazonUrl, "_blank", "noopener,noreferrer");
-    for (const p of direct) {
-      window.open(buyUrl(p), "_blank", "noopener,noreferrer");
-    }
-  }
-
   /* Clear the post-swap highlight after it plays. */
   useEffect(() => {
     if (!flashId) return;
@@ -169,18 +154,18 @@ export default function KitResult({
     <div className="flex flex-col">
       <div className="text-center">
         <p className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
-          Your cart is ready
+          Your kit is ready
         </p>
         <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
           Everything for your gym.
         </h1>
         <p className="mt-3 text-white/55">
-          Start from an AI build, then swap, remove, or add anything — and buy
-          it all in one place.
+          Start from an AI build, then swap, remove, or add anything to make it
+          yours.
         </p>
       </div>
 
-      {/* Tier selector — the cart's starting point (Value / Match / Quality) */}
+      {/* Tier selector — the kit's starting point (Value / Match / Quality) */}
       <div className="mt-10 flex flex-col items-center">
         <div className="inline-flex flex-wrap justify-center gap-1 rounded-2xl border border-white/12 bg-white/5 p-1">
           {kits.map((k) => {
@@ -210,7 +195,7 @@ export default function KitResult({
           })}
         </div>
         <p className="mt-3 text-xs text-white/40">
-          Your starting point — edit anything in the cart below.
+          Your starting point — edit anything in the kit below.
         </p>
       </div>
 
@@ -224,13 +209,12 @@ export default function KitResult({
           transition={{ duration: 0.28, ease: EASE }}
           className="mt-8"
         >
-          <Cart
+          <KitCard
             kit={selectedKit}
             flashId={flashId}
             onSwap={(product) => setSwap({ kitType: selectedKit.type, product })}
             onRemove={removeProduct}
             onInfo={setDetail}
-            onBuyAll={buyAll}
           />
         </motion.div>
       </AnimatePresence>
@@ -295,41 +279,36 @@ export default function KitResult({
   );
 }
 
-function Cart({
+function KitCard({
   kit,
   flashId,
   onSwap,
   onRemove,
   onInfo,
-  onBuyAll,
 }: {
   kit: Kit;
   flashId: string | null;
   onSwap: (product: KitProduct) => void;
   onRemove: (id: string) => void;
   onInfo: (product: KitProduct) => void;
-  onBuyAll: () => void;
 }) {
   const items = kit.products;
   const subtotal = kit.totalPrice;
   const listTotal = items.reduce((s, p) => s + p.price, 0);
   const savings = Math.round(listTotal - subtotal);
-  /* Live: true once every line item is in the global cart. */
-  const cartIds = new Set(useCart().map((p) => p.id));
-  const allInCart = items.length > 0 && items.every((p) => cartIds.has(p.id));
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.04] backdrop-blur-sm">
-      {/* Cart header — count + live subtotal */}
+      {/* Kit header — count + live subtotal */}
       <div className="border-b border-white/10 px-4 py-4 sm:px-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-2.5">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
-              <ShoppingCart className="h-5 w-5" />
+              <PackagePlus className="h-5 w-5" />
             </span>
             <div className="min-w-0">
               <p className="font-display text-lg font-extrabold leading-tight text-white">
-                Your cart
+                Your kit
               </p>
               <p className="truncate text-xs text-white/45">
                 {items.length} {items.length === 1 ? "item" : "items"} ·{" "}
@@ -361,7 +340,7 @@ function Cart({
       {items.length === 0 ? (
         <div className="px-5 py-16 text-center">
           <p className="font-body text-sm font-bold text-white/70">
-            Your cart is empty.
+            Your kit is empty.
           </p>
           <p className="mt-1 text-sm text-white/40">
             Switch a build above, or retake the quiz to start fresh.
@@ -382,61 +361,21 @@ function Cart({
         </div>
       )}
 
-      {/* Buy-all footer */}
+      {/* Kit total — buy each piece from its own button in the rows above. */}
       {items.length > 0 && (
         <div className="border-t border-white/10 bg-navy-deep/40 px-4 py-4 sm:px-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              {savings > 0 && (
-                <p className="text-xs font-bold text-win">
-                  You save {formatPrice(savings)} vs. list price
-                </p>
-              )}
-              <p className="font-display text-xl font-extrabold text-white">
-                {items.length} {items.length === 1 ? "item" : "items"} ·{" "}
-                <span className="text-accent">{formatPrice(subtotal)}</span>
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Bridge into the site-wide cart (Phase 8) — keeps this
-                  tier's picks reachable from any page via the nav badge. */}
-              <button
-                type="button"
-                onClick={() => cartAdd(items)}
-                disabled={allInCart}
-                className={
-                  "flex items-center gap-2 rounded-xl border px-5 py-3 font-body text-sm font-bold transition-all duration-300 " +
-                  (allInCart
-                    ? "cursor-default border-win/40 bg-win/10 text-win"
-                    : "border-white/20 bg-white/5 text-white/90 hover:-translate-y-0.5 hover:border-accent/60 hover:text-accent")
-                }
-              >
-                {allInCart ? (
-                  <>
-                    <Check className="h-4 w-4" />
-                    In your cart
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4" />
-                    Add kit to cart
-                  </>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={onBuyAll}
-                className="flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-body text-sm font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Buy all{items.length > 1 ? ` (${items.length})` : ""}
-              </button>
-            </div>
-          </div>
+          {savings > 0 && (
+            <p className="text-xs font-bold text-win">
+              You save {formatPrice(savings)} vs. list price
+            </p>
+          )}
+          <p className="font-display text-xl font-extrabold text-white">
+            {items.length} {items.length === 1 ? "item" : "items"} ·{" "}
+            <span className="text-accent">{formatPrice(subtotal)}</span>
+          </p>
           <p className="mt-2.5 text-[0.65rem] leading-snug text-white/35">
-            &ldquo;Buy all&rdquo; opens each item&rsquo;s store page in a new tab
-            — or buy pieces one at a time above. We may earn a commission, at no
-            cost to you.
+            Buy each piece from its Buy button above — every link goes straight
+            to the store. We may earn a commission, at no cost to you.
           </p>
         </div>
       )}
@@ -590,7 +529,7 @@ function CartRow({
             type="button"
             onClick={onRemove}
             aria-label={`Remove ${p.name}`}
-            title="Remove from cart"
+            title="Remove from kit"
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/45 transition-all duration-200 hover:border-red-400/50 hover:bg-red-500/10 hover:text-red-400"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -731,12 +670,12 @@ function AccessoryCard({
         {inKit ? (
           <>
             <Check className="h-3.5 w-3.5" />
-            In your cart
+            In your kit
           </>
         ) : (
           <>
             <Plus className="h-3.5 w-3.5" />
-            Add to cart
+            Add to kit
           </>
         )}
       </button>

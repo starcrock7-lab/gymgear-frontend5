@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { Star, ArrowUpRight, ChevronRight, Trophy } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import AddToCartButton from "@/components/AddToCartButton";
 import {
   getCategories,
   getCategoryProducts,
@@ -192,10 +191,6 @@ export default async function CategoryPage({
                       {formatPrice(priceOf(p))}
                     </div>
                     <div className="mt-1 flex items-center justify-end gap-1.5">
-                      <AddToCartButton
-                        product={p}
-                        className="rounded-lg px-3 py-1.5 text-xs"
-                      />
                       <a
                         href={buyUrl(p)}
                         target="_blank"
