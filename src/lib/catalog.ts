@@ -6,11 +6,14 @@
    backends, so it works in every environment. Results are cached (ISR) so the
    build hits the backend once, not per page. */
 import type { KitProduct, Category } from "@/lib/kit";
+import { saleExpired } from "@/lib/deals";
 
 const BASE =
   process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "") ||
   "https://gymgear-backend5.onrender.com";
-const SITE_KEY = process.env.NEXT_PUBLIC_SITE_KEY || "ggcp-2026-xK9m";
+/* No hardcoded fallback (public repo — a real value here defeats rotation).
+   Missing env → backend 403s and the build fails loud, same as lib/api.ts. */
+const SITE_KEY = process.env.NEXT_PUBLIC_SITE_KEY || "";
 const SITE_ORIGIN =
   process.env.NEXT_PUBLIC_SITE_URL || "https://gymgearcompare.com";
 
@@ -44,7 +47,21 @@ export async function getCategoryProducts(cat: string): Promise<KitProduct[]> {
   const d = await serverFetch<{ products: Omit<KitProduct, "category">[] }>(
     `/api/products/${cat}`,
   );
-  return (d.products ?? []).map((p) => ({ ...p, category: cat }));
+  /* Expired-sale strip (deals v2, per-product recheck): a passed saleEndsAt
+     means the sale fields never reach a page — every surface (gear, category,
+     compare, kit, search) shows the clean list price without opting in.
+     Evaluated per ISR revalidate (hourly), and the client-side deal strip
+     re-checks live via productDeal(), so a sale can never outlive its date
+     by more than the cache window. */
+  return (d.products ?? []).map((raw) => {
+    const p = { ...raw, category: cat } as KitProduct;
+    if (saleExpired(p)) {
+      delete p.salePrice;
+      delete p.discount;
+      delete p.saleEndsAt;
+    }
+    return p;
+  });
 }
 
 /* Every product across every category. Underlying per-category fetches are

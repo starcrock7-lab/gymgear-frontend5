@@ -25,15 +25,17 @@ export type Deal = {
 
 /* Deals v2: a sale with a known, PASSED end date is not a deal anymore —
    the strip and pitches drop it immediately, even if the catalog still
-   carries the stale salePrice. No date on the product = no expiry logic. */
-function expired(p: KitProduct): boolean {
+   carries the stale salePrice. No date on the product = no expiry logic.
+   Exported so the catalog layer (lib/catalog.ts) can strip expired sale
+   fields at fetch time — every surface then shows clean prices for free. */
+export function saleExpired(p: KitProduct): boolean {
   if (!p.saleEndsAt) return false;
   const t = Date.parse(p.saleEndsAt);
   return Number.isFinite(t) && t <= Date.now();
 }
 
 export function productDeal(p: KitProduct): Deal | null {
-  if (!p.salePrice || p.salePrice >= p.price || expired(p)) return null;
+  if (!p.salePrice || p.salePrice >= p.price || saleExpired(p)) return null;
   return {
     product: p,
     save: p.price - p.salePrice,
