@@ -81,24 +81,24 @@ function categoryOrder(goal: string, space: string, pieces: number): string[] {
     order = order.filter((c) => c !== "machines");
     order.push("machines");
   }
-  /* Tight spaces can't host a rack or a treadmill-class machine. Compact
-     machines/cardio still qualify — buildKit gates the rest per product. */
+  /* Tight spaces can't host a normal rack or a treadmill-class machine, but
+     compact units (cable tower, rod gyms, wall-folding rack, folding rower)
+     still qualify — buildKit gates non-compact ones at product level. */
   if (space === "apartment-corner" || space === "small-room") {
     const strengthy = goal === "build-strength" || goal === "home-gym-setup";
     const tight = strengthy
-      ? ["machines", "dumbbells", "kettlebells", "bands", "benches", "jumpropes", "yogamats", "foamrollers"]
-      : ["dumbbells", "kettlebells", "cardio", "bands", "machines", "jumpropes", "yogamats", "foamrollers", "benches"];
-    order = [...tight.filter((c) => order.includes(c)), ...order.filter((c) => !tight.includes(c))].filter((c) => c !== "racks");
+      ? ["machines", "racks", "dumbbells", "kettlebells", "bands", "benches", "jumpropes", "yogamats", "foamrollers"]
+      : ["dumbbells", "kettlebells", "cardio", "bands", "machines", "racks", "jumpropes", "yogamats", "foamrollers", "benches"];
+    order = [...tight.filter((c) => order.includes(c)), ...order.filter((c) => !tight.includes(c))];
   }
   return order;
 }
 
-/* Categories that don't physically fit a space — a rack (or rig) can't live
-   in an apartment corner. */
-function forbiddenCats(space: string): Set<string> {
-  return space === "apartment-corner" || space === "small-room"
-    ? new Set(["racks"])
-    : new Set();
+/* Space fit is enforced per-product via the compact flag (see hydrateKits) —
+   a wall-folding rack IS apartment-friendly, so no category is banned
+   wholesale anymore. Kept as a hook for future hard category bans. */
+function forbiddenCats(_space: string): Set<string> {
+  return new Set();
 }
 
 type Lite = { id: string; cat: string; price: number; quality: number; rating: number; gs: number; compact: boolean };
@@ -145,7 +145,7 @@ function buildKit(
   const blocked = new Set<string>();
   const pickable = (p: Lite) =>
     !blocked.has(p.cat) && !ownedCats.has(p.cat) && spent + p.price <= cap &&
-    !(tight && (p.cat === "machines" || p.cat === "cardio") && !p.compact);
+    !(tight && (p.cat === "machines" || p.cat === "cardio" || p.cat === "racks") && !p.compact);
   const take = (p: Lite) => {
     picks.push(p); spent += p.price; blocked.add(p.cat);
     for (const c of EXCLUSIVE_WITH[p.cat] || []) blocked.add(c);
@@ -204,9 +204,10 @@ function hydrateKits(
         .map((id) => byId.get(id))
         .filter((p): p is CatalogProduct => Boolean(p))
         .filter((p) => !forbidden.has(p.category) && !ownedCats.has(p.category))
-        /* Full-size machines / treadmill-class cardio can't live in a tight
-           space (compact units — cable tower, folding rower, bike — can). */
-        .filter((p) => !(tight && (p.category === "machines" || p.category === "cardio") && !p.compact));
+        /* Full-size machines, treadmill-class cardio and normal racks can't
+           live in a tight space (compact units — cable tower, folding rower,
+           wall-folding rack — can). */
+        .filter((p) => !(tight && (p.category === "machines" || p.category === "cardio" || p.category === "racks") && !p.compact));
       /* Dedupe by category so a kit never lists two benches — and never a
          machine AND a rack (the machine already is one). */
       const seen = new Set<string>();

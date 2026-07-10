@@ -100,6 +100,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-07-09 · Household-name expansion: +9 staples (Rogue Ohio Power Bar & SML-2, PRx folding rack, PowerBlock, Kettlebell Kings, WaterRower, TRX PRO4, Tonal 2, Ironmaster Super Bench), 6 new brands, all URLs verified; compact-flag gating extended to racks (wall-folding rack now legal in small rooms — blanket rack ban removed) in backend + lockstep route port · (this commit)
 - 2026-07-09 · Major catalog + kit-algorithm update: new `machines` category (11 all-in-one/functional trainers — Force USA, Life Fitness, REP, Bells of Steel, Body-Solid, Bowflex, Marcy), +5 racks/cardio products, kit builder personalised (GymGear-Score match tier, budget-share fit, machine↔rack exclusivity, compact gating for tight spaces) in backend server.js + lockstep port in api/kit/route.ts · (this commit)
 - 2026-07-09 · Security review: removed old-key fallbacks (catalog.ts, backend .env.example), security headers in next.config.ts, backend `trust proxy` rate-limit fix; email + repo leak scan clean · (this commit)
 - 2026-07-09 · Deals: expired-sale strip at catalog layer + `npm run check:deals` audit (256 products, 28 sales, 0 errors; no `saleEndsAt` curated yet) · (this commit)
