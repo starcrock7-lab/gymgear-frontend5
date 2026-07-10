@@ -167,8 +167,7 @@ function FinderCard({
           cover
         />
         {p.awards?.[0] ? (
-          <span className="gg-tag gg-tag--award absolute left-2 top-2 z-[2]">
-            <span className="gg-tag__dot" />
+          <span className="gg-dumbbell absolute left-1/2 top-2 z-[3] -translate-x-1/2">
             {p.awards[0]}
           </span>
         ) : null}
