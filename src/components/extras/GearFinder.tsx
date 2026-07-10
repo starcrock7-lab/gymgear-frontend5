@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Star, ArrowUpRight } from "lucide-react";
+import { DumbbellMark } from "@/components/ui/dumbbell-mark";
 import { requestCategories, requestAlternatives } from "@/lib/api";
 import { buyUrl, formatPrice, type Category, type KitProduct } from "@/lib/kit";
 import ProductModal from "@/components/quiz/ProductModal";
@@ -167,7 +168,8 @@ function FinderCard({
           cover
         />
         {p.awards?.[0] ? (
-          <span className="gg-dumbbell absolute left-1/2 top-2 z-[3] -translate-x-1/2">
+          <span className="gg-dumbbell absolute left-1/2 top-2.5 z-[3] -translate-x-1/2">
+            <DumbbellMark />
             {p.awards[0]}
           </span>
         ) : null}

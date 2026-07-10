@@ -100,6 +100,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-07-10 · Award emblem, clearer + slicker: scrapped the CSS pseudo "plates" (read as a bubble) for a custom solid-fill dumbbell glyph (`components/ui/dumbbell-mark.tsx`) in a slim frosted navy-glass pill with a green ring/glow — matches the score badge's glass language, static (no pulse); verified zoomed at desktop + mobile · (this commit)
 - 2026-07-09 · Award tag → dumbbell emblem: the hero award is now a bigger, centred `.gg-dumbbell` at the top-middle of grid cards (handle + two round weight-plate pseudo-elements, brand green + glow); deal/score stay as corner pills; verified desktop + mobile · (this commit)
 - 2026-07-09 · Glowing product tags: replaced the flat award/deal/score overlay bars with theme-lit pill badges (green throbbing award, orange deal with sheen sweep, accent-ringed GymGear Score) via a `@layer components` `.gg-tag` system in globals.css; wired CompareTool, GearFinder, ProductModal; verified glow + motion at desktop/mobile/modal · (this commit)
 - 2026-07-09 · Household-name expansion: +9 staples (Rogue Ohio Power Bar & SML-2, PRx folding rack, PowerBlock, Kettlebell Kings, WaterRower, TRX PRO4, Tonal 2, Ironmaster Super Bench), 6 new brands, all URLs verified; compact-flag gating extended to racks (wall-folding rack now legal in small rooms — blanket rack ban removed) in backend + lockstep route port · (this commit)
