@@ -20,7 +20,7 @@ import type { QuizAnswers } from "@/lib/quiz";
 
 /* Categories that belong in a home-gym kit, in build-priority order. */
 const KIT_CATEGORIES = [
-  "racks", "barbells", "plates", "benches", "dumbbells", "kettlebells",
+  "racks", "machines", "barbells", "plates", "benches", "dumbbells", "kettlebells",
   "cardio", "bands", "jumpropes", "yogamats", "foamrollers",
 ];
 
@@ -52,13 +52,20 @@ const capFor = (type: KitType, cap: number) => Math.round(cap * (TIER_CAP_MULT[t
 /* The catalog API also stamps pairsWith (the primary categories an accessory
    completes) onto every product; lib/kit.ts doesn't declare it because only
    this builder reads it. */
-type CatalogProduct = KitProduct & { pairsWith?: string[] };
+type CatalogProduct = KitProduct & {
+  pairsWith?: string[];
+  gymgearScore?: number; // backend-computed 0-100 score, used by the match tier
+  compact?: boolean;     // machines/cardio: fits a small room / apartment corner
+};
 type Catalog = Record<string, CatalogProduct[]>;
 
 const priceOf = (p: CatalogProduct) => p.salePrice || p.price;
 
-/* Bias the category order so the kit reflects goal + space. */
-function categoryOrder(goal: string, space: string): string[] {
+/* Bias the category order so the kit reflects goal + space + kit size.
+   Machines placement is the small-vs-big trade: a small setup leads with one
+   efficient all-in-one; a full home gym prefers the variety of separates and
+   only reaches a machine after the core iron is in. (Lockstep: server.js.) */
+function categoryOrder(goal: string, space: string, pieces: number): string[] {
   let order = [...KIT_CATEGORIES];
   const bump = (cats: string[]) => {
     order = [...cats, ...order.filter((c) => !cats.includes(c))];
@@ -66,10 +73,22 @@ function categoryOrder(goal: string, space: string): string[] {
   if (goal === "lose-weight" || goal === "get-fit")
     bump(["cardio", "kettlebells", "bands", "dumbbells"]);
   if (goal === "build-strength") bump(["racks", "barbells", "plates", "benches"]);
-  /* Tight spaces can't host a rack or a treadmill-class machine. */
+  if (goal === "home-gym-setup") bump(["machines", "racks", "barbells", "benches"]);
+  /* Few pieces + strength-ish goal → the all-in-one anchors the whole kit. */
+  if (pieces <= 4 && (goal === "build-strength" || goal === "home-gym-setup")) bump(["machines"]);
+  /* Big builds: machine drops to the back — separates give the variety. */
+  if (pieces >= 6 && goal !== "home-gym-setup") {
+    order = order.filter((c) => c !== "machines");
+    order.push("machines");
+  }
+  /* Tight spaces can't host a rack or a treadmill-class machine. Compact
+     machines/cardio still qualify — buildKit gates the rest per product. */
   if (space === "apartment-corner" || space === "small-room") {
-    const tight = ["dumbbells", "kettlebells", "bands", "jumpropes", "yogamats", "foamrollers", "benches"];
-    order = [...tight, ...order.filter((c) => !tight.includes(c))].filter((c) => c !== "racks");
+    const strengthy = goal === "build-strength" || goal === "home-gym-setup";
+    const tight = strengthy
+      ? ["machines", "dumbbells", "kettlebells", "bands", "benches", "jumpropes", "yogamats", "foamrollers"]
+      : ["dumbbells", "kettlebells", "cardio", "bands", "machines", "jumpropes", "yogamats", "foamrollers", "benches"];
+    order = [...tight.filter((c) => order.includes(c)), ...order.filter((c) => !tight.includes(c))].filter((c) => c !== "racks");
   }
   return order;
 }
@@ -82,44 +101,76 @@ function forbiddenCats(space: string): Set<string> {
     : new Set();
 }
 
-type Lite = { id: string; cat: string; price: number; quality: number; rating: number };
+type Lite = { id: string; cat: string; price: number; quality: number; rating: number; gs: number; compact: boolean };
+
+/* A machine already IS a rack + cables — a kit holding both is redundant;
+   whichever lands first blocks the other. (Lockstep: server.js.) */
+const EXCLUSIVE_WITH: Record<string, string[]> = { machines: ["racks"], racks: ["machines"] };
+
+/* How much of the per-slot budget a category deserves. Anchors (machine,
+   rack, cardio) soak up multiples of an even share; small accessories a
+   fraction. This is what lets a $300 kit and a $2,000 kit pick DIFFERENT
+   products in the same category instead of always the same list-topper. */
+const CAT_SHARE: Record<string, number> = {
+  machines: 2.6, racks: 2.2, cardio: 2.2, plates: 1.6, barbells: 1.4,
+  dumbbells: 1.4, benches: 1.2, kettlebells: 0.6, yogamats: 0.3,
+  bands: 0.25, foamrollers: 0.25, jumpropes: 0.2,
+};
 
 /* Greedy one-per-category pick for a tier. Three distinct strategies so the
    kits never collapse into each other: value = cheapest decent option,
-   match = best-loved (rating), quality = best built (quality score). */
+   match = personalised (GymGear Score + rating + budget fit), quality = best
+   built. `tight` gates non-compact machines/cardio out of small spaces at
+   product level (a cable tower fits an apartment corner; a G20 does not). */
 function buildKit(
   strategy: KitType,
   catalog: Lite[],
-  { cap, target, ownedCats, order }: { cap: number; target: number; ownedCats: Set<string>; order: string[] },
+  { cap, target, ownedCats, order, tight }: { cap: number; target: number; ownedCats: Set<string>; order: string[]; tight: boolean },
 ): string[] {
+  const perSlot = cap / Math.max(target, 1);
+  /* 1.0 when the price sits at the category's ideal share of budget, falling
+     off above (over budget hurts fast) and below (a $10 item isn't an anchor). */
+  const fit = (p: Lite) => {
+    const ideal = perSlot * (CAT_SHARE[p.cat] || 1);
+    const r = p.price / Math.max(ideal, 1);
+    return r > 1 ? Math.max(0, 2 - r) : 0.4 + 0.6 * r;
+  };
   const score = {
-    value: (p: Lite) => -p.price,                    // cheapest first
-    match: (p: Lite) => p.rating + p.quality / 100,  // highest rated, quality breaks ties
-    quality: (p: Lite) => p.quality,                 // best built regardless
+    value: (p: Lite) => -p.price,                                    // cheapest first
+    match: (p: Lite) => (p.gs / 100) * 2 + p.rating / 5 + fit(p) * 1.5, // score+rating+budget fit
+    quality: (p: Lite) => p.quality + fit(p) * 0.5,                  // best built, fit breaks ties
   }[strategy];
   const picks: Lite[] = [];
   let spent = 0;
+  const blocked = new Set<string>();
+  const pickable = (p: Lite) =>
+    !blocked.has(p.cat) && !ownedCats.has(p.cat) && spent + p.price <= cap &&
+    !(tight && (p.cat === "machines" || p.cat === "cardio") && !p.compact);
+  const take = (p: Lite) => {
+    picks.push(p); spent += p.price; blocked.add(p.cat);
+    for (const c of EXCLUSIVE_WITH[p.cat] || []) blocked.add(c);
+  };
   for (const cat of order) {
     if (picks.length >= target) break;
-    if (ownedCats.has(cat)) continue;
-    let cands = catalog.filter((p) => p.cat === cat && spent + p.price <= cap);
+    if (blocked.has(cat) || ownedCats.has(cat)) continue;
+    let cands = catalog.filter((p) => p.cat === cat && pickable(p));
     /* Value still wants decent gear — gate to quality ≥7 unless nothing fits. */
     if (strategy === "value") {
       const decent = cands.filter((p) => p.quality >= 7);
       if (decent.length) cands = decent;
     }
     const best = cands.sort((a, b) => score(b) - score(a))[0];
-    if (best) { picks.push(best); spent += best.price; }
+    if (best) take(best);
   }
   /* Budget left and slots left → add value picks from any remaining category. */
   if (picks.length < target) {
-    const used = new Set(picks.map((p) => p.cat));
     const extra = catalog
-      .filter((p) => !used.has(p.cat) && !ownedCats.has(p.cat) && spent + p.price <= cap)
+      .filter(pickable)
       .sort((a, b) => b.quality / b.price - a.quality / a.price);
     for (const p of extra) {
       if (picks.length >= target) break;
-      picks.push(p); spent += p.price; used.add(p.cat);
+      if (!pickable(p)) continue;
+      take(p);
     }
   }
   return picks.map((p) => p.id);
@@ -145,16 +196,26 @@ function hydrateKits(
   budgetCap: number,
   forbidden: Set<string>,
   ownedCats: Set<string>,
+  tight: boolean,
 ): HydratedKit[] {
   return rawKits
     .map((k) => {
       let products = k.productIds
         .map((id) => byId.get(id))
         .filter((p): p is CatalogProduct => Boolean(p))
-        .filter((p) => !forbidden.has(p.category) && !ownedCats.has(p.category));
-      /* Dedupe by category so a kit never lists two benches. */
+        .filter((p) => !forbidden.has(p.category) && !ownedCats.has(p.category))
+        /* Full-size machines / treadmill-class cardio can't live in a tight
+           space (compact units — cable tower, folding rower, bike — can). */
+        .filter((p) => !(tight && (p.category === "machines" || p.category === "cardio") && !p.compact));
+      /* Dedupe by category so a kit never lists two benches — and never a
+         machine AND a rack (the machine already is one). */
       const seen = new Set<string>();
-      products = products.filter((p) => (seen.has(p.category) ? false : (seen.add(p.category), true)));
+      products = products.filter((p) => {
+        if (seen.has(p.category)) return false;
+        for (const c of EXCLUSIVE_WITH[p.category] || []) if (seen.has(c)) return false;
+        seen.add(p.category);
+        return true;
+      });
       const cap = capFor(k.type, budgetCap);
       let total = products.reduce((s, p) => s + priceOf(p), 0);
       while (total > cap && products.length > 1) {
@@ -287,11 +348,13 @@ export async function POST(req: Request) {
   const target = PIECE_TARGET[a.equipmentCount || ""] || 4;
   const forbidden = forbiddenCats(a.space || "");
   const ownedCats = new Set((a.owned || []).map((id) => OWNED_TO_CAT[id]).filter(Boolean));
-  const order = categoryOrder(a.goal, a.space || "");
+  const order = categoryOrder(a.goal, a.space || "", target);
+  const tight = a.space === "apartment-corner" || a.space === "small-room";
 
   const lite: Lite[] = KIT_CATEGORIES.flatMap((cat) =>
     (catalog[cat] || []).map((p) => ({
       id: p.id, cat, price: priceOf(p), quality: p.quality, rating: p.rating,
+      gs: p.gymgearScore || 0, compact: !!p.compact,
     })),
   );
   const byId = new Map(all.map((p) => [p.id, p]));
@@ -299,10 +362,10 @@ export async function POST(req: Request) {
   const rawKits = KIT_TIERS.map((t) => ({
     ...t,
     productIds: buildKit(t.type, lite, {
-      cap: capFor(t.type, cap), target, ownedCats, order,
+      cap: capFor(t.type, cap), target, ownedCats, order, tight,
     }),
   }));
-  const kits = hydrateKits(rawKits, byId, cap, forbidden, ownedCats).map((k) => ({
+  const kits = hydrateKits(rawKits, byId, cap, forbidden, ownedCats, tight).map((k) => ({
     ...k,
     ...defaultCopy(k, a.goal as string),
   }));

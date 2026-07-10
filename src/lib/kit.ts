@@ -82,6 +82,7 @@ export const KIT_TIER_META: Record<
    used as the title when swapping a product. */
 export const CATEGORY_LABEL: Record<string, string> = {
   racks: "Racks & Rigs",
+  machines: "All-in-One Machines",
   barbells: "Barbells",
   plates: "Weight Plates",
   benches: "Weight Benches",
