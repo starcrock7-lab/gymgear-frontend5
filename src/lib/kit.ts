@@ -83,6 +83,7 @@ export const KIT_TIER_META: Record<
 export const CATEGORY_LABEL: Record<string, string> = {
   racks: "Racks & Rigs",
   machines: "All-in-One Machines",
+  flooring: "Gym Flooring",
   barbells: "Barbells",
   plates: "Weight Plates",
   benches: "Weight Benches",

@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: "/gear", label: "Gear" },
   { href: "/guides", label: "Guides" },
   { href: "/compare", label: "Compare" },
+  { href: "/gym", label: "For Gyms" },
 ];
 
 export default function SiteNav() {

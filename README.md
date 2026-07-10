@@ -100,6 +100,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-07-10 · "For Gyms" commercial track: new /gym tab (6-question stepper → zone-by-zone facility plan with quantities, totals, contingency + Groq-written build plan), /api/gym-plan proxy route; backend adds pro-flagged commercial catalog (Hammer Strength, Body-Solid SGLP500, LF Club Series+, REP sets, Rogue GHD, flooring category) + deterministic zone allocator; verified end-to-end in preview desktop+mobile · (this commit)
 - 2026-07-10 · Discount tag → corner tag: deal badge now hugs the tile's top-right corner with a zigzag "torn tag" clip-path edge pointing toward the middle (`.gg-corner-deal`, drop-shadow glow follows the cut shape, sheen kept); modal keeps the pill; verified desktop + mobile + zoom · (this commit)
 - 2026-07-10 · Award emblem, clearer + slicker: scrapped the CSS pseudo "plates" (read as a bubble) for a custom solid-fill dumbbell glyph (`components/ui/dumbbell-mark.tsx`) in a slim frosted navy-glass pill with a green ring/glow — matches the score badge's glass language, static (no pulse); verified zoomed at desktop + mobile · (this commit)
 - 2026-07-09 · Award tag → dumbbell emblem: the hero award is now a bigger, centred `.gg-dumbbell` at the top-middle of grid cards (handle + two round weight-plate pseudo-elements, brand green + glow); deal/score stay as corner pills; verified desktop + mobile · (this commit)
