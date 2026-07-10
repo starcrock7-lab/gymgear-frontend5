@@ -174,7 +174,7 @@ function FinderCard({
           </span>
         ) : null}
         {p.discount ? (
-          <span className="gg-tag gg-tag--deal absolute right-2 top-2 z-[2]">
+          <span className="gg-corner-deal absolute right-0 top-0 z-[2]">
             {p.discount}% off
           </span>
         ) : null}

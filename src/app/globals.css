@@ -285,6 +285,58 @@ body {
     animation: gg-tag-sheen 3.6s ease-in-out infinite;
   }
 
+  /* Deal as a CORNER TAG — hugs the tile's top-right corner and points
+     toward the middle with a zigzag "torn tag" edge (clip-path sawtooth on
+     the left side). The glow is drop-shadow, not box-shadow, so it follows
+     the cut shape instead of the clipped-away box. Cards only — the modal
+     keeps the .gg-tag--deal pill. Position (right-0 top-0) comes from
+     Tailwind utilities in the JSX. */
+  .gg-corner-deal {
+    display: inline-flex;
+    align-items: center;
+    height: 1.8rem;
+    padding: 0 0.75rem 0 1.55rem; /* left padding clears the teeth */
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+    color: #fff;
+    font-family: var(--font-space), system-ui, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    clip-path: polygon(
+      0.95rem 0,
+      100% 0,
+      100% 100%,
+      0.95rem 100%,
+      0 83.33%,
+      0.95rem 66.67%,
+      0 50%,
+      0.95rem 33.33%,
+      0 16.67%
+    );
+    filter: drop-shadow(0 0 9px rgba(240, 83, 30, 0.65))
+      drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
+  }
+  /* Same sheen sweep as the pill deal — a live discount stays unmissable. */
+  .gg-corner-deal::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 46%;
+    background: linear-gradient(
+      100deg,
+      transparent,
+      rgba(255, 255, 255, 0.65),
+      transparent
+    );
+    transform: translateX(-210%) skewX(-18deg);
+    animation: gg-tag-sheen 3.6s ease-in-out infinite;
+  }
+
   /* Score — dark glass with an accent-lit ring; the number carries the glow. */
   .gg-tag--score {
     background: rgba(8, 17, 36, 0.85);
@@ -353,7 +405,8 @@ body {
       0 0 20px 3px rgba(47, 191, 98, 0.65),
       0 2px 8px rgba(0, 0, 0, 0.35);
   }
-  .gg-tag--deal::after {
+  .gg-tag--deal::after,
+  .gg-corner-deal::after {
     animation: none;
     opacity: 0;
   }
