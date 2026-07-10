@@ -36,6 +36,9 @@ import {
 } from "@/lib/kit";
 import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
+import Link from "next/link";
+import { Map } from "lucide-react";
+import { PLACEABLE_CATS, footprintOf, saveFloorItems } from "@/lib/floor-plan";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
@@ -329,6 +332,25 @@ function KitCard({
           <p className="mt-2 text-xs leading-relaxed text-white/45">
             {kit.description}
           </p>
+        )}
+        {/* Hand the cart to the floor-plan visualizer (big pieces only). */}
+        {items.some((p) => PLACEABLE_CATS.has(p.category)) && (
+          <Link
+            href="/planner"
+            onClick={() =>
+              saveFloorItems(
+                items
+                  .filter((p) => PLACEABLE_CATS.has(p.category))
+                  .map((p) => {
+                    const { w, d } = footprintOf(p.id, p.category);
+                    return { id: p.id, name: p.name, brand: p.brand, category: p.category, qty: 1, w, d };
+                  }),
+              )
+            }
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-xs font-bold text-white/70 transition-colors hover:border-accent/60 hover:text-accent"
+          >
+            <Map className="h-3.5 w-3.5" /> Visualize it in your space
+          </Link>
         )}
       </div>
 

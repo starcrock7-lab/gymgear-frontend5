@@ -7,13 +7,16 @@
    templated fallback, so this view just renders what it's given. */
 
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowUpRight, Building2, Loader2, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, ArrowUpRight, Building2, Loader2, Map, Minus, Plus, RefreshCw } from "lucide-react";
 import { formatPrice } from "@/lib/kit";
+import { PLACEABLE_CATS, footprintOf, saveFloorItems, type FloorItem } from "@/lib/floor-plan";
 
 type Answers = {
   projectType: string;
   gymType: string;
   space: string;
+  ceilingHeight: string;
   capacity: string;
   budget: string;
   keepZones: string[];
@@ -94,6 +97,18 @@ const STEPS: {
     ],
   },
   {
+    /* Research-backed add: ceiling height decides rack/rig heights and
+       whether overhead work is even possible. */
+    key: "ceilingHeight",
+    title: "How high is the ceiling?",
+    sub: "Decides upright heights and whether overhead zones work.",
+    options: [
+      { value: "under-9ft", label: "Under 9 ft", hint: "Low slab — short uprights" },
+      { value: "9-12ft", label: "9 – 12 ft", hint: "Standard commercial" },
+      { value: "12ft-plus", label: "12 ft+", hint: "Warehouse height" },
+    ],
+  },
+  {
     key: "capacity",
     title: "Peak members at once?",
     sub: "Busiest hour, people on the floor — this sizes quantities.",
@@ -135,6 +150,7 @@ const EMPTY: Answers = {
   projectType: "",
   gymType: "",
   space: "",
+  ceilingHeight: "",
   capacity: "",
   budget: "",
   keepZones: [],
@@ -196,6 +212,41 @@ export default function GymPlanner() {
     setError("");
   }
 
+  /* Owner tweaks quantities on the result — totals recompute locally.
+     (Prices stay server-owned; we only multiply what it sent.) */
+  function setQty(zoneKey: string, id: string, delta: number) {
+    if (!plan) return;
+    const zones = plan.zones.map((z) => {
+      if (z.key !== zoneKey) return z;
+      const items = z.items.map((i) => {
+        if (i.id !== id) return i;
+        const qty = Math.max(0, Math.min(99, i.qty + delta));
+        return { ...i, qty, subtotal: qty * i.unitPrice };
+      });
+      return { ...z, items, subtotal: items.reduce((s, i) => s + i.subtotal, 0) };
+    });
+    const totalPrice = zones.reduce((s, z) => s + z.subtotal, 0);
+    setPlan({
+      ...plan,
+      zones,
+      totalPrice,
+      contingency: Math.max(0, plan.budgetCap - totalPrice),
+    });
+  }
+
+  /* Hand the (possibly qty-tweaked) list to the floor-plan visualizer. */
+  function visualize() {
+    if (!plan) return;
+    const out: FloorItem[] = [];
+    for (const z of plan.zones)
+      for (const i of z.items) {
+        if (!PLACEABLE_CATS.has(i.category) || i.qty < 1) continue;
+        const { w, d } = footprintOf(i.id, i.category);
+        out.push({ id: i.id, name: i.name, brand: i.brand, category: i.category, qty: i.qty, w, d });
+      }
+    saveFloorItems(out);
+  }
+
   /* ── Loading ── */
   if (loading) {
     return (
@@ -227,12 +278,21 @@ export default function GymPlanner() {
               {answers.projectType === "renovation" ? "Renovation plan" : "New gym build"}
             </h1>
           </div>
-          <button
-            onClick={restart}
-            className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm text-ink-2 transition-colors hover:border-accent/60 hover:text-ink"
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Start over
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/planner"
+              onClick={visualize}
+              className="flex items-center gap-2 rounded-lg bg-accent px-3.5 py-2 text-sm font-bold text-white transition-colors hover:bg-accent-hover"
+            >
+              <Map className="h-3.5 w-3.5" /> Visualize floor plan
+            </Link>
+            <button
+              onClick={restart}
+              className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm text-ink-2 transition-colors hover:border-accent/60 hover:text-ink"
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> Start over
+            </button>
+          </div>
         </div>
 
         {/* Headline numbers */}
@@ -273,17 +333,36 @@ export default function GymPlanner() {
               ) : null}
               <div className="mt-4 divide-y divide-line">
                 {z.items.map((i) => (
-                  <div key={i.id} className="flex items-center justify-between gap-3 py-2.5">
+                  <div
+                    key={i.id}
+                    className={`flex items-center justify-between gap-3 py-2.5 ${i.qty === 0 ? "opacity-40" : ""}`}
+                  >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-ink">
-                        <span className="text-accent">{i.qty}×</span> {i.name}
-                      </p>
+                      <p className="truncate text-sm font-bold text-ink">{i.name}</p>
                       <p className="text-xs text-ink-3">
                         {i.brand} · {formatPrice(i.unitPrice)} each
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
-                      <span className="text-sm font-bold text-ink">{formatPrice(i.subtotal)}</span>
+                      {/* Quantity stepper — totals recompute live */}
+                      <div className="flex items-center gap-1.5 rounded-lg border border-line px-1.5 py-1">
+                        <button
+                          onClick={() => setQty(z.key, i.id, -1)}
+                          className="text-ink-3 transition-colors hover:text-accent"
+                          aria-label={`One fewer ${i.name}`}
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-6 text-center text-sm font-bold text-accent">{i.qty}</span>
+                        <button
+                          onClick={() => setQty(z.key, i.id, 1)}
+                          className="text-ink-3 transition-colors hover:text-accent"
+                          aria-label={`One more ${i.name}`}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <span className="w-20 text-right text-sm font-bold text-ink">{formatPrice(i.subtotal)}</span>
                       <a
                         href={buyHref(i)}
                         target="_blank"

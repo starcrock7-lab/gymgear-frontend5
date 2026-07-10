@@ -65,7 +65,7 @@ const priceOf = (p: CatalogProduct) => p.salePrice || p.price;
    Machines placement is the small-vs-big trade: a small setup leads with one
    efficient all-in-one; a full home gym prefers the variety of separates and
    only reaches a machine after the core iron is in. (Lockstep: server.js.) */
-function categoryOrder(goal: string, space: string, pieces: number): string[] {
+function categoryOrder(goal: string, space: string, pieces: number, experience?: string | null): string[] {
   let order = [...KIT_CATEGORIES];
   const bump = (cats: string[]) => {
     order = [...cats, ...order.filter((c) => !cats.includes(c))];
@@ -74,6 +74,10 @@ function categoryOrder(goal: string, space: string, pieces: number): string[] {
     bump(["cardio", "kettlebells", "bands", "dumbbells"]);
   if (goal === "build-strength") bump(["racks", "barbells", "plates", "benches"]);
   if (goal === "home-gym-setup") bump(["machines", "racks", "barbells", "benches"]);
+  /* Experience shapes the path: beginners get guided, adjustable, machine-led
+     gear; advanced lifters get the barbell + rack path reinforced. */
+  if (experience === "beginner") bump(["machines", "dumbbells", "kettlebells", "bands"]);
+  if (experience === "advanced" && goal !== "lose-weight") bump(["racks", "barbells", "plates", "benches"]);
   /* Few pieces + strength-ish goal → the all-in-one anchors the whole kit. */
   if (pieces <= 4 && (goal === "build-strength" || goal === "home-gym-setup")) bump(["machines"]);
   /* Big builds: machine drops to the back — separates give the variety. */
@@ -107,6 +111,12 @@ type Lite = { id: string; cat: string; price: number; quality: number; rating: n
    whichever lands first blocks the other. (Lockstep: server.js.) */
 const EXCLUSIVE_WITH: Record<string, string[]> = { machines: ["racks"], racks: ["machines"] };
 
+/* Ceiling gate (quiz: ceiling === 'under-8ft'). Full racks and most
+   all-in-ones stand 86-91" — they don't clear an 8 ft ceiling once flooring
+   and pull-up clearance are in. Only these fit a low room. */
+const LOW_CEIL_RACKS = new Set(["titan-t2", "rogue-squat", "rep-hr100", "bells-squat"]);
+const LOW_CEIL_MACHINES = new Set(["marcy-mwm990", "bowflex-x2se", "bells-cable-tower", "tonal-2", "bodysolid-exm2500"]);
+
 /* How much of the per-slot budget a category deserves. Anchors (machine,
    rack, cardio) soak up multiples of an even share; small accessories a
    fraction. This is what lets a $300 kit and a $2,000 kit pick DIFFERENT
@@ -125,7 +135,7 @@ const CAT_SHARE: Record<string, number> = {
 function buildKit(
   strategy: KitType,
   catalog: Lite[],
-  { cap, target, ownedCats, order, tight }: { cap: number; target: number; ownedCats: Set<string>; order: string[]; tight: boolean },
+  { cap, target, ownedCats, order, tight, lowCeil }: { cap: number; target: number; ownedCats: Set<string>; order: string[]; tight: boolean; lowCeil: boolean },
 ): string[] {
   const perSlot = cap / Math.max(target, 1);
   /* 1.0 when the price sits at the category's ideal share of budget, falling
@@ -145,7 +155,9 @@ function buildKit(
   const blocked = new Set<string>();
   const pickable = (p: Lite) =>
     !blocked.has(p.cat) && !ownedCats.has(p.cat) && spent + p.price <= cap &&
-    !(tight && (p.cat === "machines" || p.cat === "cardio" || p.cat === "racks") && !p.compact);
+    !(tight && (p.cat === "machines" || p.cat === "cardio" || p.cat === "racks") && !p.compact) &&
+    !(lowCeil && p.cat === "racks" && !LOW_CEIL_RACKS.has(p.id)) &&
+    !(lowCeil && p.cat === "machines" && !LOW_CEIL_MACHINES.has(p.id));
   const take = (p: Lite) => {
     picks.push(p); spent += p.price; blocked.add(p.cat);
     for (const c of EXCLUSIVE_WITH[p.cat] || []) blocked.add(c);
@@ -197,6 +209,7 @@ function hydrateKits(
   forbidden: Set<string>,
   ownedCats: Set<string>,
   tight: boolean,
+  lowCeil: boolean,
 ): HydratedKit[] {
   return rawKits
     .map((k) => {
@@ -206,8 +219,10 @@ function hydrateKits(
         .filter((p) => !forbidden.has(p.category) && !ownedCats.has(p.category))
         /* Full-size machines, treadmill-class cardio and normal racks can't
            live in a tight space (compact units — cable tower, folding rower,
-           wall-folding rack — can). */
-        .filter((p) => !(tight && (p.category === "machines" || p.category === "cardio" || p.category === "racks") && !p.compact));
+           wall-folding rack — can). Low ceilings gate tall racks/machines. */
+        .filter((p) => !(tight && (p.category === "machines" || p.category === "cardio" || p.category === "racks") && !p.compact))
+        .filter((p) => !(lowCeil && p.category === "racks" && !LOW_CEIL_RACKS.has(p.id)))
+        .filter((p) => !(lowCeil && p.category === "machines" && !LOW_CEIL_MACHINES.has(p.id)));
       /* Dedupe by category so a kit never lists two benches — and never a
          machine AND a rack (the machine already is one). */
       const seen = new Set<string>();
@@ -349,8 +364,9 @@ export async function POST(req: Request) {
   const target = PIECE_TARGET[a.equipmentCount || ""] || 4;
   const forbidden = forbiddenCats(a.space || "");
   const ownedCats = new Set((a.owned || []).map((id) => OWNED_TO_CAT[id]).filter(Boolean));
-  const order = categoryOrder(a.goal, a.space || "", target);
+  const order = categoryOrder(a.goal, a.space || "", target, a.experience);
   const tight = a.space === "apartment-corner" || a.space === "small-room";
+  const lowCeil = a.ceiling === "under-8ft";
 
   const lite: Lite[] = KIT_CATEGORIES.flatMap((cat) =>
     (catalog[cat] || []).map((p) => ({
@@ -363,10 +379,10 @@ export async function POST(req: Request) {
   const rawKits = KIT_TIERS.map((t) => ({
     ...t,
     productIds: buildKit(t.type, lite, {
-      cap: capFor(t.type, cap), target, ownedCats, order, tight,
+      cap: capFor(t.type, cap), target, ownedCats, order, tight, lowCeil,
     }),
   }));
-  const kits = hydrateKits(rawKits, byId, cap, forbidden, ownedCats, tight).map((k) => ({
+  const kits = hydrateKits(rawKits, byId, cap, forbidden, ownedCats, tight, lowCeil).map((k) => ({
     ...k,
     ...defaultCopy(k, a.goal as string),
   }));

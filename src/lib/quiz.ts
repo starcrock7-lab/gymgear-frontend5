@@ -9,7 +9,7 @@ export type QuizOption = {
 };
 
 export type QuizQuestion = {
-  key: "goal" | "budget" | "space" | "equipmentCount" | "owned";
+  key: "goal" | "experience" | "budget" | "space" | "ceiling" | "equipmentCount" | "owned";
   title: string;
   subtitle: string;
   multi?: boolean;
@@ -18,16 +18,20 @@ export type QuizQuestion = {
 
 export type QuizAnswers = {
   goal: string | null;
+  experience: string | null;
   budget: string | null;
   space: string | null;
+  ceiling: string | null;
   equipmentCount: string | null;
   owned: string[];
 };
 
 export const EMPTY_ANSWERS: QuizAnswers = {
   goal: null,
+  experience: null,
   budget: null,
   space: null,
+  ceiling: null,
   equipmentCount: null,
   owned: [],
 };
@@ -45,6 +49,19 @@ export const QUESTIONS: QuizQuestion[] = [
       { id: "lose-weight", label: "Lose weight", hint: "Burn fat, move more" },
       { id: "get-fit", label: "Get fit", hint: "All-round health and energy" },
       { id: "home-gym-setup", label: "Home gym setup", hint: "Build the full space" },
+    ],
+  },
+  {
+    /* Research-backed add: experience changes WHAT to buy — beginners do
+       better with adjustable/machine-led setups, advanced lifters want the
+       barbell + rack path first. */
+    key: "experience",
+    title: "How experienced are you?",
+    subtitle: "Honest answer — it changes what we put in your kit.",
+    options: [
+      { id: "beginner", label: "Just starting", hint: "First year of training" },
+      { id: "intermediate", label: "Intermediate", hint: "Consistent for 1–3 years" },
+      { id: "advanced", label: "Advanced", hint: "Years under the bar" },
     ],
   },
   {
@@ -67,6 +84,18 @@ export const QUESTIONS: QuizQuestion[] = [
       { id: "small-room", label: "Small room", hint: "A spare room or office" },
       { id: "garage", label: "Garage", hint: "Room to grow" },
       { id: "outdoor", label: "Outdoor", hint: "Weather-proof picks" },
+    ],
+  },
+  {
+    /* Research-backed add: ceiling height is the constraint most buyers
+       miss — a 90" rack doesn't fit under an 8 ft basement ceiling. */
+    key: "ceiling",
+    title: "How high is your ceiling?",
+    subtitle: "The detail most people forget — tall racks need headroom.",
+    options: [
+      { id: "under-8ft", label: "Under 8 ft", hint: "Basement / low room" },
+      { id: "8-9ft", label: "8 – 9 ft", hint: "Standard room height" },
+      { id: "9ft-plus", label: "9 ft or more", hint: "Garage / high ceiling" },
     ],
   },
   {
@@ -103,7 +132,8 @@ export function optionLabel(key: QuizQuestion["key"], id: string): string {
 /* Every question answered — the quiz is finished and ready to build. */
 export function isComplete(a: QuizAnswers): boolean {
   return Boolean(
-    a.goal && a.budget && a.space && a.equipmentCount && a.owned.length > 0,
+    a.goal && a.experience && a.budget && a.space && a.ceiling &&
+      a.equipmentCount && a.owned.length > 0,
   );
 }
 
