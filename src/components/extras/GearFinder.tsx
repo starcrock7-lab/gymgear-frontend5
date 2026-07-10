@@ -167,19 +167,20 @@ function FinderCard({
           cover
         />
         {p.awards?.[0] ? (
-          <span className="absolute left-2 top-2 rounded bg-win px-1.5 py-0.5 text-[0.6rem] font-bold uppercase text-white">
+          <span className="gg-tag gg-tag--award absolute left-2 top-2 z-[2]">
+            <span className="gg-tag__dot" />
             {p.awards[0]}
           </span>
         ) : null}
         {p.discount ? (
-          <span className="absolute right-2 top-2 rounded bg-accent px-1.5 py-0.5 text-[0.6rem] font-bold text-white">
+          <span className="gg-tag gg-tag--deal absolute right-2 top-2 z-[2]">
             {p.discount}% off
           </span>
         ) : null}
         {typeof p.gymgearScore === "number" && (
-          <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-navy/90 px-1.5 py-0.5 text-[0.6rem] font-bold text-white backdrop-blur-sm">
-            <span className="text-accent">{p.gymgearScore}</span>
-            <span className="text-white/60">GymGear</span>
+          <span className="gg-tag gg-tag--score absolute bottom-2 left-2 z-[2]">
+            <span className="gg-tag__num">{p.gymgearScore}</span>
+            <span className="gg-tag__lbl">GymGear</span>
           </span>
         )}
       </button>

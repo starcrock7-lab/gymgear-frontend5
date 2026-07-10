@@ -159,6 +159,137 @@ body {
   animation: skeleton-shimmer 1.6s ease-in-out infinite;
 }
 
+/* ── Product tags: glowing, theme-aware award / deal / score badges ──
+   Replaces the old flat overlay bars. Self-contained (drop-in anywhere):
+   a bold pill that lights up in the brand theme — a hero green award, a
+   hot orange deal, and an accent-ringed GymGear Score. Each carries a
+   real colored halo so it reads off a busy photo, plus just enough motion
+   to pull the eye: the award throbs, the deal gets a sheen sweep. The
+   glow is box-shadow on a tiny element (cheap), the sheen is a
+   transform (compositor). Reduced-motion keeps the full glow, drops the
+   movement. */
+/* Wrapped in @layer components so Tailwind's utilities (absolute, left-2,
+   bottom-2, z-[2]) still win — an unlayered .gg-tag would beat them and knock
+   the badges out of position. Positioning is left to the utilities on each
+   badge; only the deal tag pins its own position for the sheen ::after. */
+@layer components {
+  .gg-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    border-radius: 999px;
+    padding: 0.28rem 0.6rem;
+    font-family: var(--font-space), system-ui, sans-serif;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: #fff;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Small round "lamp" that carries the color before the text. */
+  .gg-tag__dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 6px 1px currentColor;
+  }
+
+  /* Award — the hero tag (Top Pick / Best Value / Best Rated). Bright green
+     gradient with a green halo that gently throbs so the eye lands here. */
+  .gg-tag--award {
+    background: linear-gradient(135deg, #43e884 0%, #1f9c4d 100%);
+    text-transform: uppercase;
+    animation: gg-tag-throb 2.4s ease-in-out infinite;
+  }
+
+  /* Deal — hot orange gradient, orange halo, and a light sheen that sweeps
+     across every few seconds so a live discount never gets missed. The
+     position gives the sheen a containing block when the tag is in flow (the
+     modal); on cards the `absolute` utility overrides it — either is a
+     containing block, so the sheen anchors correctly both ways. */
+  .gg-tag--deal {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+    text-transform: uppercase;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      0 0 0 1px rgba(240, 83, 30, 0.4),
+      0 0 18px 2px rgba(240, 83, 30, 0.6),
+      0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+  .gg-tag--deal::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 42%;
+    background: linear-gradient(
+      100deg,
+      transparent,
+      rgba(255, 255, 255, 0.7),
+      transparent
+    );
+    transform: translateX(-190%) skewX(-18deg);
+    animation: gg-tag-sheen 3.6s ease-in-out infinite;
+  }
+
+  /* Score — dark glass with an accent-lit ring; the number carries the glow. */
+  .gg-tag--score {
+    background: rgba(8, 17, 36, 0.85);
+    backdrop-filter: blur(6px);
+    border-color: rgba(240, 83, 30, 0.5);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 0 14px rgba(240, 83, 30, 0.35);
+  }
+  .gg-tag--score .gg-tag__num {
+    color: var(--accent);
+    font-weight: 800;
+    text-shadow: 0 0 8px rgba(240, 83, 30, 0.7);
+  }
+  .gg-tag--score .gg-tag__lbl {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+  }
+}
+
+@keyframes gg-tag-throb {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      0 0 0 1px rgba(47, 191, 98, 0.4),
+      0 0 14px 1px rgba(47, 191, 98, 0.45),
+      0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      0 0 0 1px rgba(47, 191, 98, 0.6),
+      0 0 24px 5px rgba(47, 191, 98, 0.75),
+      0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+}
+
+@keyframes gg-tag-sheen {
+  0%,
+  55% {
+    transform: translateX(-190%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(360%) skewX(-18deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-glow,
   .animate-aurora,
@@ -168,5 +299,19 @@ body {
 
   .gg-skeleton::after {
     animation: none;
+  }
+
+  /* Keep the glow, drop the motion. */
+  .gg-tag--award {
+    animation: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 0 0 1px rgba(47, 191, 98, 0.55),
+      0 0 20px 3px rgba(47, 191, 98, 0.65),
+      0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+  .gg-tag--deal::after {
+    animation: none;
+    opacity: 0;
   }
 }

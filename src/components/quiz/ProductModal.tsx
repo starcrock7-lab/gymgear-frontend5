@@ -96,15 +96,13 @@ export default function ProductModal({
               {(p.bestChoice || p.discount || p.aspects?.length) && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {p.bestChoice && (
-                    <span className="flex items-center gap-1 rounded-full bg-win/20 px-2.5 py-1 text-[0.65rem] font-bold uppercase text-win">
+                    <span className="gg-tag gg-tag--award">
                       <Check className="h-3 w-3" />
                       Top pick
                     </span>
                   )}
                   {p.discount ? (
-                    <span className="rounded-full bg-accent/20 px-2.5 py-1 text-[0.65rem] font-bold uppercase text-accent">
-                      {p.discount}% off
-                    </span>
+                    <span className="gg-tag gg-tag--deal">{p.discount}% off</span>
                   ) : null}
                   {p.aspects?.slice(0, 3).map((a) => (
                     <span
