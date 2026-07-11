@@ -10,7 +10,7 @@ import {
 } from "framer-motion";
 
 const navLinks = [
-  { href: "/quiz", label: "Build My Kit" },
+  { href: "/start", label: "Build My Kit" },
   { href: "/gear", label: "Browse Gear" },
   { href: "/guides", label: "Buying Guides" },
   { href: "/compare", label: "Compare Tool" },

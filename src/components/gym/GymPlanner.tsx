@@ -19,8 +19,12 @@ type Answers = {
   ceilingHeight: string;
   capacity: string;
   budget: string;
-  keepZones: string[];
+  renoScope: string[]; // renovation only — what's driving it
+  renoTargets: string[]; // renovation only — which zones to (re)do
 };
+
+/* multi-select answer keys (arrays) — everything else is a single string. */
+const MULTI_KEYS = new Set<keyof Answers>(["renoScope", "renoTargets"]);
 
 type PlanItem = {
   id: string;
@@ -64,6 +68,7 @@ const STEPS: {
   multi?: boolean;
   options: Option[];
   showIf?: (a: Answers) => boolean;
+  copy?: (a: Answers) => { title?: string; sub?: string }; // context-aware wording
 }[] = [
   {
     key: "projectType",
@@ -89,6 +94,12 @@ const STEPS: {
     key: "space",
     title: "How much floor space?",
     sub: "Total usable training area, roughly.",
+    /* Renovation sizes quantities off the area being redone, not the whole
+       building — ask for that instead. */
+    copy: (a) =>
+      a.projectType === "renovation"
+        ? { title: "How much are you renovating?", sub: "The floor area of the section you're redoing — that's what we size the order to." }
+        : {},
     options: [
       { value: "under-1500", label: "Under 1,500 sq ft" },
       { value: "1500-3000", label: "1,500 – 3,000 sq ft" },
@@ -131,17 +142,35 @@ const STEPS: {
     ],
   },
   {
-    key: "keepZones",
-    title: "Which zones are already good?",
-    sub: "We'll skip these and put the whole budget into the rest.",
+    /* Renovation follow-up #1 — what's actually driving the project. Shapes
+       where the budget leans and the written plan. */
+    key: "renoScope",
+    title: "What's driving the renovation?",
+    sub: "Pick everything that applies — it steers where the budget goes.",
     multi: true,
     showIf: (a) => a.projectType === "renovation",
     options: [
-      { value: "strength", label: "Strength (racks & free weights)" },
-      { value: "machines", label: "Machine row" },
-      { value: "cardio", label: "Cardio row" },
-      { value: "functional", label: "Functional zone" },
-      { value: "flooring", label: "Flooring" },
+      { value: "replace-gear", label: "Replace worn-out gear", hint: "Swap tired, unsafe or dated equipment" },
+      { value: "add-capacity", label: "Add capacity", hint: "More stations so peak hours aren't a bottleneck" },
+      { value: "add-training", label: "Add new training styles", hint: "Functional, cable, conditioning zones" },
+      { value: "reconfigure", label: "Reconfigure the layout", hint: "Re-floor and re-zone the space" },
+      { value: "modernize", label: "Modernize the look", hint: "Fresher cardio, selectorized machines, finish" },
+    ],
+  },
+  {
+    /* Renovation follow-up #2 — exactly which areas to spend on. Whatever
+       isn't selected is left as-is, and its budget flows into these. */
+    key: "renoTargets",
+    title: "Which areas are you redoing?",
+    sub: "Only these get budget; anything you leave unchecked stays as it is.",
+    multi: true,
+    showIf: (a) => a.projectType === "renovation",
+    options: [
+      { value: "strength", label: "Strength zone", hint: "Racks, bars, plates, benches" },
+      { value: "machines", label: "Machine row", hint: "Plate-loaded & selectorized" },
+      { value: "cardio", label: "Cardio row", hint: "Treadmills, bikes, rowers" },
+      { value: "functional", label: "Functional zone", hint: "GHD, kettlebells, rig accessories" },
+      { value: "flooring", label: "Flooring", hint: "Rubber matting / platforms" },
     ],
   },
 ];
@@ -153,7 +182,8 @@ const EMPTY: Answers = {
   ceilingHeight: "",
   capacity: "",
   budget: "",
-  keepZones: [],
+  renoScope: [],
+  renoTargets: [],
 };
 
 const buyHref = (i: PlanItem) => i.affiliateUrl || i.url || "#";
@@ -171,6 +201,9 @@ export default function GymPlanner() {
   );
   const step = steps[Math.min(stepIdx, steps.length - 1)];
   const isLast = stepIdx >= steps.length - 1;
+  const stepCopy = step.copy ? step.copy(answers) : {};
+  const stepTitle = stepCopy.title ?? step.title;
+  const stepSub = stepCopy.sub ?? step.sub;
 
   async function submit(finalAnswers: Answers) {
     setLoading(true);
@@ -193,11 +226,12 @@ export default function GymPlanner() {
 
   function pick(value: string) {
     if (step.multi) {
-      const cur = new Set(answers.keepZones);
+      const key = step.key;
+      const cur = new Set((answers[key] as string[]) ?? []);
       if (cur.has(value)) cur.delete(value);
       else cur.add(value);
-      setAnswers({ ...answers, keepZones: [...cur] });
-      return;
+      setAnswers({ ...answers, [key]: [...cur] });
+      return; // multi advances via the Next / Build button, not on click
     }
     const next = { ...answers, [step.key]: value } as Answers;
     setAnswers(next);
@@ -400,7 +434,7 @@ export default function GymPlanner() {
           Outfit a real gym
         </h1>
         <p className="mt-2 text-sm text-ink-2">
-          New build or renovation — six questions, then a zone-by-zone
+          New build or renovation — a few quick questions, then a zone-by-zone
           commercial equipment plan with quantities, totals and a written
           build plan.
         </p>
@@ -418,13 +452,13 @@ export default function GymPlanner() {
         </div>
 
         <div className="mt-8">
-          <h2 className="font-display text-xl font-bold text-ink">{step.title}</h2>
-          <p className="mt-1 text-sm text-ink-3">{step.sub}</p>
+          <h2 className="font-display text-xl font-bold text-ink">{stepTitle}</h2>
+          <p className="mt-1 text-sm text-ink-3">{stepSub}</p>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {step.options.map((o) => {
-              const selected = step.multi
-                ? answers.keepZones.includes(o.value)
+              const selected = MULTI_KEYS.has(step.key)
+                ? (answers[step.key] as string[]).includes(o.value)
                 : answers[step.key] === o.value;
               return (
                 <button
@@ -458,12 +492,21 @@ export default function GymPlanner() {
               <ArrowLeft className="h-3.5 w-3.5" /> Back
             </button>
             {step.multi ? (
-              <button
-                onClick={() => void submit(answers)}
-                className="rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent-hover"
-              >
-                Build my plan →
-              </button>
+              isLast ? (
+                <button
+                  onClick={() => void submit(answers)}
+                  className="rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent-hover"
+                >
+                  Build my plan →
+                </button>
+              ) : (
+                <button
+                  onClick={() => setStepIdx(stepIdx + 1)}
+                  className="rounded-xl border border-accent/60 px-5 py-2.5 text-sm font-bold text-accent transition-colors hover:bg-accent/10"
+                >
+                  Next →
+                </button>
+              )
             ) : null}
           </div>
         </div>
