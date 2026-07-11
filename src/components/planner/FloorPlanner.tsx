@@ -15,7 +15,8 @@ import {
   type PlacedItem,
   PLACEABLE_CATS,
   footprintOf,
-  clearanceOf,
+  clearanceBoxOf,
+  isTreadmill,
   LAYOUT_ADVICE,
   loadFloorItems,
   loadLayout,
@@ -24,6 +25,24 @@ import {
 
 const uidOf = () => Math.random().toString(36).slice(2, 9);
 
+/* Directional halo → the outset on each edge in inches, rotation-aware.
+   Unrotated a piece faces "down" (front = +y, back toward the wall at -y);
+   a 90° rotation turns front to +x. Returns {l,t,r,b} extends and the
+   rendered footprint {w,h}. */
+function haloExtents(p: PlacedItem) {
+  const c = clearanceBoxOf(p.id, p.category);
+  const w = p.rot ? p.d : p.w;
+  const h = p.rot ? p.w : p.d;
+  const ext = p.rot
+    ? { l: c.back, t: c.sides, r: c.front, b: c.sides }
+    : { l: c.sides, t: c.back, r: c.sides, b: c.front };
+  return { w, h, ...ext };
+}
+const haloRect = (p: PlacedItem) => {
+  const e = haloExtents(p);
+  return { x1: p.x - e.l, y1: p.y - e.t, x2: p.x + e.w + e.r, y2: p.y + e.h + e.b };
+};
+
 export default function FloorPlanner() {
   const [items, setItems] = useState<FloorItem[]>([]);
   const [placed, setPlaced] = useState<PlacedItem[]>([]);
@@ -31,6 +50,8 @@ export default function FloorPlanner() {
   const [roomD, setRoomD] = useState(20); // feet
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [halos, setHalos] = useState(true);
+  const [dropActive, setDropActive] = useState(false);
+  const [dropError, setDropError] = useState("");
   const [containerW, setContainerW] = useState(0);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{ uid: string; dx: number; dy: number } | null>(null);
@@ -63,18 +84,13 @@ export default function FloorPlanner() {
       .filter((i) => i.qty > 0);
   }, [items, placed]);
 
-  /* Collision detection: expanded AABBs (footprint + safety halo). */
+  /* Collision detection: two pieces crowd when their regulation clearance
+     boxes overlap (directional, rotation-aware). */
   const colliding = useMemo(() => {
     const bad = new Set<string>();
-    const rect = (p: PlacedItem) => {
-      const w = p.rot ? p.d : p.w;
-      const d = p.rot ? p.w : p.d;
-      const c = clearanceOf(p.category);
-      return { x1: p.x - c, y1: p.y - c, x2: p.x + w + c, y2: p.y + d + c };
-    };
     for (let i = 0; i < placed.length; i++)
       for (let j = i + 1; j < placed.length; j++) {
-        const a = rect(placed[i]), b = rect(placed[j]);
+        const a = haloRect(placed[i]), b = haloRect(placed[j]);
         if (a.x1 < b.x2 && a.x2 > b.x1 && a.y1 < b.y2 && a.y2 > b.y1) {
           bad.add(placed[i].uid);
           bad.add(placed[j].uid);
@@ -133,11 +149,41 @@ export default function FloorPlanner() {
   }
   const onPointerUp = () => { drag.current = null; };
 
-  function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
+  /* Load a floor image from any source (file picker or drag-drop). Stays in
+     the browser — object URL only, nothing uploaded. */
+  function setImageFile(f: File | null | undefined) {
     if (!f) return;
+    if (!f.type.startsWith("image/")) {
+      setDropError("That's not an image file — drop a PNG, JPG, or screenshot.");
+      return;
+    }
+    setDropError("");
     if (imgUrl) URL.revokeObjectURL(imgUrl);
     setImgUrl(URL.createObjectURL(f));
+  }
+  const onUpload = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setImageFile(e.target.files?.[0]);
+
+  /* Drag-and-drop an image file onto the map. dragenter/over must
+     preventDefault or the browser just opens the file. We ignore drags that
+     carry no files (e.g. text) so it never flickers on stray drags. */
+  const dragHasFiles = (e: React.DragEvent) =>
+    Array.from(e.dataTransfer.types || []).includes("Files");
+  function onDragOver(e: React.DragEvent) {
+    if (!dragHasFiles(e)) return;
+    e.preventDefault();
+    if (!dropActive) setDropActive(true);
+  }
+  function onDragLeave(e: React.DragEvent) {
+    /* Only clear when the cursor actually leaves the map, not on child enter. */
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setDropActive(false);
+  }
+  function onDrop(e: React.DragEvent) {
+    if (!dragHasFiles(e)) return;
+    e.preventDefault();
+    setDropActive(false);
+    setImageFile(e.dataTransfer.files?.[0]);
   }
 
   return (
@@ -150,11 +196,13 @@ export default function FloorPlanner() {
           Place your equipment
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ink-2">
-          Upload a top-down photo or sketch of your space (optional), set the
-          room size, then drag each piece onto the map — rectangles are drawn
-          at true scale from published footprints. Halos show the safety
-          clearance each piece wants; they turn red when two pieces crowd
-          each other.
+          Drop a top-down photo or sketch of your space onto the grid (or use
+          the button), set the room size, then drag each piece onto the map —
+          rectangles are drawn at true scale from published footprints. The
+          dashed halos are the regulation clearances each piece needs; they
+          turn red when two pieces crowd each other. Rotate a piece and its
+          clearance rotates too, so you can aim a treadmill&apos;s fall zone at
+          open floor.
         </p>
 
         {items.length === 0 ? (
@@ -171,7 +219,7 @@ export default function FloorPlanner() {
         <div className="mt-6 flex flex-wrap items-end gap-4">
           <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-card px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:border-accent/60">
             <ImagePlus className="h-4 w-4 text-accent" />
-            {imgUrl ? "Replace floor image" : "Upload floor image"}
+            {imgUrl ? "Replace floor image" : "Upload or drop floor image"}
             <input type="file" accept="image/*" className="hidden" onChange={onUpload} />
           </label>
           {imgUrl ? (
@@ -207,6 +255,10 @@ export default function FloorPlanner() {
           </button>
         </div>
 
+        {dropError ? (
+          <p className="mt-3 text-sm font-bold text-red-400">{dropError}</p>
+        ) : null}
+
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_290px]">
           <div>
             {/* The map */}
@@ -214,7 +266,12 @@ export default function FloorPlanner() {
               ref={boxRef}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
-              className="relative w-full touch-none overflow-hidden rounded-2xl border border-line bg-card"
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+              onDrop={onDrop}
+              className={`relative w-full touch-none overflow-hidden rounded-2xl border bg-card transition-colors ${
+                dropActive ? "border-accent" : "border-line"
+              }`}
               style={{
                 height: mapH || 400,
                 backgroundImage: imgUrl
@@ -232,15 +289,31 @@ export default function FloorPlanner() {
                 />
               ) : null}
 
+              {/* Drop-a-file overlay */}
+              {dropActive ? (
+                <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-accent/15 backdrop-blur-[1px]">
+                  <div className="flex items-center gap-2 rounded-xl border border-accent bg-navy/90 px-4 py-2.5 text-sm font-bold text-white">
+                    <ImagePlus className="h-4 w-4 text-accent" /> Drop to set your floor image
+                  </div>
+                </div>
+              ) : !imgUrl && placed.length === 0 ? (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 text-center">
+                  <p className="text-sm text-ink-3">
+                    Drag a photo or sketch of your floor anywhere onto this grid, or
+                    add pieces from below.
+                  </p>
+                </div>
+              ) : null}
+
               {placed.map((p) => {
-                const w = (p.rot ? p.d : p.w) * scale;
-                const h = (p.rot ? p.w : p.d) * scale;
-                const c = clearanceOf(p.category) * scale;
+                const e = haloExtents(p);
+                const w = e.w * scale;
+                const h = e.h * scale;
                 const bad = colliding.has(p.uid);
                 return (
                   <div
                     key={p.uid}
-                    onPointerDown={(e) => onPointerDown(e, p)}
+                    onPointerDown={(ev) => onPointerDown(ev, p)}
                     className="group absolute cursor-grab select-none active:cursor-grabbing"
                     style={{ left: p.x * scale, top: p.y * scale, width: w, height: h }}
                   >
@@ -250,7 +323,12 @@ export default function FloorPlanner() {
                         className={`pointer-events-none absolute rounded-lg border border-dashed ${
                           bad ? "border-red-500/70 bg-red-500/10" : "border-win/40 bg-win/5"
                         }`}
-                        style={{ left: -c, top: -c, right: -c, bottom: -c }}
+                        style={{
+                          left: -e.l * scale,
+                          top: -e.t * scale,
+                          right: -e.r * scale,
+                          bottom: -e.b * scale,
+                        }}
                       />
                     ) : null}
                     <div

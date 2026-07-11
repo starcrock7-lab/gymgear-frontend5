@@ -88,29 +88,44 @@ export const CATEGORY_DEFAULT: Record<string, { w: number; d: number }> = {
   dumbbells: { w: 60, d: 24 }, // a set on a rack/stand
 };
 
-/* Safety halo per category (inches on every side) — grounded in the
-   published guidance: 36" minimum walkways, 3–4 ft in front of racks, and a
-   6 ft fall zone BEHIND treadmill-class cardio (the uniform halo is the
-   minimum; the advice panel carries the directional rules). */
-export const CLEARANCE_IN: Record<string, number> = {
-  cardio: 36,
-  racks: 42,
-  machines: 24,
-  benches: 24,
-  dumbbells: 24,
+/* Regulation clearances, DIRECTIONAL (inches per side), grounded in the
+   published guidance: ASTM asks ~20" beside and 39" behind a treadmill with
+   6 ft (72") the recommended fall zone; racks want 3–4 ft of barbell path in
+   front and bars 3 ft apart (18" a side meets in the middle); 36" walkways;
+   3 ft between a dumbbell rack and the bench line. `sides` applies left and
+   right, `front`/`back` along the piece's depth axis — when a piece is
+   rotated its halo rotates with it, so a treadmill's fall zone visibly points
+   somewhere and you can aim it at open floor. */
+export type ClearanceBox = { sides: number; front: number; back: number };
+
+const CLEARANCE_CAT: Record<string, ClearanceBox> = {
+  cardio: { sides: 24, front: 24, back: 24 },
+  racks: { sides: 18, front: 48, back: 6 }, // back to the wall, path in front
+  machines: { sides: 24, front: 30, back: 6 },
+  benches: { sides: 18, front: 24, back: 24 },
+  dumbbells: { sides: 12, front: 36, back: 6 }, // 3 ft to the bench line
 };
-export const DEFAULT_CLEARANCE = 18;
+const DEFAULT_BOX: ClearanceBox = { sides: 18, front: 18, back: 18 };
+
+/* Treadmill-class units get the full ASTM-recommended fall zone behind the
+   belt — the single most-cited gym-liability rule. */
+const TREADMILL_IDS = new Set([
+  "nordictrack-1750", "assault-runner", "lifefitness-t3", "lf-club-treadmill",
+]);
+const TREADMILL_BOX: ClearanceBox = { sides: 20, front: 12, back: 72 };
 
 export const footprintOf = (id: string, category: string) =>
   FOOTPRINTS[id] || CATEGORY_DEFAULT[category] || { w: 48, d: 36 };
 
-export const clearanceOf = (category: string) =>
-  CLEARANCE_IN[category] ?? DEFAULT_CLEARANCE;
+export const clearanceBoxOf = (id: string, category: string): ClearanceBox =>
+  TREADMILL_IDS.has(id) ? TREADMILL_BOX : CLEARANCE_CAT[category] || DEFAULT_BOX;
+
+export const isTreadmill = (id: string) => TREADMILL_IDS.has(id);
 
 /* Research-backed layout advice rendered next to the map. */
 export const LAYOUT_ADVICE: { title: string; body: string }[] = [
   { title: "Walkways", body: "Keep every main walkway at least 3 ft wide (36\") — it's the accessibility and safety standard, and it's what stops plates being carried through someone's set." },
-  { title: "Treadmill fall zone", body: "Leave 6 ft of clear floor BEHIND any treadmill-class machine and ~20\" on each side. It's the most common gym-liability miss." },
+  { title: "Treadmill fall zone", body: "Leave 6 ft of clear floor BEHIND any treadmill-class machine and ~20\" on each side — the map draws this for you, and rotating the machine points the fall zone so you can aim it at a wall or aisle. Most common gym-liability miss." },
   { title: "Rack fronts", body: "Racks need 3–4 ft of clear floor in front for the barbell path, and bars on adjacent racks should stay 3 ft apart. Put rack backs against a wall." },
   { title: "Benches & dumbbells", body: "Keep 3 ft between the dumbbell rack and the bench line, so people aren't lifting where others pick up weights." },
   { title: "Dwell zones", body: "A machine's footprint isn't its real size — add 20–30% for the person using it. If the map feels tight, it will feel tighter in person." },
