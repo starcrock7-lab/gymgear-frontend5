@@ -175,3 +175,23 @@ export function loadLayout(): PlacedItem[] {
     return [];
   }
 }
+
+/* Where the visualizer was opened from, so /planner can offer a real "back"
+   to the plan/kit the equipment came from. */
+const ORIGIN_KEY = "gymgear.floor.origin.v1";
+
+export function saveFloorOrigin(path: string): void {
+  try {
+    sessionStorage.setItem(ORIGIN_KEY, path);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadFloorOrigin(): string | null {
+  try {
+    return sessionStorage.getItem(ORIGIN_KEY);
+  } catch {
+    return null;
+  }
+}

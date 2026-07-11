@@ -9,7 +9,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Crop as CropIcon, Eye, EyeOff, ImagePlus, RotateCw, Trash2, X } from "lucide-react";
+import { ArrowLeft, Crop as CropIcon, Eye, EyeOff, ImagePlus, RotateCw, Trash2, X } from "lucide-react";
 import {
   type Crop,
   type FloorItem,
@@ -23,6 +23,7 @@ import {
   loadFloorItems,
   loadLayout,
   saveLayout,
+  loadFloorOrigin,
 } from "@/lib/floor-plan";
 import CropTool from "@/components/planner/CropTool";
 import { EquipmentIcon } from "@/components/planner/equipment-icon";
@@ -40,6 +41,7 @@ export default function FloorPlanner() {
   const [halos, setHalos] = useState(true);
   const [dropActive, setDropActive] = useState(false);
   const [dropError, setDropError] = useState("");
+  const [origin, setOrigin] = useState<string | null>(null);
   const [containerW, setContainerW] = useState(0);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{ uid: string; dx: number; dy: number } | null>(null);
@@ -48,6 +50,7 @@ export default function FloorPlanner() {
   useEffect(() => {
     setItems(loadFloorItems());
     setPlaced(loadLayout());
+    setOrigin(loadFloorOrigin());
     const el = boxRef.current;
     if (!el) return;
     const ro = new ResizeObserver(() => setContainerW(el.clientWidth));
@@ -187,10 +190,19 @@ export default function FloorPlanner() {
     setImageFile(e.dataTransfer.files?.[0]);
   }
 
+  const backHref = origin === "/gym" ? "/gym" : origin === "/quiz" ? "/quiz" : "/start";
+  const backLabel = origin === "/gym" ? "Back to your plan" : origin === "/quiz" ? "Back to your kit" : "Back";
+
   return (
     <main className="min-h-screen bg-off">
       <div className="mx-auto max-w-6xl px-5 py-10">
-        <p className="text-xs font-bold uppercase tracking-widest text-accent">
+        <Link
+          href={backHref}
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-ink-3 transition-colors hover:text-accent"
+        >
+          <ArrowLeft className="h-4 w-4" /> {backLabel}
+        </Link>
+        <p className="mt-4 text-xs font-bold uppercase tracking-widest text-accent">
           Floor plan visualizer
         </p>
         <h1 className="mt-1 font-display text-3xl font-extrabold text-ink">

@@ -6,11 +6,16 @@
    product/quantity/price deterministically; the prose is Groq with a
    templated fallback, so this view just renders what it's given. */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Building2, Loader2, Map, Minus, Plus, RefreshCw } from "lucide-react";
 import { formatPrice } from "@/lib/kit";
-import { PLACEABLE_CATS, footprintOf, saveFloorItems, type FloorItem } from "@/lib/floor-plan";
+import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
+
+/* Persist the built plan so leaving for the floor visualizer (or a stray
+   reload) doesn't lose it — returning to /gym restores it, same as the
+   home quiz's returning screen. "Start over" clears it. */
+const PLAN_KEY = "gymgear.gymplan.v1";
 
 type Answers = {
   projectType: string;
@@ -195,6 +200,31 @@ export default function GymPlanner() {
   const [error, setError] = useState("");
   const [plan, setPlan] = useState<GymPlan | null>(null);
 
+  /* Restore a saved plan on mount (returning from the visualizer / a reload). */
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(PLAN_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { answers?: Answers; plan?: GymPlan };
+      if (parsed.plan) {
+        if (parsed.answers) setAnswers(parsed.answers);
+        setPlan(parsed.plan);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  /* Keep the saved copy in step with the current plan (incl. qty edits). */
+  useEffect(() => {
+    if (!plan) return;
+    try {
+      sessionStorage.setItem(PLAN_KEY, JSON.stringify({ answers, plan }));
+    } catch {
+      /* ignore */
+    }
+  }, [plan, answers]);
+
   const steps = useMemo(
     () => STEPS.filter((s) => !s.showIf || s.showIf(answers)),
     [answers],
@@ -244,6 +274,11 @@ export default function GymPlanner() {
     setStepIdx(0);
     setPlan(null);
     setError("");
+    try {
+      sessionStorage.removeItem(PLAN_KEY);
+    } catch {
+      /* ignore */
+    }
   }
 
   /* Owner tweaks quantities on the result — totals recompute locally.
@@ -279,6 +314,7 @@ export default function GymPlanner() {
         out.push({ id: i.id, name: i.name, brand: i.brand, category: i.category, qty: i.qty, w, d });
       }
     saveFloorItems(out);
+    saveFloorOrigin("/gym");
   }
 
   /* ── Loading ── */
