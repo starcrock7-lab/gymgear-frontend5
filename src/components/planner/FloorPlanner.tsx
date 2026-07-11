@@ -9,39 +9,25 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, ImagePlus, RotateCw, Trash2, X } from "lucide-react";
+import { Crop as CropIcon, Eye, EyeOff, ImagePlus, RotateCw, Trash2, X } from "lucide-react";
 import {
+  type Crop,
   type FloorItem,
   type PlacedItem,
+  FULL_CROP,
+  cropBackground,
   PLACEABLE_CATS,
   footprintOf,
-  clearanceBoxOf,
-  isTreadmill,
+  clearanceOf,
   LAYOUT_ADVICE,
   loadFloorItems,
   loadLayout,
   saveLayout,
 } from "@/lib/floor-plan";
+import CropTool from "@/components/planner/CropTool";
+import { EquipmentIcon } from "@/components/planner/equipment-icon";
 
 const uidOf = () => Math.random().toString(36).slice(2, 9);
-
-/* Directional halo → the outset on each edge in inches, rotation-aware.
-   Unrotated a piece faces "down" (front = +y, back toward the wall at -y);
-   a 90° rotation turns front to +x. Returns {l,t,r,b} extends and the
-   rendered footprint {w,h}. */
-function haloExtents(p: PlacedItem) {
-  const c = clearanceBoxOf(p.id, p.category);
-  const w = p.rot ? p.d : p.w;
-  const h = p.rot ? p.w : p.d;
-  const ext = p.rot
-    ? { l: c.back, t: c.sides, r: c.front, b: c.sides }
-    : { l: c.sides, t: c.back, r: c.sides, b: c.front };
-  return { w, h, ...ext };
-}
-const haloRect = (p: PlacedItem) => {
-  const e = haloExtents(p);
-  return { x1: p.x - e.l, y1: p.y - e.t, x2: p.x + e.w + e.r, y2: p.y + e.h + e.b };
-};
 
 export default function FloorPlanner() {
   const [items, setItems] = useState<FloorItem[]>([]);
@@ -49,6 +35,8 @@ export default function FloorPlanner() {
   const [roomW, setRoomW] = useState(30); // feet
   const [roomD, setRoomD] = useState(20); // feet
   const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>(FULL_CROP);
+  const [cropping, setCropping] = useState(false);
   const [halos, setHalos] = useState(true);
   const [dropActive, setDropActive] = useState(false);
   const [dropError, setDropError] = useState("");
@@ -84,13 +72,18 @@ export default function FloorPlanner() {
       .filter((i) => i.qty > 0);
   }, [items, placed]);
 
-  /* Collision detection: two pieces crowd when their regulation clearance
-     boxes overlap (directional, rotation-aware). */
+  /* Collision detection: expanded AABBs (footprint + safety halo). */
   const colliding = useMemo(() => {
     const bad = new Set<string>();
+    const rect = (p: PlacedItem) => {
+      const w = p.rot ? p.d : p.w;
+      const d = p.rot ? p.w : p.d;
+      const c = clearanceOf(p.category);
+      return { x1: p.x - c, y1: p.y - c, x2: p.x + w + c, y2: p.y + d + c };
+    };
     for (let i = 0; i < placed.length; i++)
       for (let j = i + 1; j < placed.length; j++) {
-        const a = haloRect(placed[i]), b = haloRect(placed[j]);
+        const a = rect(placed[i]), b = rect(placed[j]);
         if (a.x1 < b.x2 && a.x2 > b.x1 && a.y1 < b.y2 && a.y2 > b.y1) {
           bad.add(placed[i].uid);
           bad.add(placed[j].uid);
@@ -160,6 +153,14 @@ export default function FloorPlanner() {
     setDropError("");
     if (imgUrl) URL.revokeObjectURL(imgUrl);
     setImgUrl(URL.createObjectURL(f));
+    setCrop(FULL_CROP);
+    setCropping(true); // go straight to "select your room"
+  }
+  function clearImage() {
+    if (imgUrl) URL.revokeObjectURL(imgUrl);
+    setImgUrl(null);
+    setCrop(FULL_CROP);
+    setCropping(false);
   }
   const onUpload = (e: React.ChangeEvent<HTMLInputElement>) =>
     setImageFile(e.target.files?.[0]);
@@ -197,12 +198,11 @@ export default function FloorPlanner() {
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ink-2">
           Drop a top-down photo or sketch of your space onto the grid (or use
-          the button), set the room size, then drag each piece onto the map —
-          rectangles are drawn at true scale from published footprints. The
-          dashed halos are the regulation clearances each piece needs; they
-          turn red when two pieces crowd each other. Rotate a piece and its
-          clearance rotates too, so you can aim a treadmill&apos;s fall zone at
-          open floor.
+          the button), select just the room you&apos;re planning, and set its
+          real size — then drag each piece onto the map, drawn at true scale
+          from published footprints with a labelled icon. The dashed halos are
+          the safety clearance each piece needs; they turn red when two pieces
+          crowd each other.
         </p>
 
         {items.length === 0 ? (
@@ -223,12 +223,20 @@ export default function FloorPlanner() {
             <input type="file" accept="image/*" className="hidden" onChange={onUpload} />
           </label>
           {imgUrl ? (
-            <button
-              onClick={() => { URL.revokeObjectURL(imgUrl); setImgUrl(null); }}
-              className="flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink"
-            >
-              <X className="h-3.5 w-3.5" /> Remove image
-            </button>
+            <>
+              <button
+                onClick={() => setCropping(true)}
+                className="flex items-center gap-1.5 rounded-xl border border-line px-3 py-2 text-sm text-ink-2 transition-colors hover:border-accent/60 hover:text-ink"
+              >
+                <CropIcon className="h-3.5 w-3.5" /> Re-select room
+              </button>
+              <button
+                onClick={clearImage}
+                className="flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink"
+              >
+                <X className="h-3.5 w-3.5" /> Remove image
+              </button>
+            </>
           ) : null}
           <label className="text-sm text-ink-2">
             Room width (ft)
@@ -259,6 +267,17 @@ export default function FloorPlanner() {
           <p className="mt-3 text-sm font-bold text-red-400">{dropError}</p>
         ) : null}
 
+        {/* Crop step — pick the room out of the image, then set its size below */}
+        {cropping && imgUrl ? (
+          <div className="mt-6">
+            <CropTool
+              imgUrl={imgUrl}
+              onApply={(c) => { setCrop(c); setCropping(false); }}
+              onCancel={() => setCropping(false)}
+            />
+          </div>
+        ) : null}
+
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_290px]">
           <div>
             {/* The map */}
@@ -281,11 +300,10 @@ export default function FloorPlanner() {
               }}
             >
               {imgUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={imgUrl}
-                  alt="Your floor plan"
-                  className="pointer-events-none absolute inset-0 h-full w-full object-fill opacity-60"
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 opacity-60"
+                  style={cropBackground(imgUrl, crop)}
                 />
               ) : null}
 
@@ -306,10 +324,11 @@ export default function FloorPlanner() {
               ) : null}
 
               {placed.map((p) => {
-                const e = haloExtents(p);
-                const w = e.w * scale;
-                const h = e.h * scale;
+                const w = (p.rot ? p.d : p.w) * scale;
+                const h = (p.rot ? p.w : p.d) * scale;
+                const c = clearanceOf(p.category) * scale;
                 const bad = colliding.has(p.uid);
+                const small = Math.min(w, h) < 46;
                 return (
                   <div
                     key={p.uid}
@@ -323,24 +342,27 @@ export default function FloorPlanner() {
                         className={`pointer-events-none absolute rounded-lg border border-dashed ${
                           bad ? "border-red-500/70 bg-red-500/10" : "border-win/40 bg-win/5"
                         }`}
-                        style={{
-                          left: -e.l * scale,
-                          top: -e.t * scale,
-                          right: -e.r * scale,
-                          bottom: -e.b * scale,
-                        }}
+                        style={{ left: -c, top: -c, right: -c, bottom: -c }}
                       />
                     ) : null}
                     <div
-                      className={`relative flex h-full w-full items-center justify-center overflow-hidden rounded-md border text-center ${
+                      title={p.name}
+                      className={`relative flex h-full w-full flex-col items-center justify-center gap-0.5 overflow-hidden rounded-md border px-1 text-center ${
                         bad
                           ? "border-red-500 bg-red-500/30"
                           : "border-accent/70 bg-navy/85 shadow-[0_0_10px_rgba(240,83,30,0.35)]"
                       }`}
                     >
-                      <span className="px-1 text-[0.55rem] font-bold leading-tight text-white">
-                        {p.name}
-                      </span>
+                      <EquipmentIcon
+                        id={p.id}
+                        category={p.category}
+                        className="block h-4 w-4 shrink-0 text-accent [&>svg]:h-full [&>svg]:w-full"
+                      />
+                      {!small ? (
+                        <span className="text-[0.55rem] font-bold leading-tight text-white">
+                          {p.name}
+                        </span>
+                      ) : null}
                     </div>
                     {/* Hover tools */}
                     <div className="absolute -top-7 left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-lg border border-line bg-navy px-1.5 py-1 group-hover:flex">
@@ -375,19 +397,24 @@ export default function FloorPlanner() {
             {/* Palette */}
             <div className="mt-5 rounded-2xl border border-line bg-card p-4">
               <h2 className="font-display text-sm font-bold text-ink">Your equipment</h2>
-              <p className="mt-0.5 text-xs text-ink-3">Click a piece to drop it on the map. Drag to move, hover for rotate/remove.</p>
+              <p className="mt-0.5 text-xs text-ink-3">Click a piece to drop it on the map. Drag to move; hover a placed piece to rotate or remove it.</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {remaining.map((i) => (
                   <button
                     key={i.id}
                     onClick={() => place(i)}
                     disabled={i.left <= 0}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors ${
+                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors ${
                       i.left > 0
                         ? "border-line text-ink hover:border-accent/60 hover:text-accent"
                         : "border-line/50 text-ink-3 opacity-50"
                     }`}
                   >
+                    <EquipmentIcon
+                      id={i.id}
+                      category={i.category}
+                      className="block h-4 w-4 shrink-0 text-accent [&>svg]:h-full [&>svg]:w-full"
+                    />
                     {i.name} <span className="text-ink-3">({i.left} of {i.qty} left · {Math.round(i.w / 12 * 10) / 10}×{Math.round(i.d / 12 * 10) / 10} ft)</span>
                   </button>
                 ))}
