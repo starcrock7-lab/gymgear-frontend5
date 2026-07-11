@@ -364,21 +364,24 @@ export default function FloorPlanner() {
                         </span>
                       ) : null}
                     </div>
-                    {/* Hover tools */}
-                    <div className="absolute -top-7 left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-lg border border-line bg-navy px-1.5 py-1 group-hover:flex">
+                    {/* Hover tools — pinned to the piece's top-right corner (on
+                        the piece, not floating above it) so there's no hover gap
+                        to break the click and nothing gets clipped at the map's
+                        top edge. */}
+                    <div className="absolute right-0.5 top-0.5 z-10 hidden items-center gap-0.5 rounded-md border border-line bg-navy/95 px-1 py-0.5 shadow-md group-hover:flex">
                       <button
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={() => setPlaced((prev) => prev.map((q) => (q.uid === p.uid ? { ...q, rot: !q.rot } : q)))}
-                        className="text-white/70 hover:text-accent" aria-label="Rotate"
+                        className="p-0.5 text-white/80 hover:text-accent" aria-label="Rotate"
                       >
-                        <RotateCw className="h-3 w-3" />
+                        <RotateCw className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={() => setPlaced((prev) => prev.filter((q) => q.uid !== p.uid))}
-                        className="text-white/70 hover:text-red-400" aria-label="Remove"
+                        className="p-0.5 text-white/80 hover:text-red-400" aria-label="Remove"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>

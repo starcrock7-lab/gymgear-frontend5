@@ -107,18 +107,18 @@ export const CATEGORY_DEFAULT: Record<string, { w: number; d: number }> = {
   dumbbells: { w: 60, d: 24 }, // a set on a rack/stand
 };
 
-/* Safety halo per category (inches on every side) — grounded in the
-   published guidance: 36" minimum walkways, 3–4 ft in front of racks, and a
-   6 ft fall zone BEHIND treadmill-class cardio (the uniform halo is the
-   minimum; the advice panel carries the directional rules). */
+/* Safety halo per category (inches on every side). Kept intentionally small
+   so pieces can sit close together while planning — it's a nudge, not the
+   full regulation buffer. The advice panel carries the real numbers (36"
+   walkways, 6 ft treadmill fall zones, 3–4 ft rack fronts). */
 export const CLEARANCE_IN: Record<string, number> = {
-  cardio: 36,
-  racks: 42,
-  machines: 24,
-  benches: 24,
-  dumbbells: 24,
+  cardio: 8,
+  racks: 8,
+  machines: 6,
+  benches: 5,
+  dumbbells: 5,
 };
-export const DEFAULT_CLEARANCE = 18;
+export const DEFAULT_CLEARANCE = 4;
 
 export const footprintOf = (id: string, category: string) =>
   FOOTPRINTS[id] || CATEGORY_DEFAULT[category] || { w: 48, d: 36 };
