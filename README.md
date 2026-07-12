@@ -13,7 +13,10 @@ Next **16.2.9** (App Router, `src/` layout) · React **19.2.4** · Tailwind **v4
 | Route | File | What it is |
 |---|---|---|
 | `/` | `page.tsx` | Homepage — dark hero, quiz CTA |
+| `/start` | `start/page.tsx` | Path chooser: home quiz vs For Gyms (+ renovation questions) |
 | `/quiz` | `quiz/page.tsx` | 5-screen quiz → kit results |
+| `/gym` | `gym/page.tsx` | For Gyms — commercial facility planner (`GymPlanner.tsx`): questionnaire → zone plan + written build plan |
+| `/planner` | `planner/page.tsx` | Floor-plan visualizer (`FloorPlanner.tsx`): drag equipment at true scale over an uploaded floor image |
 | `/compare` | `compare/page.tsx` | Comparison tool (2–4 products, spec matrix, verdict) |
 | `/extras` | `extras/page.tsx` | Gear finder (`GearFinder.tsx`) |
 | `/gear`, `/gear/[slug]` | `gear/` | Catalog browse + product detail |
@@ -23,6 +26,7 @@ Next **16.2.9** (App Router, `src/` layout) · React **19.2.4** · Tailwind **v4
 | `/about`, `/contact`, `/sponsors`, `/privacy`, `/disclosure`, `/maintenance` | — | Static/support pages |
 | `/api/catalog/*` | `api/catalog/` | Local Next API routes serving catalog data (`all`, `categories`, `products/[cat]`) |
 | `/api/kit` | `api/kit/route.ts` | Local kit builder (port of backend KIT BUILDER — keep in lockstep with server.js) |
+| `/api/gym-plan` | `api/gym-plan/route.ts` | **Thin proxy** to the backend's gym planner (NOT a port — B2B flow tolerates the Render cold start; 90s timeout) |
 
 > **No cart.** A site-wide cart + Amazon bulk "Buy all" shipped 2026-07 and was **removed the same week**: Amazon deprecated the `gp/aws/cart/add.html` bulk endpoint ("Cart is empty / unavailable"), so a unified checkout can't work. Every product sells through its own affiliate Buy link — same commission. Don't rebuild a cart without a working checkout mechanism.
 
@@ -43,6 +47,9 @@ Next **16.2.9** (App Router, `src/` layout) · React **19.2.4** · Tailwind **v4
 | `src/components/quiz/` | `QuizFlow` (screens/transitions), `KitResult` (3-tier results), `SwapModal` (swap product, recompute total), `ProductModal` |
 | `src/components/compare/CompareTool.tsx` | Entire comparison tool |
 | `src/components/extras/GearFinder.tsx` | Extras finder |
+| `src/components/gym/GymPlanner.tsx` | For Gyms questionnaire + zone-by-zone plan (qty steppers, written plan, handoff to /planner) |
+| `src/components/planner/` | `FloorPlanner.tsx` (drag-to-place map), `CropTool.tsx` (select room from image), `equipment-icon.tsx` (26-glyph top-down icon library, id→type map) |
+| `src/lib/floor-plan.ts` | Planner domain: `FOOTPRINTS` (per-product W×D inches — every placeable product needs an entry), clearances, layout advice, sessionStorage handoff (`gymgear.floor.*.v1`) |
 | `src/components/ui/` | Visual primitives (aurora background, spotlight card, text scramble, buttons…) — mostly 21st.dev-style components |
 | `src/components/SiteNav/SiteFooter/SearchModal` | Chrome |
 | `src/app/globals.css` | Design tokens — source of truth for colors/fonts |
@@ -100,6 +107,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-07-12 · Site audit: scrubbed dead SITE_KEY from legacy/app.html (rotated 07-05, verified 403 in prod), gitignored .claude/, README route+module maps caught up to /start·/gym·/planner (backend got a rate-limit eviction sweep + JSON error handler in its own repo) · (this commit)
 - 2026-07-12 · Realistic per-product equipment icons across the gym area: 26-glyph top-down icon library (power/half rack, squat stand, wall rack, functional trainer, all-in-one, cable tower, home gym, wall unit, iso row, leg press, GHD, treadmill, rower, ski erg, air/spin bike, elliptical, bench, dumbbell rack, barbell, plates, kettlebell, band, flooring), id→type map for all placeable products, icon tiles in /gym zone listings (rows now wrap on mobile), same icons on /planner map + palette · (this commit)
 - 2026-07-11 · Visualizer back button: /planner now shows a "← Back to your plan/kit" link to wherever you came from (origin tracked in sessionStorage on the way in); the gym plan is persisted so returning to /gym restores it (incl. qty edits) instead of dropping you back at the empty quiz — "Start over" clears it · (this commit)
 - 2026-07-11 · Path chooser + real renovation flow: new /start page ("What are you setting up?" — Home Gym vs Professional Gym, dark premium cards); all "Build My Kit" CTAs (nav, footer, homepage, 404) now route there. Gym quiz renovation branch fixed: area question reworded to "how much are you renovating" (sizes the order to the renovated section), + two new questions — what's driving it (renoScope multi) and which areas to redo (renoTargets multi). Backend maps renoTargets→kept zones (budget flows to the redone areas), renoScope biases the split, written plan reflects it · (this commit)

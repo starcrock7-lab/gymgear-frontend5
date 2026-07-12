@@ -36,3 +36,6 @@ next-env.d.ts
 
 # graphify knowledge graph (local only)
 /graphify-out
+
+# local Claude Code config (machine paths)
+.claude/
