@@ -11,6 +11,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Building2, Loader2, Map, Minus, Plus, RefreshCw } from "lucide-react";
 import { formatPrice } from "@/lib/kit";
 import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
+import { EquipmentIcon } from "@/components/planner/equipment-icon";
 
 /* Persist the built plan so leaving for the floor visualizer (or a stray
    reload) doesn't lose it — returning to /gym restores it, same as the
@@ -405,15 +406,24 @@ export default function GymPlanner() {
                 {z.items.map((i) => (
                   <div
                     key={i.id}
-                    className={`flex items-center justify-between gap-3 py-2.5 ${i.qty === 0 ? "opacity-40" : ""}`}
+                    className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-2.5 ${i.qty === 0 ? "opacity-40" : ""}`}
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-ink">{i.name}</p>
-                      <p className="text-xs text-ink-3">
-                        {i.brand} · {formatPrice(i.unitPrice)} each
-                      </p>
+                    <div className="flex w-full min-w-0 items-center gap-3 sm:w-auto sm:flex-1">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-navy/60 text-accent">
+                        <EquipmentIcon
+                          id={i.id}
+                          category={i.category}
+                          className="block h-5 w-5 [&>svg]:h-full [&>svg]:w-full"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-ink">{i.name}</p>
+                        <p className="text-xs text-ink-3">
+                          {i.brand} · {formatPrice(i.unitPrice)} each
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-3">
+                    <div className="ml-auto flex shrink-0 items-center gap-3">
                       {/* Quantity stepper — totals recompute live */}
                       <div className="flex items-center gap-1.5 rounded-lg border border-line px-1.5 py-1">
                         <button
