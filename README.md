@@ -16,7 +16,7 @@ Next **16.2.9** (App Router, `src/` layout) · React **19.2.4** · Tailwind **v4
 | `/start` | `start/page.tsx` | Path chooser: home quiz vs For Gyms (+ renovation questions) |
 | `/quiz` | `quiz/page.tsx` | 5-screen quiz → kit results |
 | `/gym` | `gym/page.tsx` | For Gyms — commercial facility planner (`GymPlanner.tsx`): questionnaire → zone plan + written build plan |
-| `/planner` | `planner/page.tsx` | Floor-plan visualizer (`FloorPlanner.tsx`): drag equipment at true scale over an uploaded floor image |
+| `/planner` | `planner/page.tsx` | Floor-plan visualizer (`FloorPlanner.tsx`): drop/paste a schematic → walls auto-detected → equipment auto-arranged (or drag at true scale); also embedded in /gym as the plan's floor dashboard |
 | `/compare` | `compare/page.tsx` | Comparison tool (2–4 products, spec matrix, verdict) |
 | `/extras` | `extras/page.tsx` | Gear finder (`GearFinder.tsx`) |
 | `/gear`, `/gear/[slug]` | `gear/` | Catalog browse + product detail |
@@ -49,7 +49,8 @@ Next **16.2.9** (App Router, `src/` layout) · React **19.2.4** · Tailwind **v4
 | `src/components/extras/GearFinder.tsx` | Extras finder |
 | `src/components/gym/GymPlanner.tsx` | For Gyms questionnaire + zone-by-zone plan (qty steppers, written plan, handoff to /planner) |
 | `src/components/planner/` | `FloorPlanner.tsx` (drag-to-place map), `CropTool.tsx` (select room from image), `equipment-icon.tsx` (26-glyph top-down icon library, id→type map) |
-| `src/lib/floor-plan.ts` | Planner domain: `FOOTPRINTS` (per-product W×D inches — every placeable product needs an entry), clearances, layout advice, sessionStorage handoff (`gymgear.floor.*.v1`) |
+| `src/lib/floor-plan.ts` | Planner domain: `FOOTPRINTS` (per-product W×D inches — every placeable product needs an entry), clearances, layout advice, sessionStorage handoff (`gymgear.floor.*.v1`, layout now carries room dims) |
+| `src/lib/auto-layout.ts` | Auto-layout engine: client-side wall detection from the uploaded schematic (Otsu threshold → dilate → flood-fill interior; photos fall back to borders-only) + formation packer (cardio rows w/ fall zones, racks backed to walls, dumbbells+facing benches, machines w/ aisles). ≥17" air between pieces so results never render red |
 | `src/components/ui/` | Visual primitives (aurora background, spotlight card, text scramble, buttons…) — mostly 21st.dev-style components |
 | `src/components/SiteNav/SiteFooter/SearchModal` | Chrome |
 | `src/app/globals.css` | Design tokens — source of truth for colors/fonts |
@@ -107,6 +108,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-07-14 · Floor dashboard in For Gyms + auto-layout engine + fixes: /gym plan now embeds the floor planner (`FloorPlanner embedded` + itemsProp, room auto-sized to plan area) so the plan no longer vanishes behind a page switch; new `lib/auto-layout.ts` — schematic upload/drag/paste (Ctrl+V) → wall detection (canvas Otsu+flood-fill, orange detected-walls overlay) → auto-arrange with formations (cardio rows+fall zones, racks on walls, dumbbells↔benches, machine aisles); works for gym plans AND home kits; layout+room dims persist across /gym↔/planner (fixed StrictMode save-clobber); Start over needs a confirm click; sponsors Formspree endpoint fixed (xkoekoqq) · (this commit)
 - 2026-07-12 · Site audit: scrubbed dead SITE_KEY from legacy/app.html (rotated 07-05, verified 403 in prod), gitignored .claude/, README route+module maps caught up to /start·/gym·/planner (backend got a rate-limit eviction sweep + JSON error handler in its own repo) · (this commit)
 - 2026-07-12 · Realistic per-product equipment icons across the gym area: 26-glyph top-down icon library (power/half rack, squat stand, wall rack, functional trainer, all-in-one, cable tower, home gym, wall unit, iso row, leg press, GHD, treadmill, rower, ski erg, air/spin bike, elliptical, bench, dumbbell rack, barbell, plates, kettlebell, band, flooring), id→type map for all placeable products, icon tiles in /gym zone listings (rows now wrap on mobile), same icons on /planner map + palette · (this commit)
 - 2026-07-11 · Renovation depth — per-zone sizes, must-have machines, ranked selection: reno now sizes each redone area separately (per-zone Compact/Standard/Large → total area = sum, quantities off each room) instead of one figure; new "Any machines you must have?" picker locks specific catalog models into the plan (backend reserves budget + pins them, incl. matching gear they already run); machine row now drawn from a GymGear-Score-ranked catalog pool (gpPool) so the best pieces float up and new products flow in automatically · (this commit)

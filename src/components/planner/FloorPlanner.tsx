@@ -9,7 +9,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Crop as CropIcon, Eye, EyeOff, ImagePlus, RotateCw, Trash2, X } from "lucide-react";
+import { ArrowLeft, Crop as CropIcon, Eye, EyeOff, ImagePlus, Loader2, RotateCw, ScanLine, Sparkles, Trash2, X } from "lucide-react";
+import { autoPlace, detectWalls, emptyGrid, wallsDataUrl } from "@/lib/auto-layout";
 import {
   type Crop,
   type FloorItem,
@@ -30,11 +31,28 @@ import { EquipmentIcon } from "@/components/planner/equipment-icon";
 
 const uidOf = () => Math.random().toString(36).slice(2, 9);
 
-export default function FloorPlanner() {
-  const [items, setItems] = useState<FloorItem[]>([]);
+export default function FloorPlanner({
+  itemsProp,
+  embedded,
+  defaultRoomW,
+  defaultRoomD,
+}: {
+  /* When provided (embedded in the gym plan), the equipment list comes from
+     the live plan instead of the sessionStorage handoff. */
+  itemsProp?: FloorItem[];
+  embedded?: boolean;
+  /* First-mount room size (feet) — e.g. sized to the gym plan's floor area.
+     A layout saved this session still wins. */
+  defaultRoomW?: number;
+  defaultRoomD?: number;
+} = {}) {
+  const [loadedItems, setLoadedItems] = useState<FloorItem[]>([]);
+  /* Embedded mode gets the list live from the plan; the route version reads
+     the sessionStorage handoff loaded on mount. */
+  const items = itemsProp ?? loadedItems;
   const [placed, setPlaced] = useState<PlacedItem[]>([]);
-  const [roomW, setRoomW] = useState(30); // feet
-  const [roomD, setRoomD] = useState(20); // feet
+  const [roomW, setRoomW] = useState(defaultRoomW ?? 30); // feet
+  const [roomD, setRoomD] = useState(defaultRoomD ?? 20); // feet
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>(FULL_CROP);
   const [cropping, setCropping] = useState(false);
@@ -43,13 +61,26 @@ export default function FloorPlanner() {
   const [dropError, setDropError] = useState("");
   const [origin, setOrigin] = useState<string | null>(null);
   const [containerW, setContainerW] = useState(0);
+  const [arranging, setArranging] = useState(false);
+  const [arrangeNote, setArrangeNote] = useState("");
+  const [wallsUrl, setWallsUrl] = useState<string | null>(null);
+  const [showWalls, setShowWalls] = useState(true);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{ uid: string; dx: number; dy: number } | null>(null);
+  /* The save effect must not run with the first render's empty state — it
+     would overwrite the real layout in storage before the load effect's
+     setState applies (StrictMode's double mount makes that deterministic).
+     The first run(s) in the mount commit are skipped; the post-load rerender
+     then writes the loaded data back, so storage always settles correct. */
+  const hydrated = useRef(false);
 
   /* Load handoff + saved layout once, then track container width. */
   useEffect(() => {
-    setItems(loadFloorItems());
-    setPlaced(loadLayout());
+    setLoadedItems(loadFloorItems());
+    const saved = loadLayout();
+    setPlaced(saved.placed);
+    if (saved.roomW) setRoomW(saved.roomW);
+    if (saved.roomD) setRoomD(saved.roomD);
     setOrigin(loadFloorOrigin());
     const el = boxRef.current;
     if (!el) return;
@@ -59,7 +90,29 @@ export default function FloorPlanner() {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => saveLayout(placed), [placed]);
+  useEffect(() => {
+    if (!hydrated.current) {
+      hydrated.current = true;
+      return;
+    }
+    saveLayout(placed, roomW, roomD);
+  }, [placed, roomW, roomD]);
+
+  /* Paste a schematic straight from the clipboard (Ctrl/Cmd+V). */
+  useEffect(() => {
+    function onPaste(e: ClipboardEvent) {
+      const file = Array.from(e.clipboardData?.items || [])
+        .find((it) => it.kind === "file" && it.type.startsWith("image/"))
+        ?.getAsFile();
+      if (file) {
+        e.preventDefault();
+        setImageFile(file);
+      }
+    }
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imgUrl]);
 
   const roomWIn = roomW * 12;
   const roomDIn = roomD * 12;
@@ -164,6 +217,8 @@ export default function FloorPlanner() {
     setImgUrl(null);
     setCrop(FULL_CROP);
     setCropping(false);
+    setWallsUrl(null);
+    setArrangeNote("");
   }
   const onUpload = (e: React.ChangeEvent<HTMLInputElement>) =>
     setImageFile(e.target.files?.[0]);
@@ -190,31 +245,67 @@ export default function FloorPlanner() {
     setImageFile(e.dataTransfer.files?.[0]);
   }
 
+  /* Detect walls from the (cropped) schematic and lay the whole list out
+     automatically — real spacing, category formations, keep-clear zones. */
+  async function autoArrange(c: Crop = crop, url: string | null = imgUrl) {
+    if (arranging) return;
+    setArranging(true);
+    setArrangeNote("");
+    try {
+      const wIn = roomW * 12,
+        dIn = roomD * 12;
+      const grid = url
+        ? await detectWalls(url, c, wIn, dIn).catch(() => emptyGrid(wIn, dIn))
+        : emptyGrid(wIn, dIn);
+      setWallsUrl(wallsDataUrl(grid));
+      const res = autoPlace(items, wIn, dIn, grid);
+      setPlaced(res.placed);
+      const fitted = res.total - res.unplacedCount;
+      setArrangeNote(
+        res.total === 0
+          ? "Nothing to place yet — build a kit or gym plan first."
+          : `Auto-placed ${fitted} of ${res.total} piece${res.total === 1 ? "" : "s"}` +
+              (grid.detected ? " · walls read from your plan" : "") +
+              (res.unplacedCount > 0
+                ? ` — ${res.unplacedCount} didn't fit. Try a bigger room, or drag pieces closer.`
+                : ". Drag anything to fine-tune."),
+      );
+    } finally {
+      setArranging(false);
+    }
+  }
+
   const backHref = origin === "/gym" ? "/gym" : origin === "/quiz" ? "/quiz" : "/start";
   const backLabel = origin === "/gym" ? "Back to your plan" : origin === "/quiz" ? "Back to your kit" : "Back";
 
+  const Root = embedded ? "div" : "main";
   return (
-    <main className="min-h-screen bg-off">
-      <div className="mx-auto max-w-6xl px-5 py-10">
-        <Link
-          href={backHref}
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-ink-3 transition-colors hover:text-accent"
-        >
-          <ArrowLeft className="h-4 w-4" /> {backLabel}
-        </Link>
-        <p className="mt-4 text-xs font-bold uppercase tracking-widest text-accent">
-          Floor plan visualizer
-        </p>
-        <h1 className="mt-1 font-display text-3xl font-extrabold text-ink">
-          Place your equipment
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-ink-2">
-          Drop a top-down photo or sketch of your space onto the grid (or use
-          the button), select just the room you&apos;re planning, and set its
-          real size — then drag each piece onto the map, drawn at true scale
-          from published footprints with a labelled icon. The dashed halos are
-          the safety clearance each piece needs; they turn red when two pieces
-          crowd each other.
+    <Root className={embedded ? undefined : "min-h-screen bg-off"}>
+      <div className={embedded ? undefined : "mx-auto max-w-6xl px-5 py-10"}>
+        {!embedded ? (
+          <>
+            <Link
+              href={backHref}
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-ink-3 transition-colors hover:text-accent"
+            >
+              <ArrowLeft className="h-4 w-4" /> {backLabel}
+            </Link>
+            <p className="mt-4 text-xs font-bold uppercase tracking-widest text-accent">
+              Floor plan visualizer
+            </p>
+            <h1 className="mt-1 font-display text-3xl font-extrabold text-ink">
+              Place your equipment
+            </h1>
+          </>
+        ) : null}
+        <p className={`${embedded ? "" : "mt-2 "}max-w-2xl text-sm text-ink-2`}>
+          Drop, paste (Ctrl+V) or upload a top-down sketch of your space,
+          select just the room you&apos;re planning, and set its real size —
+          the planner reads the walls and lays everything out for you with
+          real spacing and formations. Drag any piece to fine-tune; it&apos;s
+          all drawn at true scale from published footprints. The dashed halos
+          are the safety clearance each piece needs; they turn red when two
+          pieces crowd each other.
         </p>
 
         {items.length === 0 ? (
@@ -273,10 +364,37 @@ export default function FloorPlanner() {
             {halos ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
             Safety halos
           </button>
+          <button
+            onClick={() => void autoArrange()}
+            disabled={arranging || items.length === 0}
+            className="flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-sm font-bold text-white shadow-md shadow-accent/20 transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {arranging ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            Auto-arrange
+          </button>
+          {wallsUrl ? (
+            <button
+              onClick={() => setShowWalls(!showWalls)}
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm transition-colors ${
+                showWalls
+                  ? "border-accent/60 text-accent"
+                  : "border-line text-ink-2 hover:border-accent/60 hover:text-ink"
+              }`}
+            >
+              <ScanLine className="h-3.5 w-3.5" /> Detected walls
+            </button>
+          ) : null}
         </div>
 
         {dropError ? (
           <p className="mt-3 text-sm font-bold text-red-400">{dropError}</p>
+        ) : null}
+        {arrangeNote ? (
+          <p className="mt-3 text-sm font-bold text-accent">{arrangeNote}</p>
         ) : null}
 
         {/* Crop step — pick the room out of the image, then set its size below */}
@@ -284,7 +402,13 @@ export default function FloorPlanner() {
           <div className="mt-6">
             <CropTool
               imgUrl={imgUrl}
-              onApply={(c) => { setCrop(c); setCropping(false); }}
+              onApply={(c) => {
+                setCrop(c);
+                setCropping(false);
+                /* The magic moment: room selected → read the walls and lay
+                   the equipment out automatically. */
+                void autoArrange(c);
+              }}
               onCancel={() => setCropping(false)}
             />
           </div>
@@ -316,6 +440,17 @@ export default function FloorPlanner() {
                   aria-hidden
                   className="pointer-events-none absolute inset-0 opacity-60"
                   style={cropBackground(imgUrl, crop)}
+                />
+              ) : null}
+
+              {/* Detected-walls mask (orange wash over off-limits floor) */}
+              {wallsUrl && showWalls ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={wallsUrl}
+                  alt=""
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 h-full w-full opacity-60 [image-rendering:pixelated]"
                 />
               ) : null}
 
@@ -430,7 +565,7 @@ export default function FloorPlanner() {
                       category={i.category}
                       className="block h-4 w-4 shrink-0 text-accent [&>svg]:h-full [&>svg]:w-full"
                     />
-                    {i.name} <span className="text-ink-3">({i.left} of {i.qty} left · {Math.round(i.w / 12 * 10) / 10}×{Math.round(i.d / 12 * 10) / 10} ft)</span>
+                    {i.name} <span className="text-ink-3">({Math.max(0, i.left)} of {i.qty} left · {Math.round(i.w / 12 * 10) / 10}×{Math.round(i.d / 12 * 10) / 10} ft)</span>
                   </button>
                 ))}
                 {remaining.length === 0 && items.length > 0 ? (
@@ -454,6 +589,6 @@ export default function FloorPlanner() {
           </aside>
         </div>
       </div>
-    </main>
+    </Root>
   );
 }

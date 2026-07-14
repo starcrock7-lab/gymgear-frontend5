@@ -159,20 +159,29 @@ export function loadFloorItems(): FloorItem[] {
   }
 }
 
-export function saveLayout(placed: PlacedItem[]): void {
+export type SavedLayout = { placed: PlacedItem[]; roomW?: number; roomD?: number };
+
+export function saveLayout(placed: PlacedItem[], roomW?: number, roomD?: number): void {
   try {
-    sessionStorage.setItem(LAYOUT_KEY, JSON.stringify({ placed, savedAt: Date.now() }));
+    sessionStorage.setItem(
+      LAYOUT_KEY,
+      JSON.stringify({ placed, roomW, roomD, savedAt: Date.now() }),
+    );
   } catch { /* ignore */ }
 }
 
-export function loadLayout(): PlacedItem[] {
+export function loadLayout(): SavedLayout {
   try {
     const raw = sessionStorage.getItem(LAYOUT_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as { placed?: PlacedItem[] };
-    return Array.isArray(parsed.placed) ? parsed.placed : [];
+    if (!raw) return { placed: [] };
+    const parsed = JSON.parse(raw) as { placed?: PlacedItem[]; roomW?: number; roomD?: number };
+    return {
+      placed: Array.isArray(parsed.placed) ? parsed.placed : [],
+      roomW: typeof parsed.roomW === "number" ? parsed.roomW : undefined,
+      roomD: typeof parsed.roomD === "number" ? parsed.roomD : undefined,
+    };
   } catch {
-    return [];
+    return { placed: [] };
   }
 }
 

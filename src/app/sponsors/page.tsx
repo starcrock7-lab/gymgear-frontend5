@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Put your brand in front of fitness buyers actively comparing gym equipment, clothing, and supplements.",
 };
 
-const FORMSPREE = "https://formspree.io/f/xpznkgqr";
+const FORMSPREE = "https://formspree.io/f/xkoekoqq";
 
 const stats = [
   { n: "250+", l: "Products listed" },

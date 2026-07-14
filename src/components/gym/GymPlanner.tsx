@@ -12,6 +12,7 @@ import { ArrowLeft, ArrowUpRight, Building2, Check, Loader2, Map, Minus, Plus, R
 import { formatPrice } from "@/lib/kit";
 import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
 import { EquipmentIcon } from "@/components/planner/equipment-icon";
+import FloorPlanner from "@/components/planner/FloorPlanner";
 
 /* Persist the built plan so leaving for the floor visualizer (or a stray
    reload) doesn't lose it — returning to /gym restores it, same as the
@@ -276,6 +277,7 @@ export default function GymPlanner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [plan, setPlan] = useState<GymPlan | null>(null);
+  const [confirmRestart, setConfirmRestart] = useState(false);
 
   /* Restore a saved plan on mount (returning from the visualizer / a reload). */
   useEffect(() => {
@@ -358,7 +360,14 @@ export default function GymPlanner() {
     });
   }
 
+  /* Destructive — the whole plan goes. Two clicks, on purpose. */
   function restart() {
+    if (!confirmRestart) {
+      setConfirmRestart(true);
+      window.setTimeout(() => setConfirmRestart(false), 3500);
+      return;
+    }
+    setConfirmRestart(false);
     setAnswers(EMPTY);
     setStepIdx(0);
     setPlan(null);
@@ -392,9 +401,11 @@ export default function GymPlanner() {
     });
   }
 
-  /* Hand the (possibly qty-tweaked) list to the floor-plan visualizer. */
-  function visualize() {
-    if (!plan) return;
+  /* The plan as a placeable-equipment list — feeds the embedded floor
+     dashboard below AND the full-screen /planner (kept in sync live, so
+     the layout never "disappears" when moving between the two). */
+  const floorItems = useMemo<FloorItem[]>(() => {
+    if (!plan) return [];
     const out: FloorItem[] = [];
     for (const z of plan.zones)
       for (const i of z.items) {
@@ -402,9 +413,22 @@ export default function GymPlanner() {
         const { w, d } = footprintOf(i.id, i.category);
         out.push({ id: i.id, name: i.name, brand: i.brand, category: i.category, qty: i.qty, w, d });
       }
-    saveFloorItems(out);
+    return out;
+  }, [plan]);
+
+  useEffect(() => {
+    if (!plan) return;
+    saveFloorItems(floorItems);
     saveFloorOrigin("/gym");
-  }
+  }, [plan, floorItems]);
+
+  /* Size the dashboard's room to the plan's floor area (3:2-ish) so the
+     first auto-arrange has the real space to work with. */
+  const roomDefaults = useMemo(() => {
+    const area = Math.max(400, plan?.areaSqFt ?? 600);
+    const w = Math.round(Math.sqrt(area * 1.5));
+    return { w, d: Math.max(10, Math.ceil(area / w)) };
+  }, [plan]);
 
   /* ── Loading ── */
   if (loading) {
@@ -438,18 +462,22 @@ export default function GymPlanner() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href="/planner"
-              onClick={visualize}
+            <a
+              href="#floor-dashboard"
               className="flex items-center gap-2 rounded-lg bg-accent px-3.5 py-2 text-sm font-bold text-white transition-colors hover:bg-accent-hover"
             >
-              <Map className="h-3.5 w-3.5" /> Visualize floor plan
-            </Link>
+              <Map className="h-3.5 w-3.5" /> Floor plan
+            </a>
             <button
               onClick={restart}
-              className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm text-ink-2 transition-colors hover:border-accent/60 hover:text-ink"
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                confirmRestart
+                  ? "border-red-500/70 bg-red-500/10 font-bold text-red-400"
+                  : "border-line text-ink-2 hover:border-accent/60 hover:text-ink"
+              }`}
             >
-              <RefreshCw className="h-3.5 w-3.5" /> Start over
+              <RefreshCw className="h-3.5 w-3.5" />
+              {confirmRestart ? "Click again — this clears the plan" : "Start over"}
             </button>
           </div>
         </div>
@@ -545,6 +573,34 @@ export default function GymPlanner() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Floor-plan dashboard — lives WITH the plan, so it no longer
+            disappears behind a page switch. Full-screen planner one click
+            away for more space. */}
+        <div id="floor-dashboard" className="mt-10 scroll-mt-6">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-accent">
+                Floor plan dashboard
+              </p>
+              <h2 className="mt-1 font-display text-2xl font-extrabold text-ink">
+                See it on your floor
+              </h2>
+            </div>
+            <Link
+              href="/planner"
+              className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-bold text-ink-2 transition-colors hover:border-accent/60 hover:text-accent"
+            >
+              Full-screen planner <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <FloorPlanner
+            embedded
+            itemsProp={floorItems}
+            defaultRoomW={roomDefaults.w}
+            defaultRoomD={roomDefaults.d}
+          />
         </div>
 
         <p className="mt-6 text-xs text-ink-3">
