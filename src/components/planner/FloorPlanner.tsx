@@ -299,13 +299,9 @@ export default function FloorPlanner({
           </>
         ) : null}
         <p className={`${embedded ? "" : "mt-2 "}max-w-2xl text-sm text-ink-2`}>
-          Drop, paste (Ctrl+V) or upload a top-down sketch of your space,
-          select just the room you&apos;re planning, and set its real size —
-          the planner reads the walls and lays everything out for you with
-          real spacing and formations. Drag any piece to fine-tune; it&apos;s
-          all drawn at true scale from published footprints. The dashed halos
-          are the safety clearance each piece needs; they turn red when two
-          pieces crowd each other.
+          {embedded
+            ? "Drop, paste (Ctrl+V) or upload your floor sketch — the planner reads the walls and lays your gear out automatically, at true scale. Drag any piece to fine-tune; halos turn red when pieces crowd each other."
+            : "Drop, paste (Ctrl+V) or upload a top-down sketch of your space, select just the room you're planning, and set its real size — the planner reads the walls and lays everything out for you with real spacing and formations. Drag any piece to fine-tune; it's all drawn at true scale from published footprints. The dashed halos are the safety clearance each piece needs; they turn red when two pieces crowd each other."}
         </p>
 
         {items.length === 0 ? (
@@ -470,7 +466,7 @@ export default function FloorPlanner({
                 </div>
               ) : null}
 
-              {placed.map((p) => {
+              {placed.map((p, pi) => {
                 const w = (p.rot ? p.d : p.w) * scale;
                 const h = (p.rot ? p.w : p.d) * scale;
                 const c = clearanceOf(p.category) * scale;
@@ -480,8 +476,14 @@ export default function FloorPlanner({
                   <div
                     key={p.uid}
                     onPointerDown={(ev) => onPointerDown(ev, p)}
-                    className="group absolute cursor-grab select-none active:cursor-grabbing"
-                    style={{ left: p.x * scale, top: p.y * scale, width: w, height: h }}
+                    className="gg-pop-in group absolute cursor-grab select-none active:cursor-grabbing"
+                    style={{
+                      left: p.x * scale,
+                      top: p.y * scale,
+                      width: w,
+                      height: h,
+                      animationDelay: `${Math.min(pi * 18, 450)}ms`,
+                    }}
                   >
                     {halos ? (
                       <div

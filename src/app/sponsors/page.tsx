@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import { Target, Dumbbell, BarChart3, Handshake, Star, Smartphone } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import SponsorForm from "@/components/SponsorForm";
 
 export const metadata: Metadata = {
   title: "Partner With Us",
   description:
     "Put your brand in front of fitness buyers actively comparing gym equipment, clothing, and supplements.",
 };
-
-const FORMSPREE = "https://formspree.io/f/xkoekoqq";
 
 const stats = [
   { n: "250+", l: "Products listed" },
@@ -50,9 +49,6 @@ const reasons = [
     body: "Fully optimized for mobile, where most fitness product research happens. Your ad looks great on every screen.",
   },
 ];
-
-const field =
-  "w-full rounded-lg border border-line bg-card px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-accent";
 
 export default function SponsorsPage() {
   return (
@@ -117,48 +113,7 @@ export default function SponsorsPage() {
             days.
           </p>
 
-          <form
-            action={FORMSPREE}
-            method="POST"
-            className="mt-8 space-y-4 rounded-2xl border border-white/12 bg-white/[0.04] p-6"
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <input name="firstName" required placeholder="First name" className={field} />
-              <input name="lastName" placeholder="Last name" className={field} />
-            </div>
-            <input
-              name="email"
-              type="email"
-              required
-              placeholder="Work email"
-              className={field}
-            />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <input name="company" required placeholder="Company" className={field} />
-              <input name="website" placeholder="Website" className={field} />
-            </div>
-            <select name="interest" defaultValue="" className={field} required>
-              <option value="" disabled>
-                I&apos;m interested in…
-              </option>
-              <option>Featured product placement</option>
-              <option>Banner / display advertising</option>
-              <option>Affiliate partnership</option>
-              <option>Something else</option>
-            </select>
-            <textarea
-              name="message"
-              rows={4}
-              placeholder="Tell us about your brand and goals…"
-              className={field}
-            />
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-accent py-3.5 font-display text-base font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50"
-            >
-              Send enquiry
-            </button>
-          </form>
+          <SponsorForm />
         </div>
       </section>
 
