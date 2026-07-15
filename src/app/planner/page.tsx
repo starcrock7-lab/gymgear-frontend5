@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import SiteNav from "@/components/SiteNav";
+import SiteFooter from "@/components/SiteFooter";
 import FloorPlanner from "@/components/planner/FloorPlanner";
 
 export const metadata: Metadata = {
@@ -8,5 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default function PlannerPage() {
-  return <FloorPlanner />;
+  return (
+    <>
+      <SiteNav />
+      <FloorPlanner />
+      <SiteFooter />
+    </>
+  );
 }

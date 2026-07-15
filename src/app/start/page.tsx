@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Building2, Dumbbell } from "lucide-react";
+import SiteNav from "@/components/SiteNav";
+import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Start — Home Gym or Professional Gym | GymGear Compare",
@@ -33,7 +35,9 @@ const PATHS = [
 
 export default function StartPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-off">
+    <>
+      <SiteNav />
+      <main className="relative min-h-screen overflow-hidden bg-off">
       {/* cosmic wash + stars, matching the homepage's dark language */}
       <div
         aria-hidden
@@ -102,6 +106,8 @@ export default function StartPage() {
           Not sure? Start with the home quiz — you can always plan a full facility later.
         </p>
       </div>
-    </main>
+      </main>
+      <SiteFooter />
+    </>
   );
 }
