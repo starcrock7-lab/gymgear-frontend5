@@ -288,7 +288,15 @@ const CATEGORY_TYPE: Record<string, IconType> = {
   flooring: "flooring",
 };
 
+export type EquipmentType = IconType;
+
+/* Shared resolver: the 3D scene uses the same id → type map as the icons,
+   so the glyph on the 2D map and the model in the 3D view always agree. */
+export function equipmentTypeOf(id: string, category: string): EquipmentType {
+  return TYPE_OF[id] ?? CATEGORY_TYPE[category] ?? "box";
+}
+
 export function EquipmentIcon({ id, category, className }: Props) {
-  const type = TYPE_OF[id] ?? CATEGORY_TYPE[category] ?? "box";
+  const type = equipmentTypeOf(id, category);
   return <span className={className}>{ICONS[type]}</span>;
 }

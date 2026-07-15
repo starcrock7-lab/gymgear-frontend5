@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RotateCcw,
@@ -38,7 +38,8 @@ import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
 import Link from "next/link";
 import { Map } from "lucide-react";
-import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin } from "@/lib/floor-plan";
+import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
+import FloorPlanner from "@/components/planner/FloorPlanner";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
@@ -153,6 +154,25 @@ export default function KitResult({
     saveKit({ ...data, kits });
   }, [kits, data]);
 
+  /* Selected kit as a placeable list — feeds the embedded floor builder
+     below AND the full-screen /planner (kept in sync live, same as the
+     For Gyms plan). */
+  const floorItems = useMemo<FloorItem[]>(() => {
+    const prods = selectedKit?.products ?? [];
+    return prods
+      .filter((p) => PLACEABLE_CATS.has(p.category))
+      .map((p) => {
+        const { w, d } = footprintOf(p.id, p.category);
+        return { id: p.id, name: p.name, brand: p.brand, category: p.category, qty: 1, w, d };
+      });
+  }, [selectedKit]);
+
+  useEffect(() => {
+    if (!floorItems.length) return;
+    saveFloorItems(floorItems);
+    saveFloorOrigin("/quiz");
+  }, [floorItems]);
+
   return (
     <div className="flex flex-col">
       <div className="text-center">
@@ -229,6 +249,30 @@ export default function KitResult({
           onAdd={addAccessories}
         />
       )}
+
+      {/* Floor-plan builder — the same board as For Gyms, fed by the
+          selected kit. Drop/paste a sketch, auto-arrange, flip to 3D. */}
+      {floorItems.length > 0 ? (
+        <div id="floor-dashboard" className="mt-12 scroll-mt-6 text-left">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-accent">
+                Floor plan dashboard
+              </p>
+              <h2 className="mt-1 font-display text-2xl font-extrabold text-white">
+                See it in your space
+              </h2>
+            </div>
+            <Link
+              href="/planner"
+              className="flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm font-bold text-white/70 transition-colors hover:border-accent/60 hover:text-accent"
+            >
+              Full-screen planner <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <FloorPlanner embedded itemsProp={floorItems} />
+        </div>
+      ) : null}
 
       <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
         <button
@@ -333,25 +377,15 @@ function KitCard({
             {kit.description}
           </p>
         )}
-        {/* Hand the cart to the floor-plan visualizer (big pieces only). */}
+        {/* Jump to the embedded floor builder below (kept in sync by the
+            parent — no page switch, nothing disappears). */}
         {items.some((p) => PLACEABLE_CATS.has(p.category)) && (
-          <Link
-            href="/planner"
-            onClick={() => {
-              saveFloorItems(
-                items
-                  .filter((p) => PLACEABLE_CATS.has(p.category))
-                  .map((p) => {
-                    const { w, d } = footprintOf(p.id, p.category);
-                    return { id: p.id, name: p.name, brand: p.brand, category: p.category, qty: 1, w, d };
-                  }),
-              );
-              saveFloorOrigin("/quiz");
-            }}
+          <a
+            href="#floor-dashboard"
             className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-xs font-bold text-white/70 transition-colors hover:border-accent/60 hover:text-accent"
           >
             <Map className="h-3.5 w-3.5" /> Visualize it in your space
-          </Link>
+          </a>
         )}
       </div>
 

@@ -9,8 +9,19 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Crop as CropIcon, Eye, EyeOff, ImagePlus, Loader2, RotateCw, ScanLine, Sparkles, Trash2, X } from "lucide-react";
-import { autoPlace, detectWalls, emptyGrid, wallsDataUrl } from "@/lib/auto-layout";
+import dynamic from "next/dynamic";
+import { ArrowLeft, Box, Crop as CropIcon, Eye, EyeOff, ImagePlus, Loader2, Map as MapIcon, RotateCw, ScanLine, Sparkles, Trash2, X } from "lucide-react";
+import { autoPlace, detectWalls, emptyGrid, wallsDataUrl, type WallGrid } from "@/lib/auto-layout";
+
+/* three.js only loads when the user opens the 3D view. */
+const Planner3D = dynamic(() => import("@/components/planner/Planner3D"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[420px] w-full items-center justify-center rounded-2xl border border-line bg-navy sm:h-[520px]">
+      <Loader2 className="h-8 w-8 animate-spin text-accent" />
+    </div>
+  ),
+});
 import {
   type Crop,
   type FloorItem,
@@ -65,6 +76,8 @@ export default function FloorPlanner({
   const [arrangeNote, setArrangeNote] = useState("");
   const [wallsUrl, setWallsUrl] = useState<string | null>(null);
   const [showWalls, setShowWalls] = useState(true);
+  const [wallGrid, setWallGrid] = useState<WallGrid | null>(null);
+  const [view3d, setView3d] = useState(false);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{ uid: string; dx: number; dy: number } | null>(null);
   /* The save effect must not run with the first render's empty state — it
@@ -218,6 +231,7 @@ export default function FloorPlanner({
     setCrop(FULL_CROP);
     setCropping(false);
     setWallsUrl(null);
+    setWallGrid(null);
     setArrangeNote("");
   }
   const onUpload = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -258,6 +272,7 @@ export default function FloorPlanner({
         ? await detectWalls(url, c, wIn, dIn).catch(() => emptyGrid(wIn, dIn))
         : emptyGrid(wIn, dIn);
       setWallsUrl(wallsDataUrl(grid));
+      setWallGrid(grid);
       const res = autoPlace(items, wIn, dIn, grid);
       setPlaced(res.placed);
       const fitted = res.total - res.unplacedCount;
@@ -388,6 +403,19 @@ export default function FloorPlanner({
               <ScanLine className="h-3.5 w-3.5" /> Detected walls
             </button>
           ) : null}
+          <button
+            onClick={() => setView3d(!view3d)}
+            disabled={view3d ? false : placed.length === 0}
+            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              view3d
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-line text-ink-2 hover:border-accent/60 hover:text-ink"
+            }`}
+            title={placed.length === 0 && !view3d ? "Place something first" : undefined}
+          >
+            {view3d ? <MapIcon className="h-3.5 w-3.5" /> : <Box className="h-3.5 w-3.5" />}
+            {view3d ? "2D plan" : "3D view"}
+          </button>
         </div>
 
         {dropError ? (
@@ -432,6 +460,13 @@ export default function FloorPlanner({
                 />
               </div>
             ) : null}
+            {/* Sims-style 3D view — swaps in for the 2D map. The map stays
+                mounted (hidden) so its resize observer and drop/paste
+                handlers survive the round trip. */}
+            {view3d ? (
+              <Planner3D placed={placed} roomW={roomW} roomD={roomD} grid={wallGrid} />
+            ) : null}
+
             {/* The map */}
             <div
               ref={boxRef}
@@ -442,7 +477,7 @@ export default function FloorPlanner({
               onDrop={onDrop}
               className={`relative w-full touch-none overflow-hidden rounded-2xl border bg-card transition-colors ${
                 dropActive ? "border-accent" : "border-line"
-              }`}
+              } ${view3d ? "hidden" : ""}`}
               style={{
                 height: mapH || 400,
                 backgroundImage: imgUrl
