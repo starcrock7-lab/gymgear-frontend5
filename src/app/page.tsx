@@ -108,8 +108,8 @@ const steps: FlowStep[] = [
   {
     n: "01",
     icon: <ClipboardList className="h-4.5 w-4.5" />,
-    title: "Answer 5 questions",
-    body: "Your goal, budget, space, setup size, and what you already own. Takes under a minute.",
+    title: "Answer 7 questions",
+    body: "Your goal, experience, budget, space, ceiling, setup size, and what you already own. Takes under a minute.",
     details: [
       "Goal — build strength, lose weight, get fit, or full home gym",
       "Budget — from under $300 to $2,000+",
@@ -220,7 +220,7 @@ export default function Home() {
             variants={fadeUp}
             className="mt-6 max-w-xl text-lg leading-relaxed text-white/70"
           >
-            Answer 5 quick questions. Our AI builds you three complete
+            Answer 7 quick questions. Our AI builds you three complete
             equipment kits — optimized for value, fit, and quality — from real
             products with real prices.
           </motion.p>

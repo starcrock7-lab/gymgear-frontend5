@@ -24,6 +24,7 @@ export type WallGrid = {
   cell: number; // inches per grid cell
   blocked: Uint8Array; // 1 = wall / outside the room, 0 = usable floor
   detected: boolean; // true when walls came from an image (vs borders only)
+  rooms: number; // distinct rooms found (1 when undivided / borders-only)
 };
 
 export type AutoResult = {
@@ -45,7 +46,7 @@ export function emptyGrid(roomWIn: number, roomDIn: number): WallGrid {
   const cell = cellSizeFor(roomWIn, roomDIn);
   const cols = Math.max(4, Math.floor(roomWIn / cell));
   const rows = Math.max(4, Math.floor(roomDIn / cell));
-  return { cols, rows, cell, blocked: new Uint8Array(cols * rows), detected: false };
+  return { cols, rows, cell, blocked: new Uint8Array(cols * rows), detected: false, rooms: 1 };
 }
 
 /* Otsu's method: threshold that best splits a luminance histogram. */
@@ -196,9 +197,126 @@ export async function detectWalls(
   // If the "room" we found is a sliver, the drawing was too dense to trust.
   if (open < n * 0.2) return grid;
 
+  /* The flood fill leaks through door openings, so a bathroom or office
+     connected by a door would count as usable floor. Read the rooms
+     geometrically and keep equipment on the main training floor only. */
+  const { mask, rooms } = mainRoom(interior, cols, rows, grid.cell);
+
   const out = new Uint8Array(n);
-  for (let i = 0; i < n; i++) out[i] = interior[i] ? 0 : 1;
-  return { ...grid, blocked: out, detected: true };
+  for (let i = 0; i < n; i++) out[i] = mask[i] ? 0 : 1;
+  return { ...grid, blocked: out, detected: true, rooms };
+}
+
+/* Split the open space into rooms and keep the biggest one. Eroding the
+   open space by ~27" severs the connection through any standard door
+   opening (≤ ~4.5 ft wide), leaving one core blob per room; the largest
+   core is the training floor. It is regrown by the same depth (plus corner
+   slack) without crossing into other rooms' cores, so side rooms — and
+   small coreless spaces like toilets and closets — stay off-limits. */
+function mainRoom(
+  interior: Uint8Array,
+  cols: number,
+  rows: number,
+  cell: number,
+): { mask: Uint8Array; rooms: number } {
+  const n = cols * rows;
+  const T = Math.max(2, Math.round(27 / cell));
+  const queue = new Int32Array(n);
+  let head = 0,
+    tail = 0;
+
+  /* BFS steps from the nearest non-open cell (walls & outside). */
+  const dist = new Int32Array(n).fill(-1);
+  for (let i = 0; i < n; i++)
+    if (!interior[i]) {
+      dist[i] = 0;
+      queue[tail++] = i;
+    }
+  const step = (j: number, d: number) => {
+    if (dist[j] === -1 && interior[j]) {
+      dist[j] = d;
+      queue[tail++] = j;
+    }
+  };
+  while (head < tail) {
+    const i = queue[head++];
+    const d = dist[i] + 1;
+    const x = i % cols,
+      y = (i / cols) | 0;
+    if (x > 0) step(i - 1, d);
+    if (x < cols - 1) step(i + 1, d);
+    if (y > 0) step(i - cols, d);
+    if (y < rows - 1) step(i + cols, d);
+  }
+
+  /* Label the eroded cores (cells deeper than T from any wall). */
+  const label = new Int32Array(n);
+  let rooms = 0,
+    bestLabel = 0,
+    bestSize = 0;
+  for (let s = 0; s < n; s++) {
+    if (dist[s] <= T || label[s] !== 0) continue;
+    rooms++;
+    let size = 0;
+    head = 0;
+    tail = 0;
+    queue[tail++] = s;
+    label[s] = rooms;
+    while (head < tail) {
+      const i = queue[head++];
+      size++;
+      const x = i % cols,
+        y = (i / cols) | 0;
+      const grow = (j: number) => {
+        if (label[j] === 0 && dist[j] > T) {
+          label[j] = rooms;
+          queue[tail++] = j;
+        }
+      };
+      if (x > 0) grow(i - 1);
+      if (x < cols - 1) grow(i + 1);
+      if (y > 0) grow(i - cols);
+      if (y < rows - 1) grow(i + cols);
+    }
+    if (size > bestSize) {
+      bestSize = size;
+      bestLabel = rooms;
+    }
+  }
+
+  /* No core at all (tiny or odd drawing): keep the whole open region. */
+  if (rooms === 0) return { mask: Uint8Array.from(interior), rooms: 1 };
+
+  /* Regrow the winning core by T+2 steps, never crossing another room. */
+  const mask = new Uint8Array(n);
+  const depth = new Int32Array(n).fill(-1);
+  head = 0;
+  tail = 0;
+  for (let i = 0; i < n; i++)
+    if (label[i] === bestLabel) {
+      mask[i] = 1;
+      depth[i] = 0;
+      queue[tail++] = i;
+    }
+  while (head < tail) {
+    const i = queue[head++];
+    const d = depth[i] + 1;
+    if (d > T + 2) continue;
+    const x = i % cols,
+      y = (i / cols) | 0;
+    const grow = (j: number) => {
+      if (depth[j] === -1 && interior[j] && label[j] === 0) {
+        depth[j] = d;
+        mask[j] = 1;
+        queue[tail++] = j;
+      }
+    };
+    if (x > 0) grow(i - 1);
+    if (x < cols - 1) grow(i + 1);
+    if (y > 0) grow(i - cols);
+    if (y < rows - 1) grow(i + cols);
+  }
+  return { mask, rooms };
 }
 
 /* Tiny data-URL image of the blocked mask, for the "detected walls" overlay. */

@@ -1,6 +1,6 @@
 "use client";
 
-/* Commercial gym planner ("For Gyms" tab). Six questions → POST /api/gym-plan
+/* Commercial gym planner ("For Gyms" tab). Short questionnaire → POST /api/gym-plan
    (local proxy → backend) → zone-by-zone equipment plan with quantities,
    totals, contingency, and a written build plan. The backend owns every
    product/quantity/price deterministically; the prose is Groq with a
@@ -490,6 +490,34 @@ export default function GymPlanner() {
           <Stat label="Floor / peak" value={`${plan.areaSqFt.toLocaleString()} sq ft · ${plan.peakCapacity}`} />
         </div>
 
+        {/* Floor-plan dashboard — front and centre with the plan, so it
+            can't be missed and never disappears behind a page switch.
+            Full-screen planner one click away for more space. */}
+        <div id="floor-dashboard" className="mt-8 scroll-mt-6">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-accent">
+                Floor plan dashboard
+              </p>
+              <h2 className="mt-1 font-display text-2xl font-extrabold text-ink">
+                See it on your floor
+              </h2>
+            </div>
+            <Link
+              href="/planner"
+              className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-bold text-ink-2 transition-colors hover:border-accent/60 hover:text-accent"
+            >
+              Full-screen planner <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <FloorPlanner
+            embedded
+            itemsProp={floorItems}
+            defaultRoomW={roomDefaults.w}
+            defaultRoomD={roomDefaults.d}
+          />
+        </div>
+
         {/* Written plan */}
         <div className="mt-8 rounded-2xl border border-accent/40 bg-card p-6 shadow-[0_0_24px_rgba(240,83,30,0.12)]">
           <div className="flex items-center gap-2">
@@ -573,34 +601,6 @@ export default function GymPlanner() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Floor-plan dashboard — lives WITH the plan, so it no longer
-            disappears behind a page switch. Full-screen planner one click
-            away for more space. */}
-        <div id="floor-dashboard" className="mt-10 scroll-mt-6">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-accent">
-                Floor plan dashboard
-              </p>
-              <h2 className="mt-1 font-display text-2xl font-extrabold text-ink">
-                See it on your floor
-              </h2>
-            </div>
-            <Link
-              href="/planner"
-              className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-bold text-ink-2 transition-colors hover:border-accent/60 hover:text-accent"
-            >
-              Full-screen planner <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <FloorPlanner
-            embedded
-            itemsProp={floorItems}
-            defaultRoomW={roomDefaults.w}
-            defaultRoomD={roomDefaults.d}
-          />
         </div>
 
         <p className="mt-6 text-xs text-ink-3">

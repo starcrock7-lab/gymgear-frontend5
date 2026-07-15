@@ -265,7 +265,11 @@ export default function FloorPlanner({
         res.total === 0
           ? "Nothing to place yet — build a kit or gym plan first."
           : `Auto-placed ${fitted} of ${res.total} piece${res.total === 1 ? "" : "s"}` +
-              (grid.detected ? " · walls read from your plan" : "") +
+              (grid.detected
+                ? grid.rooms > 1
+                  ? ` · read ${grid.rooms} rooms — gear kept to the main floor`
+                  : " · walls read from your plan"
+                : "") +
               (res.unplacedCount > 0
                 ? ` — ${res.unplacedCount} didn't fit. Try a bigger room, or drag pieces closer.`
                 : ". Drag anything to fine-tune."),
@@ -412,6 +416,22 @@ export default function FloorPlanner({
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_290px]">
           <div>
+            {/* Layout dashboard — the numbers that matter, at a glance */}
+            {items.length > 0 ? (
+              <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <MiniStat
+                  label="Placed"
+                  value={`${placed.length} / ${items.reduce((s, i) => s + i.qty, 0)}`}
+                />
+                <MiniStat label="Room" value={`${roomW} × ${roomD} ft`} />
+                <MiniStat label="Gear footprint" value={`${footprintSqFt} sq ft`} />
+                <MiniStat
+                  label="Floor used"
+                  value={`${Math.round(density * 100)}%`}
+                  warn={density > 0.35}
+                />
+              </div>
+            ) : null}
             {/* The map */}
             <div
               ref={boxRef}
@@ -538,12 +558,10 @@ export default function FloorPlanner({
               })}
             </div>
             <p className="mt-2 text-xs text-ink-3">
-              {roomW} × {roomD} ft ({(roomW * roomD).toLocaleString()} sq ft) ·
-              equipment footprint ~{footprintSqFt} sq ft ({Math.round(density * 100)}% of floor)
+              Footprints are published specs, rounded — measure before you drill.
               {density > 0.35 ? (
-                <span className="font-bold text-accent"> — that&apos;s dense; aim under 35% so the room can breathe.</span>
+                <span className="font-bold text-accent"> That&apos;s dense — aim under 35% floor used so the room can breathe.</span>
               ) : null}
-              {" "}Footprints are published specs, rounded — measure before you drill.
             </p>
 
             {/* Palette */}
@@ -592,5 +610,16 @@ export default function FloorPlanner({
         </div>
       </div>
     </Root>
+  );
+}
+
+function MiniStat({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+  return (
+    <div className="rounded-xl border border-line bg-card px-3 py-2">
+      <p className="text-[0.6rem] font-bold uppercase tracking-wider text-ink-3">{label}</p>
+      <p className={`mt-0.5 font-display text-sm font-extrabold ${warn ? "text-accent" : "text-ink"}`}>
+        {value}
+      </p>
+    </div>
   );
 }
