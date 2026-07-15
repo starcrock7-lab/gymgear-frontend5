@@ -10,7 +10,7 @@
    until the user opens the 3D view. */
 
 import * as THREE from "three";
-import type { EquipmentType } from "@/components/planner/equipment-icon";
+import { FAMILY_COLORS, type EquipmentType } from "@/components/planner/equipment-icon";
 
 /* Real height per equipment type (inches, published specs, rounded). */
 export const TYPE_HEIGHT: Record<string, number> = {
@@ -82,15 +82,11 @@ export function heightOf(id: string, type: EquipmentType): number {
   return HEIGHT_OVERRIDES[id] ?? TYPE_HEIGHT[type] ?? TYPE_HEIGHT.box;
 }
 
-/* One accent colour per category family — shape distinguishes the type,
-   colour distinguishes the family at a glance. */
-export const FAMILY_COLOR: Record<string, number> = {
-  racks: 0xe8542a, // brand orange
-  machines: 0xa78bfa, // violet
-  cardio: 0x38bdf8, // sky
-  benches: 0xf43f5e, // rose
-  dumbbells: 0x2fbf62, // green
-};
+/* Shape distinguishes the equipment type; family colour distinguishes the
+   category at a glance. Same hues as the 2D map + palette (FAMILY_COLORS in
+   equipment-icon), so a category reads identically across both views. */
+const familyHex = (category: string) =>
+  parseInt((FAMILY_COLORS[category] ?? "#8a93a8").slice(1), 16);
 const FRAME = 0x252b3a; // dark graphite steel — pops on the light floor
 const PAD = 0x2a3247; // upholstery
 const STACK = 0x14181f; // weight stacks / belts / plates
@@ -98,7 +94,7 @@ const STACK = 0x14181f; // weight stacks / belts / plates
 type Mats = { frame: THREE.Material; accent: THREE.Material; pad: THREE.Material; dark: THREE.Material };
 
 function makeMats(category: string): Mats {
-  const accent = FAMILY_COLOR[category] ?? 0x8a93a8;
+  const accent = familyHex(category);
   return {
     frame: new THREE.MeshStandardMaterial({ color: FRAME, roughness: 0.5, metalness: 0.45 }),
     accent: new THREE.MeshStandardMaterial({ color: accent, roughness: 0.4, metalness: 0.25 }),

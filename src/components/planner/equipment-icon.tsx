@@ -5,7 +5,21 @@
    so a power rack, squat stand and wall-fold rack all read differently, and
    five spin bikes deliberately share one honest spin-bike glyph. */
 
-type Props = { id: string; category: string; className?: string };
+type Props = { id: string; category: string; className?: string; style?: React.CSSProperties };
+
+/* One family colour per category — the single source of truth shared by the
+   2D map tiles, the palette icons and the 3D models, so a category reads as
+   the same hue everywhere. Orange (the GymGear accent) stays on racks, the
+   hero category; every un-mapped category also falls back to the brand
+   orange. Keep these in step with the CSS tokens in globals.css. */
+export const FAMILY_COLORS: Record<string, string> = {
+  racks: "#f0531e", // brand accent
+  machines: "#a78bfa", // violet
+  cardio: "#38bdf8", // sky
+  benches: "#f43f5e", // rose
+  dumbbells: "#2fbf62", // win green
+};
+export const familyColor = (category: string) => FAMILY_COLORS[category] ?? "#f0531e";
 
 const svg = (children: React.ReactNode) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}
@@ -296,7 +310,7 @@ export function equipmentTypeOf(id: string, category: string): EquipmentType {
   return TYPE_OF[id] ?? CATEGORY_TYPE[category] ?? "box";
 }
 
-export function EquipmentIcon({ id, category, className }: Props) {
+export function EquipmentIcon({ id, category, className, style }: Props) {
   const type = equipmentTypeOf(id, category);
-  return <span className={className}>{ICONS[type]}</span>;
+  return <span className={className} style={style}>{ICONS[type]}</span>;
 }

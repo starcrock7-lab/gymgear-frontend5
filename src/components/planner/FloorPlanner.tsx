@@ -38,7 +38,7 @@ import {
   loadFloorOrigin,
 } from "@/lib/floor-plan";
 import CropTool from "@/components/planner/CropTool";
-import { EquipmentIcon } from "@/components/planner/equipment-icon";
+import { EquipmentIcon, familyColor } from "@/components/planner/equipment-icon";
 
 const uidOf = () => Math.random().toString(36).slice(2, 9);
 
@@ -527,6 +527,7 @@ export default function FloorPlanner({
                 const c = clearanceOf(p.category) * scale;
                 const bad = colliding.has(p.uid);
                 const small = Math.min(w, h) < 46;
+                const fc = familyColor(p.category); // same hue as the 3D model
                 return (
                   <div
                     key={p.uid}
@@ -552,15 +553,18 @@ export default function FloorPlanner({
                     <div
                       title={p.name}
                       className={`relative flex h-full w-full flex-col items-center justify-center gap-0.5 overflow-hidden rounded-md border px-1 text-center ${
-                        bad
-                          ? "border-red-500 bg-red-500/30"
-                          : "border-accent/70 bg-navy/85 shadow-[0_0_10px_rgba(240,83,30,0.35)]"
+                        bad ? "border-red-500 bg-red-500/30" : "bg-navy/85"
                       }`}
+                      style={
+                        bad
+                          ? { color: "#fca5a5" }
+                          : { borderColor: `${fc}c0`, boxShadow: `0 0 10px ${fc}59`, color: fc }
+                      }
                     >
                       <EquipmentIcon
                         id={p.id}
                         category={p.category}
-                        className="block h-4 w-4 shrink-0 text-accent [&>svg]:h-full [&>svg]:w-full"
+                        className="block h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
                       />
                       {!small ? (
                         <span className="text-[0.55rem] font-bold leading-tight text-white">
@@ -618,7 +622,8 @@ export default function FloorPlanner({
                     <EquipmentIcon
                       id={i.id}
                       category={i.category}
-                      className="block h-4 w-4 shrink-0 text-accent [&>svg]:h-full [&>svg]:w-full"
+                      className="block h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+                      style={{ color: familyColor(i.category) }}
                     />
                     {i.name} <span className="text-ink-3">({Math.max(0, i.left)} of {i.qty} left · {Math.round(i.w / 12 * 10) / 10}×{Math.round(i.d / 12 * 10) / 10} ft)</span>
                   </button>

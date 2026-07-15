@@ -207,12 +207,14 @@ export async function detectWalls(
   return { ...grid, blocked: out, detected: true, rooms };
 }
 
-/* Split the open space into rooms and keep the biggest one. Eroding the
-   open space by ~27" severs the connection through any standard door
-   opening (≤ ~4.5 ft wide), leaving one core blob per room; the largest
-   core is the training floor. It is regrown by the same depth (plus corner
-   slack) without crossing into other rooms' cores, so side rooms — and
-   small coreless spaces like toilets and closets — stay off-limits. */
+/* Split the open space into rooms and keep the biggest one — in full.
+   Eroding the open space by ~27" severs the link through any standard door
+   opening (≤ ~4.5 ft wide), leaving one core blob per room; the largest core
+   is the training floor. Every open cell is then handed to its NEAREST core,
+   so the main floor comes back whole — L-shapes, wrap-around corridors and
+   thin arms included — while side rooms (office, store, toilet) keep their
+   own core and stay off-limits. A doorway simply splits at the midline
+   between the two rooms it joins. */
 function mainRoom(
   interior: Uint8Array,
   cols: number,
@@ -287,35 +289,38 @@ function mainRoom(
   /* No core at all (tiny or odd drawing): keep the whole open region. */
   if (rooms === 0) return { mask: Uint8Array.from(interior), rooms: 1 };
 
-  /* Regrow the winning core by T+2 steps, never crossing another room. */
-  const mask = new Uint8Array(n);
-  const depth = new Int32Array(n).fill(-1);
+  /* Hand every open cell to its nearest core (multi-source BFS from all
+     cores at once). This recovers each room in full instead of a fixed band
+     around its core, so the training floor is never truncated at a corridor
+     or an L-bend; coreless nooks (a toilet, a closet) fall to whichever
+     room's core reaches them first — through their own door. */
+  const owner = new Int32Array(n);
   head = 0;
   tail = 0;
   for (let i = 0; i < n; i++)
-    if (label[i] === bestLabel) {
-      mask[i] = 1;
-      depth[i] = 0;
+    if (label[i] !== 0) {
+      owner[i] = label[i];
       queue[tail++] = i;
     }
+  const claim = (j: number, o: number) => {
+    if (owner[j] === 0 && interior[j]) {
+      owner[j] = o;
+      queue[tail++] = j;
+    }
+  };
   while (head < tail) {
     const i = queue[head++];
-    const d = depth[i] + 1;
-    if (d > T + 2) continue;
+    const o = owner[i];
     const x = i % cols,
       y = (i / cols) | 0;
-    const grow = (j: number) => {
-      if (depth[j] === -1 && interior[j] && label[j] === 0) {
-        depth[j] = d;
-        mask[j] = 1;
-        queue[tail++] = j;
-      }
-    };
-    if (x > 0) grow(i - 1);
-    if (x < cols - 1) grow(i + 1);
-    if (y > 0) grow(i - cols);
-    if (y < rows - 1) grow(i + cols);
+    if (x > 0) claim(i - 1, o);
+    if (x < cols - 1) claim(i + 1, o);
+    if (y > 0) claim(i - cols, o);
+    if (y < rows - 1) claim(i + cols, o);
   }
+
+  const mask = new Uint8Array(n);
+  for (let i = 0; i < n; i++) if (owner[i] === bestLabel) mask[i] = 1;
   return { mask, rooms };
 }
 

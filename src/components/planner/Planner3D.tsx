@@ -228,6 +228,9 @@ export default function Planner3D({
           {hover}
         </div>
       ) : null}
+      <span className="pointer-events-none absolute bottom-2.5 left-3.5 z-10 select-none font-display text-sm font-extrabold tracking-tight text-[#0d1b35]/75">
+        Gym<span className="text-accent">Gear</span>
+      </span>
       <p className="pointer-events-none absolute bottom-2 right-3 z-10 text-[0.6rem] font-bold uppercase tracking-wider text-[#3b4763]/70">
         Drag to orbit · scroll to zoom · hover a piece
       </p>
