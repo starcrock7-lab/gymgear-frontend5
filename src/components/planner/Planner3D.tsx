@@ -38,14 +38,17 @@ export default function Planner3D({
     const rwIn = roomW * 12;
     const rdIn = roomD * 12;
 
+    /* Light showroom scene — dark graphite equipment + family accents pop
+       against it (the old dark-on-dark navy scene swallowed the models). */
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a1226);
-    scene.fog = new THREE.Fog(0x0a1226, Math.max(rwIn, rdIn) * 2, Math.max(rwIn, rdIn) * 6);
+    scene.background = new THREE.Color(0xe9edf3);
+    scene.fog = new THREE.Fog(0xe9edf3, Math.max(rwIn, rdIn) * 2, Math.max(rwIn, rdIn) * 6);
 
     const camera = new THREE.PerspectiveCamera(50, 1, 10, Math.max(rwIn, rdIn) * 10);
     camera.position.set(rwIn * 0.55, Math.max(rwIn, rdIn) * 0.75, rdIn * 1.15);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -60,8 +63,8 @@ export default function Planner3D({
     controls.maxDistance = Math.max(rwIn, rdIn) * 3;
 
     /* Lights */
-    scene.add(new THREE.HemisphereLight(0xbdd4ff, 0x0a1226, 0.75));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xb9c2d1, 1.05));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.6);
     sun.position.set(rwIn * 0.6, Math.max(rwIn, rdIn), rdIn * 0.4);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -73,35 +76,34 @@ export default function Planner3D({
     sun.shadow.camera.far = Math.max(rwIn, rdIn) * 4;
     scene.add(sun);
 
-    /* Ground + room floor + 1ft grid */
+    /* Ground + room floor (clean, no grid — the shadows carry the depth) */
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(rwIn * 6, rdIn * 6),
-      new THREE.MeshStandardMaterial({ color: 0x070d1c, roughness: 1 }),
+      new THREE.MeshStandardMaterial({ color: 0xc6cdd9, roughness: 1 }),
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.5;
     ground.receiveShadow = true;
     scene.add(ground);
+    /* Room floor is the brightest surface — the equipment's stage. */
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(rwIn, rdIn),
-      new THREE.MeshStandardMaterial({ color: 0x141f3d, roughness: 0.95 }),
+      new THREE.MeshStandardMaterial({ color: 0xe4e9f0, roughness: 0.95 }),
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
-    const gridHelper = new THREE.GridHelper(Math.max(rwIn, rdIn), Math.max(roomW, roomD), 0x2a3a63, 0x1d2a4d);
-    gridHelper.position.y = 0.2;
-    scene.add(gridHelper);
 
     /* Walls. Detected grid → instanced boxes on the wall SHELL (blocked
        cells touching open floor), so interior walls show and door gaps
        stay open. No detection → the four room borders. Semi-transparent,
        sims-style, so the inside is always visible. */
     const wallMat = new THREE.MeshStandardMaterial({
-      color: 0x46557d,
+      color: 0xb9c3d4,
       roughness: 0.7,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.28,
+      depthWrite: false, // keep equipment behind glass walls fully visible
     });
     if (grid && grid.detected) {
       const { cols, rows, cell, blocked } = grid;
@@ -226,7 +228,7 @@ export default function Planner3D({
           {hover}
         </div>
       ) : null}
-      <p className="pointer-events-none absolute bottom-2 right-3 z-10 text-[0.6rem] font-bold uppercase tracking-wider text-white/35">
+      <p className="pointer-events-none absolute bottom-2 right-3 z-10 text-[0.6rem] font-bold uppercase tracking-wider text-[#3b4763]/70">
         Drag to orbit · scroll to zoom · hover a piece
       </p>
     </div>

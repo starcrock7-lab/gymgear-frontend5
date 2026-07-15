@@ -91,19 +91,19 @@ export const FAMILY_COLOR: Record<string, number> = {
   benches: 0xf43f5e, // rose
   dumbbells: 0x2fbf62, // green
 };
-const FRAME = 0x2c3550; // dark steel
-const PAD = 0x1c2440; // upholstery
-const STACK = 0x111827; // weight stacks / belts
+const FRAME = 0x252b3a; // dark graphite steel — pops on the light floor
+const PAD = 0x2a3247; // upholstery
+const STACK = 0x14181f; // weight stacks / belts / plates
 
 type Mats = { frame: THREE.Material; accent: THREE.Material; pad: THREE.Material; dark: THREE.Material };
 
 function makeMats(category: string): Mats {
   const accent = FAMILY_COLOR[category] ?? 0x8a93a8;
   return {
-    frame: new THREE.MeshStandardMaterial({ color: FRAME, roughness: 0.6, metalness: 0.35 }),
-    accent: new THREE.MeshStandardMaterial({ color: accent, roughness: 0.55, metalness: 0.2 }),
-    pad: new THREE.MeshStandardMaterial({ color: PAD, roughness: 0.9 }),
-    dark: new THREE.MeshStandardMaterial({ color: STACK, roughness: 0.8 }),
+    frame: new THREE.MeshStandardMaterial({ color: FRAME, roughness: 0.5, metalness: 0.45 }),
+    accent: new THREE.MeshStandardMaterial({ color: accent, roughness: 0.4, metalness: 0.25 }),
+    pad: new THREE.MeshStandardMaterial({ color: PAD, roughness: 0.85 }),
+    dark: new THREE.MeshStandardMaterial({ color: STACK, roughness: 0.7, metalness: 0.3 }),
   };
 }
 
@@ -117,7 +117,7 @@ function boxAt(g: THREE.Group, m: THREE.Material, w: number, h: number, d: numbe
   return mesh;
 }
 function cylAt(g: THREE.Group, m: THREE.Material, r: number, len: number, x: number, y: number, z: number, axis: "x" | "y" | "z" = "y") {
-  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 14), m);
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 18), m);
   if (axis === "x") mesh.rotation.z = Math.PI / 2;
   if (axis === "z") mesh.rotation.x = Math.PI / 2;
   mesh.position.set(x, y, z);
@@ -125,48 +125,66 @@ function cylAt(g: THREE.Group, m: THREE.Material, r: number, len: number, x: num
   g.add(mesh);
   return mesh;
 }
+/* Bumper-plate pair on a bar that runs along x at height y. */
+function platesOn(g: THREE.Group, m: Mats, halfSpan: number, y: number, z: number) {
+  for (const sx of [-1, 1]) {
+    cylAt(g, m.dark, 8.8, 2.6, sx * halfSpan, y, z, "x");
+    cylAt(g, m.dark, 6.5, 2, sx * (halfSpan - 2.6), y, z, "x");
+  }
+}
 
 /* ── Builders ───────────────────────────────────────────────────────── */
 type Builder = (g: THREE.Group, w: number, d: number, h: number, m: Mats) => void;
 
 const BUILDERS: Record<string, Builder> = {
   powerRack(g, w, d, h, m) {
-    const p = 3; // 3x3 posts
+    const p = 4; // chunky posts read better at room scale
     for (const sx of [-1, 1])
       for (const sz of [-1, 1])
         boxAt(g, m.accent, p, h, p, sx * (w / 2 - p / 2), h / 2, sz * (d / 2 - p / 2));
-    for (const sz of [-1, 1]) boxAt(g, m.frame, w - p, p, p, 0, h - p / 2, sz * (d / 2 - p / 2));
+    for (const sz of [-1, 1]) {
+      boxAt(g, m.frame, w - p, p, p, 0, h - p / 2, sz * (d / 2 - p / 2)); // top frame
+      boxAt(g, m.frame, w - p, 2.4, p, 0, 4, sz * (d / 2 - p / 2)); // low crossmembers
+    }
     for (const sx of [-1, 1]) boxAt(g, m.frame, p, p, d - p, sx * (w / 2 - p / 2), h - p / 2, 0);
-    cylAt(g, m.frame, 0.7, w - p * 2, 0, h - 8, -(d / 2 - p / 2), "x"); // pull-up bar
-    cylAt(g, m.dark, 1.1, w, 0, h * 0.55, d / 2 - p / 2 + 1, "x"); // racked bar
+    cylAt(g, m.frame, 1, w - p * 2, 0, h - 8, -(d / 2 - p / 2), "x"); // pull-up bar
+    const barY = h * 0.55;
+    cylAt(g, m.dark, 1.4, w + 14, 0, barY, d / 2 - p / 2 + 1, "x"); // racked bar
+    platesOn(g, m, w / 2 + 4, barY, d / 2 - p / 2 + 1);
   },
   halfRack(g, w, d, h, m) {
-    const p = 3;
+    const p = 4;
     for (const sx of [-1, 1]) {
       boxAt(g, m.accent, p, h, p, sx * (w / 2 - p / 2), h / 2, -(d / 2 - p / 2)); // tall rear
       boxAt(g, m.accent, p, h * 0.55, p, sx * (w / 2 - p / 2), h * 0.275, d / 2 - p / 2); // short front
-      boxAt(g, m.frame, p, 1.5, d, sx * (w / 2 - p / 2), 1, 0); // base rails
+      boxAt(g, m.frame, p, 2, d, sx * (w / 2 - p / 2), 1.2, 0); // base rails
     }
     boxAt(g, m.frame, w - p, p, p, 0, h - p / 2, -(d / 2 - p / 2));
-    cylAt(g, m.dark, 1.1, w, 0, h * 0.52, 0, "x");
+    const barY = h * 0.52;
+    cylAt(g, m.dark, 1.4, w + 14, 0, barY, 0, "x");
+    platesOn(g, m, w / 2 + 4, barY, 0);
   },
   squatStand(g, w, d, h, m) {
-    const p = 2.6;
+    const p = 3.4;
     for (const sx of [-1, 1]) {
       const x = sx * (w / 2 - 6);
       boxAt(g, m.accent, p, h, p, x, h / 2, 0);
-      boxAt(g, m.frame, 12, 1.4, d * 0.8, x, 0.8, 0); // foot
-      boxAt(g, m.frame, 3.4, 2, 4, x, h * 0.72, 2.4); // J-cup
+      boxAt(g, m.frame, 12, 2, d * 0.8, x, 1.1, 0); // foot
+      boxAt(g, m.frame, 4, 2.4, 5, x, h * 0.72, 2.4); // J-cup
     }
-    cylAt(g, m.dark, 1.1, w + 12, 0, h * 0.72, 2.4, "x");
+    const barY = h * 0.72;
+    cylAt(g, m.dark, 1.4, w + 16, 0, barY, 2.4, "x");
+    platesOn(g, m, w / 2 + 5, barY, 2.4);
   },
   wallRack(g, w, d, h, m) {
-    boxAt(g, m.frame, w, h, 2, 0, h / 2, -(d / 2 - 1)); // wall plate
+    boxAt(g, m.frame, w, h, 2.4, 0, h / 2, -(d / 2 - 1.2)); // wall plate
     for (const sx of [-1, 1]) {
-      boxAt(g, m.accent, 2.6, h * 0.9, 2.6, sx * (w / 2 - 4), h * 0.45, d / 2 - 2); // swung-out posts
-      boxAt(g, m.frame, 2, 2, d - 4, sx * (w / 2 - 4), h - 4, 0); // fold arms
+      boxAt(g, m.accent, 3.4, h * 0.9, 3.4, sx * (w / 2 - 4), h * 0.45, d / 2 - 2); // swung-out posts
+      boxAt(g, m.frame, 2.6, 2.6, d - 4, sx * (w / 2 - 4), h - 4, 0); // fold arms
     }
-    cylAt(g, m.dark, 1.1, w, 0, h * 0.6, d / 2 - 2, "x");
+    const barY = h * 0.6;
+    cylAt(g, m.dark, 1.4, w + 12, 0, barY, d / 2 - 2, "x");
+    platesOn(g, m, w / 2 + 3, barY, d / 2 - 2);
   },
   functionalTrainer(g, w, d, h, m) {
     const tw = Math.min(14, w / 4);
@@ -268,18 +286,18 @@ const BUILDERS: Record<string, Builder> = {
   },
   bench(g, w, d, h, m) {
     /* footprint long axis = w */
-    boxAt(g, m.pad, w * 0.9, 3.4, d * 0.62, 0, h - 1.7, 0); // pad
-    for (const sx of [-1, 1]) boxAt(g, m.frame, 3, h - 3.4, 3, sx * (w * 0.34), (h - 3.4) / 2, 0);
-    for (const sx of [-1, 1]) boxAt(g, m.frame, 6, 1.6, d * 0.85, sx * (w * 0.34), 0.9, 0); // feet
+    boxAt(g, m.pad, w * 0.9, 4.6, d * 0.66, 0, h - 2.3, 0); // pad
+    for (const sx of [-1, 1]) boxAt(g, m.frame, 3.6, h - 4.6, 3.6, sx * (w * 0.34), (h - 4.6) / 2, 0);
+    for (const sx of [-1, 1]) boxAt(g, m.frame, 7, 2, d * 0.85, sx * (w * 0.34), 1.1, 0); // feet
   },
   dumbbellRack(g, w, d, h, m) {
-    for (const sx of [-1, 1]) boxAt(g, m.frame, 3, h, d * 0.9, sx * (w / 2 - 2), h / 2, 0); // sides
+    for (const sx of [-1, 1]) boxAt(g, m.frame, 3.6, h, d * 0.9, sx * (w / 2 - 2), h / 2, 0); // sides
     for (const [i, y] of [h * 0.45, h * 0.85].entries()) {
-      boxAt(g, m.frame, w - 6, 2, d * 0.7, 0, y, i === 0 ? d * 0.06 : -d * 0.06); // shelves
+      boxAt(g, m.frame, w - 6, 2.6, d * 0.7, 0, y, i === 0 ? d * 0.06 : -d * 0.06); // shelves
       const n = Math.max(3, Math.floor(w / 14));
       for (let k = 0; k < n; k++) {
         const x = -w / 2 + 6 + (k + 0.5) * ((w - 12) / n);
-        cylAt(g, m.accent, 2.4, 9, x, y + 3.6, i === 0 ? d * 0.06 : -d * 0.06, "z"); // dumbbells
+        cylAt(g, m.accent, 3.1, 11, x, y + 4.4, i === 0 ? d * 0.06 : -d * 0.06, "z"); // dumbbells
       }
     }
   },
