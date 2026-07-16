@@ -10,8 +10,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ArrowLeft, Box, Crop as CropIcon, Eye, EyeOff, ImagePlus, Loader2, Map as MapIcon, RotateCw, ScanLine, Sparkles, Trash2, X } from "lucide-react";
-import { autoPlace, detectWalls, emptyGrid, wallsDataUrl, type WallGrid } from "@/lib/auto-layout";
+import { ArrowLeft, Ban, Box, Crop as CropIcon, Eye, EyeOff, ImagePlus, Loader2, Map as MapIcon, RotateCw, ScanLine, Sparkles, Trash2, X } from "lucide-react";
+import { applyZones, autoPlace, detectWalls, emptyGrid, wallsDataUrl, type WallGrid } from "@/lib/auto-layout";
 
 /* three.js only loads when the user opens the 3D view. */
 const Planner3D = dynamic(() => import("@/components/planner/Planner3D"), {
@@ -26,6 +26,7 @@ import {
   type Crop,
   type FloorItem,
   type PlacedItem,
+  type Zone,
   FULL_CROP,
   cropBackground,
   PLACEABLE_CATS,
@@ -78,6 +79,12 @@ export default function FloorPlanner({
   const [showWalls, setShowWalls] = useState(true);
   const [wallGrid, setWallGrid] = useState<WallGrid | null>(null);
   const [view3d, setView3d] = useState(false);
+  /* User-drawn off-limits areas (inches) + the "mark areas" draw mode. */
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [zoneMode, setZoneMode] = useState(false);
+  const [zoneRect, setZoneRect] = useState<{ x: number; y: number; w: number; d: number } | null>(null);
+  const zoneStart = useRef<{ x: number; y: number } | null>(null);
+  const zoneDraft = useRef<{ x: number; y: number; w: number; d: number } | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{ uid: string; dx: number; dy: number } | null>(null);
   /* The save effect must not run with the first render's empty state — it
@@ -92,6 +99,7 @@ export default function FloorPlanner({
     setLoadedItems(loadFloorItems());
     const saved = loadLayout();
     setPlaced(saved.placed);
+    setZones(saved.zones ?? []);
     if (saved.roomW) setRoomW(saved.roomW);
     if (saved.roomD) setRoomD(saved.roomD);
     setOrigin(loadFloorOrigin());
@@ -108,8 +116,8 @@ export default function FloorPlanner({
       hydrated.current = true;
       return;
     }
-    saveLayout(placed, roomW, roomD);
-  }, [placed, roomW, roomD]);
+    saveLayout(placed, roomW, roomD, zones);
+  }, [placed, roomW, roomD, zones]);
 
   /* Paste a schematic straight from the clipboard (Ctrl/Cmd+V). */
   useEffect(() => {
@@ -158,8 +166,17 @@ export default function FloorPlanner({
           bad.add(placed[j].uid);
         }
       }
+    /* A piece sitting in a user-marked off-limits area is flagged too. */
+    for (const p of placed) {
+      const w = p.rot ? p.d : p.w, d = p.rot ? p.w : p.d;
+      for (const z of zones)
+        if (p.x < z.x + z.w && p.x + w > z.x && p.y < z.y + z.d && p.y + d > z.y) {
+          bad.add(p.uid);
+          break;
+        }
+    }
     return bad;
-  }, [placed]);
+  }, [placed, zones]);
 
   const footprintSqFt = useMemo(
     () => Math.round(placed.reduce((s, p) => s + (p.w * p.d) / 144, 0)),
@@ -183,6 +200,7 @@ export default function FloorPlanner({
   }
 
   function onPointerDown(e: React.PointerEvent, p: PlacedItem) {
+    if (zoneMode) return; // drawing an off-limits area, not dragging pieces
     const box = boxRef.current?.getBoundingClientRect();
     if (!box) return;
     drag.current = {
@@ -192,10 +210,32 @@ export default function FloorPlanner({
     };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }
-  function onPointerMove(e: React.PointerEvent) {
-    const d = drag.current;
+  /* Start drawing an off-limits rectangle on the map background. */
+  function onMapPointerDown(e: React.PointerEvent) {
+    if (!zoneMode) return;
     const box = boxRef.current?.getBoundingClientRect();
-    if (!d || !box) return;
+    if (!box) return;
+    const x = (e.clientX - box.left) / scale;
+    const y = (e.clientY - box.top) / scale;
+    zoneStart.current = { x, y };
+    zoneDraft.current = { x, y, w: 0, d: 0 };
+    setZoneRect({ x, y, w: 0, d: 0 });
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* pointer already released */ }
+  }
+  function onPointerMove(e: React.PointerEvent) {
+    const box = boxRef.current?.getBoundingClientRect();
+    if (!box) return;
+    if (zoneStart.current) {
+      const x = Math.min(Math.max(0, (e.clientX - box.left) / scale), roomWIn);
+      const y = Math.min(Math.max(0, (e.clientY - box.top) / scale), roomDIn);
+      const s = zoneStart.current;
+      const r = { x: Math.min(s.x, x), y: Math.min(s.y, y), w: Math.abs(x - s.x), d: Math.abs(y - s.y) };
+      zoneDraft.current = r;
+      setZoneRect(r);
+      return;
+    }
+    const d = drag.current;
+    if (!d) return;
     setPlaced((prev) =>
       prev.map((p) => {
         if (p.uid !== d.uid) return p;
@@ -209,7 +249,18 @@ export default function FloorPlanner({
       }),
     );
   }
-  const onPointerUp = () => { drag.current = null; };
+  function onPointerUp() {
+    if (zoneStart.current) {
+      const r = zoneDraft.current;
+      if (r && r.w * scale > 10 && r.d * scale > 10)
+        setZones((z) => [...z, { id: uidOf(), ...r }]);
+      zoneStart.current = null;
+      zoneDraft.current = null;
+      setZoneRect(null);
+      return;
+    }
+    drag.current = null;
+  }
 
   /* Load a floor image from any source (file picker or drag-drop). Stays in
      the browser — object URL only, nothing uploaded. */
@@ -268,10 +319,14 @@ export default function FloorPlanner({
     try {
       const wIn = roomW * 12,
         dIn = roomD * 12;
-      const grid = url
+      const detected = url
         ? await detectWalls(url, c, wIn, dIn).catch(() => emptyGrid(wIn, dIn))
         : emptyGrid(wIn, dIn);
-      setWallsUrl(wallsDataUrl(grid));
+      /* Fold the user's off-limits areas into the grid so both the placement
+         and the 3D walls avoid them; the 2D overlay shows detected walls only
+         (the zones have their own on-map rectangles). */
+      const grid = applyZones(detected, zones);
+      setWallsUrl(wallsDataUrl(detected));
       setWallGrid(grid);
       const res = autoPlace(items, wIn, dIn, grid);
       setPlaced(res.placed);
@@ -380,6 +435,25 @@ export default function FloorPlanner({
             Safety halos
           </button>
           <button
+            onClick={() => setZoneMode((v) => !v)}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm transition-colors ${
+              zoneMode
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-line text-ink-2 hover:border-accent/60 hover:text-ink"
+            }`}
+            title="Drag on the map to box off a door, wall, or any area equipment should avoid"
+          >
+            <Ban className="h-3.5 w-3.5" /> {zoneMode ? "Marking off-limits…" : "Mark off-limits"}
+          </button>
+          {zones.length > 0 ? (
+            <button
+              onClick={() => setZones([])}
+              className="flex items-center gap-1.5 text-sm text-ink-3 transition-colors hover:text-ink"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Clear areas ({zones.length})
+            </button>
+          ) : null}
+          <button
             onClick={() => void autoArrange()}
             disabled={arranging || items.length === 0}
             className="flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-sm font-bold text-white shadow-md shadow-accent/20 transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
@@ -423,6 +497,12 @@ export default function FloorPlanner({
         ) : null}
         {arrangeNote ? (
           <p className="mt-3 text-sm font-bold text-accent">{arrangeNote}</p>
+        ) : null}
+        {zoneMode ? (
+          <p className="mt-3 text-sm font-bold text-accent">
+            Drag on the map to box off a door, wall, or any area to keep clear — draw as many as you
+            like, then Auto-arrange and the gear will avoid them.
+          </p>
         ) : null}
 
         {/* Crop step — pick the room out of the image, then set its size below */}
@@ -470,6 +550,7 @@ export default function FloorPlanner({
             {/* The map */}
             <div
               ref={boxRef}
+              onPointerDown={onMapPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onDragOver={onDragOver}
@@ -477,7 +558,7 @@ export default function FloorPlanner({
               onDrop={onDrop}
               className={`relative w-full touch-none overflow-hidden rounded-2xl border bg-card transition-colors ${
                 dropActive ? "border-accent" : "border-line"
-              } ${view3d ? "hidden" : ""}`}
+              } ${zoneMode ? "cursor-crosshair" : ""} ${view3d ? "hidden" : ""}`}
               style={{
                 height: mapH || 400,
                 backgroundImage: imgUrl
@@ -502,6 +583,45 @@ export default function FloorPlanner({
                   alt=""
                   aria-hidden
                   className="pointer-events-none absolute inset-0 h-full w-full opacity-60 [image-rendering:pixelated]"
+                />
+              ) : null}
+
+              {/* User-marked off-limits areas — doors, walls, side rooms. The
+                  fill is pointer-events-none so pieces stay draggable and a new
+                  area can be drawn straight over an existing one; only the
+                  delete handle catches clicks. */}
+              {zones.map((z) => (
+                <div
+                  key={z.id}
+                  className="pointer-events-none absolute rounded-md border-2 border-dashed border-accent/70"
+                  style={{
+                    left: z.x * scale,
+                    top: z.y * scale,
+                    width: z.w * scale,
+                    height: z.d * scale,
+                    backgroundImage:
+                      "repeating-linear-gradient(45deg, rgba(240,83,30,0.20) 0 6px, transparent 6px 13px)",
+                  }}
+                >
+                  <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() => setZones((v) => v.filter((q) => q.id !== z.id))}
+                    className="pointer-events-auto absolute right-0.5 top-0.5 z-10 rounded-full border border-line bg-navy/95 p-0.5 text-white/80 shadow-md transition-colors hover:text-red-400"
+                    aria-label="Remove off-limits area"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {zoneRect ? (
+                <div
+                  className="pointer-events-none absolute rounded-md border-2 border-dashed border-accent bg-accent/15"
+                  style={{
+                    left: zoneRect.x * scale,
+                    top: zoneRect.y * scale,
+                    width: zoneRect.w * scale,
+                    height: zoneRect.d * scale,
+                  }}
                 />
               ) : null}
 
@@ -532,7 +652,9 @@ export default function FloorPlanner({
                   <div
                     key={p.uid}
                     onPointerDown={(ev) => onPointerDown(ev, p)}
-                    className="gg-pop-in group absolute cursor-grab select-none active:cursor-grabbing"
+                    className={`gg-pop-in group absolute select-none ${
+                      zoneMode ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"
+                    }`}
                     style={{
                       left: p.x * scale,
                       top: p.y * scale,

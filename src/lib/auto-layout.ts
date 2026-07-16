@@ -16,7 +16,7 @@
    All coordinates are real-world inches (same convention as floor-plan.ts);
    the grid is only an internal acceleration structure. */
 
-import type { Crop, FloorItem, PlacedItem } from "./floor-plan";
+import type { Crop, FloorItem, PlacedItem, Zone } from "./floor-plan";
 
 export type WallGrid = {
   cols: number;
@@ -322,6 +322,23 @@ function mainRoom(
   const mask = new Uint8Array(n);
   for (let i = 0; i < n; i++) if (owner[i] === bestLabel) mask[i] = 1;
   return { mask, rooms };
+}
+
+/* Mark the user's off-limits rectangles as blocked floor, so autoPlace (and
+   the 3D walls) avoid them just like a detected wall. Returns a new grid; the
+   detected flag and room count carry over. */
+export function applyZones(grid: WallGrid, zones: Zone[]): WallGrid {
+  if (!zones.length) return grid;
+  const { cols, rows, cell } = grid;
+  const blocked = Uint8Array.from(grid.blocked);
+  for (const z of zones) {
+    const x0 = Math.max(0, Math.floor(z.x / cell));
+    const y0 = Math.max(0, Math.floor(z.y / cell));
+    const x1 = Math.min(cols, Math.ceil((z.x + z.w) / cell));
+    const y1 = Math.min(rows, Math.ceil((z.y + z.d) / cell));
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) blocked[y * cols + x] = 1;
+  }
+  return { ...grid, blocked };
 }
 
 /* Tiny data-URL image of the blocked mask, for the "detected walls" overlay. */

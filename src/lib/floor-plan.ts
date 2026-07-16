@@ -26,6 +26,12 @@ export type PlacedItem = {
   rot: boolean; // rotated 90° (w/d swapped at render time)
 };
 
+/* A user-drawn off-limits rectangle (inches from the room's top-left): a
+   door, a wall, a side room, a walkway — any area equipment must avoid.
+   Auto-arrange treats these as blocked floor and a piece dragged into one is
+   flagged, so the user picks exactly which floor is usable. */
+export type Zone = { id: string; x: number; y: number; w: number; d: number };
+
 /* A crop rectangle over the uploaded floor image, as fractions (0–1) of the
    image — so it survives the image being displayed at any size. Lets the user
    pick the one room out of a larger plan and scale just that section. */
@@ -159,13 +165,13 @@ export function loadFloorItems(): FloorItem[] {
   }
 }
 
-export type SavedLayout = { placed: PlacedItem[]; roomW?: number; roomD?: number };
+export type SavedLayout = { placed: PlacedItem[]; roomW?: number; roomD?: number; zones?: Zone[] };
 
-export function saveLayout(placed: PlacedItem[], roomW?: number, roomD?: number): void {
+export function saveLayout(placed: PlacedItem[], roomW?: number, roomD?: number, zones?: Zone[]): void {
   try {
     sessionStorage.setItem(
       LAYOUT_KEY,
-      JSON.stringify({ placed, roomW, roomD, savedAt: Date.now() }),
+      JSON.stringify({ placed, roomW, roomD, zones, savedAt: Date.now() }),
     );
   } catch { /* ignore */ }
 }
@@ -173,15 +179,16 @@ export function saveLayout(placed: PlacedItem[], roomW?: number, roomD?: number)
 export function loadLayout(): SavedLayout {
   try {
     const raw = sessionStorage.getItem(LAYOUT_KEY);
-    if (!raw) return { placed: [] };
-    const parsed = JSON.parse(raw) as { placed?: PlacedItem[]; roomW?: number; roomD?: number };
+    if (!raw) return { placed: [], zones: [] };
+    const parsed = JSON.parse(raw) as { placed?: PlacedItem[]; roomW?: number; roomD?: number; zones?: Zone[] };
     return {
       placed: Array.isArray(parsed.placed) ? parsed.placed : [],
       roomW: typeof parsed.roomW === "number" ? parsed.roomW : undefined,
       roomD: typeof parsed.roomD === "number" ? parsed.roomD : undefined,
+      zones: Array.isArray(parsed.zones) ? parsed.zones : [],
     };
   } catch {
-    return { placed: [] };
+    return { placed: [], zones: [] };
   }
 }
 
