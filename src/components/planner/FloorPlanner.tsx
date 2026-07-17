@@ -32,7 +32,6 @@ import {
   PLACEABLE_CATS,
   footprintOf,
   clearanceOf,
-  LAYOUT_ADVICE,
   loadFloorItems,
   loadLayout,
   saveLayout,
@@ -364,18 +363,14 @@ export default function FloorPlanner({
             >
               <ArrowLeft className="h-4 w-4" /> {backLabel}
             </Link>
-            <p className="mt-4 text-xs font-bold uppercase tracking-widest text-accent">
-              Floor plan visualizer
-            </p>
-            <h1 className="mt-1 font-display text-3xl font-extrabold text-ink">
+            <h1 className="mt-4 font-display text-3xl font-extrabold text-ink">
               Place your equipment
             </h1>
           </>
         ) : null}
         <p className={`${embedded ? "" : "mt-2 "}max-w-2xl text-sm text-ink-2`}>
-          {embedded
-            ? "Drop, paste (Ctrl+V) or upload your floor sketch — the planner reads the walls and lays your gear out automatically, at true scale. Drag any piece to fine-tune; halos turn red when pieces crowd each other."
-            : "Drop, paste (Ctrl+V) or upload a top-down sketch of your space, select just the room you're planning, and set its real size — the planner reads the walls and lays everything out for you with real spacing and formations. Drag any piece to fine-tune; it's all drawn at true scale from published footprints. The dashed halos are the safety clearance each piece needs; they turn red when two pieces crowd each other."}
+          Drop, paste (Ctrl+V) or upload your floor plan, set the room size, and Auto-arrange —
+          everything is true scale. Drag to fine-tune; red means too crowded.
         </p>
 
         {items.length === 0 ? (
@@ -428,6 +423,31 @@ export default function FloorPlanner({
             />
           </label>
           <button
+            onClick={() => void autoArrange()}
+            disabled={arranging || items.length === 0}
+            className="flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-sm font-bold text-white shadow-md shadow-accent/20 transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {arranging ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            Auto-arrange
+          </button>
+          <button
+            onClick={() => setView3d(!view3d)}
+            disabled={view3d ? false : placed.length === 0}
+            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              view3d
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-line text-ink-2 hover:border-accent/60 hover:text-ink"
+            }`}
+            title={placed.length === 0 && !view3d ? "Place something first" : undefined}
+          >
+            {view3d ? <MapIcon className="h-3.5 w-3.5" /> : <Box className="h-3.5 w-3.5" />}
+            {view3d ? "2D plan" : "3D view"}
+          </button>
+          <button
             onClick={() => setHalos(!halos)}
             className="flex items-center gap-1.5 rounded-xl border border-line px-3 py-2 text-sm text-ink-2 transition-colors hover:border-accent/60 hover:text-ink"
           >
@@ -453,18 +473,6 @@ export default function FloorPlanner({
               <Trash2 className="h-3.5 w-3.5" /> Clear areas ({zones.length})
             </button>
           ) : null}
-          <button
-            onClick={() => void autoArrange()}
-            disabled={arranging || items.length === 0}
-            className="flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-sm font-bold text-white shadow-md shadow-accent/20 transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {arranging ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Sparkles className="h-3.5 w-3.5" />
-            )}
-            Auto-arrange
-          </button>
           {wallsUrl ? (
             <button
               onClick={() => setShowWalls(!showWalls)}
@@ -477,19 +485,6 @@ export default function FloorPlanner({
               <ScanLine className="h-3.5 w-3.5" /> Detected walls
             </button>
           ) : null}
-          <button
-            onClick={() => setView3d(!view3d)}
-            disabled={view3d ? false : placed.length === 0}
-            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-              view3d
-                ? "border-accent bg-accent/10 text-accent"
-                : "border-line text-ink-2 hover:border-accent/60 hover:text-ink"
-            }`}
-            title={placed.length === 0 && !view3d ? "Place something first" : undefined}
-          >
-            {view3d ? <MapIcon className="h-3.5 w-3.5" /> : <Box className="h-3.5 w-3.5" />}
-            {view3d ? "2D plan" : "3D view"}
-          </button>
         </div>
 
         {dropError ? (
@@ -500,8 +495,7 @@ export default function FloorPlanner({
         ) : null}
         {zoneMode ? (
           <p className="mt-3 text-sm font-bold text-accent">
-            Drag on the map to box off a door, wall, or any area to keep clear — draw as many as you
-            like, then Auto-arrange and the gear will avoid them.
+            Drag on the map to box off doors or areas to keep clear — Auto-arrange avoids them.
           </p>
         ) : null}
 
@@ -522,8 +516,7 @@ export default function FloorPlanner({
           </div>
         ) : null}
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_290px]">
-          <div>
+        <div className="mt-6">
             {/* Layout dashboard — the numbers that matter, at a glance */}
             {items.length > 0 ? (
               <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -718,17 +711,16 @@ export default function FloorPlanner({
                 );
               })}
             </div>
-            <p className="mt-2 text-xs text-ink-3">
-              Footprints are published specs, rounded — measure before you drill.
-              {density > 0.35 ? (
-                <span className="font-bold text-accent"> That&apos;s dense — aim under 35% floor used so the room can breathe.</span>
-              ) : null}
-            </p>
+            {density > 0.35 ? (
+              <p className="mt-2 text-xs font-bold text-accent">
+                Dense — aim under 35% floor used so the room can breathe.
+              </p>
+            ) : null}
 
             {/* Palette */}
             <div className="mt-5 rounded-2xl border border-line bg-card p-4">
               <h2 className="font-display text-sm font-bold text-ink">Your equipment</h2>
-              <p className="mt-0.5 text-xs text-ink-3">Click a piece to drop it on the map. Drag to move; hover a placed piece to rotate or remove it.</p>
+              <p className="mt-0.5 text-xs text-ink-3">Click to drop on the map · hover a placed piece to rotate or remove.</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {remaining.map((i) => (
                   <button
@@ -755,20 +747,6 @@ export default function FloorPlanner({
                 ) : null}
               </div>
             </div>
-          </div>
-
-          {/* Advice */}
-          <aside className="space-y-3">
-            <h2 className="font-display text-sm font-bold uppercase tracking-wider text-accent">
-              Layout rules that matter
-            </h2>
-            {LAYOUT_ADVICE.map((a) => (
-              <div key={a.title} className="rounded-xl border border-line bg-card p-3.5">
-                <p className="text-xs font-bold text-ink">{a.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-ink-2">{a.body}</p>
-              </div>
-            ))}
-          </aside>
         </div>
       </div>
     </Root>
