@@ -23,14 +23,29 @@ export default function Planner3D({
   roomW,
   roomD,
   grid,
+  selectedUid = null,
+  onSelect,
 }: {
   placed: PlacedItem[];
   roomW: number; // feet
   roomD: number; // feet
   grid: WallGrid | null;
+  /* Click-to-inspect: clicking a piece selects it (glow + camera close-up)
+     and the parent shows the product card; empty space deselects. */
+  selectedUid?: string | null;
+  onSelect?: (uid: string | null) => void;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [hover, setHover] = useState("");
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect;
+  /* Scene handles for the selection effect — set by the build effect. */
+  const sceneApi = useRef<{
+    byUid: Map<string, THREE.Group>;
+    refreshGlow: () => void;
+    flyTo: (g: THREE.Group) => void;
+  } | null>(null);
+  const selRef = useRef<string | null>(selectedUid);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -146,6 +161,7 @@ export default function Planner3D({
 
     /* Equipment — real footprints, real heights, one distinct model per type. */
     const pieces = new THREE.Group();
+    const byUid = new Map<string, THREE.Group>();
     for (const p of placed) {
       const type = equipmentTypeOf(p.id, p.category);
       const h = heightOf(p.id, type);
@@ -154,32 +170,99 @@ export default function Planner3D({
       const rd = p.rot ? p.w : p.d;
       model.rotation.y = p.rot ? -Math.PI / 2 : 0;
       model.position.set(p.x + rw / 2 - rwIn / 2, 0, p.y + rd / 2 - rdIn / 2);
-      model.userData = { label: `${p.name} · ${ft(p.w)} × ${ft(p.d)} ft, ${ft(h)} ft tall` };
+      model.userData = { uid: p.uid, label: `${p.name} · ${ft(p.w)} × ${ft(p.d)} ft, ${ft(h)} ft tall` };
       pieces.add(model);
+      byUid.set(p.uid, model);
     }
     scene.add(pieces);
 
-    /* Hover tooltip via raycast — walk up to the piece root for the label. */
+    /* Glow = emissive lit from the piece's own material colours, so racks
+       glow orange, cardio glows sky, etc. Materials are unique per piece
+       (makeMats per build), so mutating them is safe. */
+    let hovered: THREE.Group | null = null;
+    function glowOf(g: THREE.Group): number {
+      if (g.userData.uid === selRef.current) return 0.85;
+      return g === hovered ? 0.4 : 0;
+    }
+    function setGlow(g: THREE.Group, intensity: number) {
+      g.traverse((o) => {
+        const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+        if (!mat || !mat.emissive) return;
+        if (intensity > 0) {
+          mat.emissive.copy(mat.color);
+          mat.emissiveIntensity = intensity;
+        } else {
+          mat.emissive.setRGB(0, 0, 0);
+          mat.emissiveIntensity = 1;
+        }
+      });
+    }
+    const refreshGlow = () => { for (const g of byUid.values()) setGlow(g, glowOf(g)); };
+
+    /* Camera close-up: glide the orbit target + camera toward the piece.
+       Any manual orbit/zoom cancels the glide. */
+    let flyGoal: { target: THREE.Vector3; pos: THREE.Vector3 } | null = null;
+    function flyTo(g: THREE.Group) {
+      const box = new THREE.Box3().setFromObject(g);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const span = Math.max(size.x, size.y, size.z);
+      const dir = camera.position.clone().sub(center).setY(0);
+      if (dir.lengthSq() < 1) dir.set(1, 0, 1);
+      dir.normalize();
+      const pos = center.clone().addScaledVector(dir, span * 2.1);
+      pos.y = center.y + span * 0.9;
+      flyGoal = { target: center, pos };
+    }
+    controls.addEventListener("start", () => { flyGoal = null; });
+
+    sceneApi.current = { byUid, refreshGlow, flyTo };
+    refreshGlow();
+    if (selRef.current && byUid.has(selRef.current)) flyTo(byUid.get(selRef.current)!);
+
+    /* Raycast helpers — hover (tooltip + glow + cursor) and click (select). */
     const ray = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    let lastLabel = "";
-    function onMove(e: PointerEvent) {
+    function pieceAt(e: PointerEvent): THREE.Group | null {
       const r = renderer.domElement.getBoundingClientRect();
       mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(mouse, camera);
       const hit = ray.intersectObjects(pieces.children, true)[0];
-      let label = "";
-      if (hit) {
-        let o: THREE.Object3D | null = hit.object;
-        while (o && !o.userData.label) o = o.parent;
-        label = (o?.userData.label as string) ?? "";
+      if (!hit) return null;
+      let o: THREE.Object3D | null = hit.object;
+      while (o && !o.userData.uid) o = o.parent;
+      return (o as THREE.Group) ?? null;
+    }
+    let lastLabel = "";
+    function onMove(e: PointerEvent) {
+      const g = pieceAt(e);
+      if (g !== hovered) {
+        hovered = g;
+        refreshGlow();
+        renderer.domElement.style.cursor = g ? "pointer" : "";
       }
+      const label = (g?.userData.label as string) ?? "";
       if (label !== lastLabel) {
         lastLabel = label;
         setHover(label);
       }
     }
+    /* Click vs orbit-drag: only a press that barely moved selects. */
+    let downAt: { x: number; y: number } | null = null;
+    const onDown = (e: PointerEvent) => { downAt = { x: e.clientX, y: e.clientY }; };
+    function onUp(e: PointerEvent) {
+      if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 6) return;
+      const g = pieceAt(e);
+      if (g) {
+        onSelectRef.current?.(g.userData.uid as string);
+        flyTo(g);
+      } else {
+        onSelectRef.current?.(null);
+      }
+    }
     renderer.domElement.addEventListener("pointermove", onMove);
+    renderer.domElement.addEventListener("pointerdown", onDown);
+    renderer.domElement.addEventListener("pointerup", onUp);
 
     /* Size to container, keep in step with it. */
     const resize = () => {
@@ -195,6 +278,11 @@ export default function Planner3D({
 
     let raf = 0;
     const tick = () => {
+      if (flyGoal) {
+        controls.target.lerp(flyGoal.target, 0.08);
+        camera.position.lerp(flyGoal.pos, 0.08);
+        if (camera.position.distanceTo(flyGoal.pos) < 1) flyGoal = null;
+      }
       controls.update();
       renderer.render(scene, camera);
       raf = requestAnimationFrame(tick);
@@ -204,7 +292,10 @@ export default function Planner3D({
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      sceneApi.current = null;
       renderer.domElement.removeEventListener("pointermove", onMove);
+      renderer.domElement.removeEventListener("pointerdown", onDown);
+      renderer.domElement.removeEventListener("pointerup", onUp);
       controls.dispose();
       scene.traverse((o) => {
         const mesh = o as THREE.Mesh;
@@ -217,6 +308,19 @@ export default function Planner3D({
       wrap.removeChild(renderer.domElement);
     };
   }, [placed, roomW, roomD, grid]);
+
+  /* Selection changed (click here or in the 2D view): update glows and glide
+     to the piece — without rebuilding the scene. */
+  useEffect(() => {
+    selRef.current = selectedUid;
+    const api = sceneApi.current;
+    if (!api) return;
+    api.refreshGlow();
+    if (selectedUid) {
+      const g = api.byUid.get(selectedUid);
+      if (g) api.flyTo(g);
+    }
+  }, [selectedUid]);
 
   return (
     <div

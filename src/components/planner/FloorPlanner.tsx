@@ -7,7 +7,7 @@
    clearances) light up red when two pieces crowd each other. Everything is
    client-side: the image never leaves the browser. */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowLeft, Ban, Box, Crop as CropIcon, Eye, EyeOff, ImagePlus, Loader2, Map as MapIcon, RotateCw, ScanLine, Sparkles, Trash2, X } from "lucide-react";
@@ -38,6 +38,7 @@ import {
   loadFloorOrigin,
 } from "@/lib/floor-plan";
 import CropTool from "@/components/planner/CropTool";
+import EquipCard from "@/components/planner/EquipCard";
 import { EquipmentIcon, familyColor } from "@/components/planner/equipment-icon";
 
 const uidOf = () => Math.random().toString(36).slice(2, 9);
@@ -78,6 +79,8 @@ export default function FloorPlanner({
   const [showWalls, setShowWalls] = useState(true);
   const [wallGrid, setWallGrid] = useState<WallGrid | null>(null);
   const [view3d, setView3d] = useState(false);
+  /* Clicked piece — opens the product info card (2D and 3D). */
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
   /* User-drawn off-limits areas (inches) + the "mark areas" draw mode. */
   const [zones, setZones] = useState<Zone[]>([]);
   const [zoneMode, setZoneMode] = useState(false);
@@ -85,7 +88,8 @@ export default function FloorPlanner({
   const zoneStart = useRef<{ x: number; y: number } | null>(null);
   const zoneDraft = useRef<{ x: number; y: number; w: number; d: number } | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const drag = useRef<{ uid: string; dx: number; dy: number } | null>(null);
+  /* sx/sy/moved distinguish a click (open card) from a drag (move piece). */
+  const drag = useRef<{ uid: string; dx: number; dy: number; sx: number; sy: number; moved: boolean } | null>(null);
   /* The save effect must not run with the first render's empty state — it
      would overwrite the real layout in storage before the load effect's
      setState applies (StrictMode's double mount makes that deterministic).
@@ -182,6 +186,7 @@ export default function FloorPlanner({
     [placed],
   );
   const density = roomW * roomD > 0 ? footprintSqFt / (roomW * roomD) : 0;
+  const selectedItem = placed.find((p) => p.uid === selectedUid) ?? null;
 
   function place(item: FloorItem & { left: number }) {
     if (item.left <= 0) return;
@@ -206,12 +211,19 @@ export default function FloorPlanner({
       uid: p.uid,
       dx: (e.clientX - box.left) / scale - p.x,
       dy: (e.clientY - box.top) / scale - p.y,
+      sx: e.clientX,
+      sy: e.clientY,
+      moved: false,
     };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }
   /* Start drawing an off-limits rectangle on the map background. */
   function onMapPointerDown(e: React.PointerEvent) {
-    if (!zoneMode) return;
+    if (!zoneMode) {
+      /* Background press (not on a piece) closes the product card. */
+      if (!(e.target as HTMLElement).closest?.(".gg-pop-in")) setSelectedUid(null);
+      return;
+    }
     const box = boxRef.current?.getBoundingClientRect();
     if (!box) return;
     const x = (e.clientX - box.left) / scale;
@@ -235,6 +247,8 @@ export default function FloorPlanner({
     }
     const d = drag.current;
     if (!d) return;
+    if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 6) return;
+    d.moved = true;
     setPlaced((prev) =>
       prev.map((p) => {
         if (p.uid !== d.uid) return p;
@@ -258,6 +272,8 @@ export default function FloorPlanner({
       setZoneRect(null);
       return;
     }
+    /* A press that never moved is a click — open the product card. */
+    if (drag.current && !drag.current.moved) setSelectedUid(drag.current.uid);
     drag.current = null;
   }
 
@@ -535,9 +551,18 @@ export default function FloorPlanner({
             ) : null}
             {/* Sims-style 3D view — swaps in for the 2D map. The map stays
                 mounted (hidden) so its resize observer and drop/paste
-                handlers survive the round trip. */}
+                handlers survive the round trip. One relative wrapper holds
+                both views so the product card overlays whichever is active. */}
+            <div className="relative">
             {view3d ? (
-              <Planner3D placed={placed} roomW={roomW} roomD={roomD} grid={wallGrid} />
+              <Planner3D
+                placed={placed}
+                roomW={roomW}
+                roomD={roomD}
+                grid={wallGrid}
+                selectedUid={selectedUid}
+                onSelect={setSelectedUid}
+              />
             ) : null}
 
             {/* The map */}
@@ -641,6 +666,7 @@ export default function FloorPlanner({
                 const bad = colliding.has(p.uid);
                 const small = Math.min(w, h) < 46;
                 const fc = familyColor(p.category); // same hue as the 3D model
+                const isSel = selectedUid === p.uid;
                 return (
                   <div
                     key={p.uid}
@@ -667,13 +693,21 @@ export default function FloorPlanner({
                     ) : null}
                     <div
                       title={p.name}
-                      className={`relative flex h-full w-full flex-col items-center justify-center gap-0.5 overflow-hidden rounded-md border px-1 text-center ${
+                      className={`relative flex h-full w-full flex-col items-center justify-center gap-0.5 overflow-hidden rounded-md border px-1 text-center transition-shadow duration-150 ${
                         bad ? "border-red-500 bg-red-500/30" : "bg-navy/85"
-                      }`}
+                      } ${!bad ? "group-hover:shadow-[0_0_18px_var(--fc),0_0_36px_var(--fc-soft)]" : ""}`}
                       style={
                         bad
                           ? { color: "#fca5a5" }
-                          : { borderColor: `${fc}c0`, boxShadow: `0 0 10px ${fc}59`, color: fc }
+                          : ({
+                              "--fc": `${fc}cc`,
+                              "--fc-soft": `${fc}55`,
+                              borderColor: isSel ? fc : `${fc}c0`,
+                              boxShadow: isSel
+                                ? `0 0 20px ${fc}dd, 0 0 44px ${fc}66`
+                                : `0 0 10px ${fc}59`,
+                              color: fc,
+                            } as CSSProperties)
                       }
                     >
                       <EquipmentIcon
@@ -710,6 +744,12 @@ export default function FloorPlanner({
                   </div>
                 );
               })}
+            </div>
+
+            {/* Product info card — overlays the active view (2D or 3D) */}
+            {selectedItem ? (
+              <EquipCard item={selectedItem} onClose={() => setSelectedUid(null)} />
+            ) : null}
             </div>
             {density > 0.35 ? (
               <p className="mt-2 text-xs font-bold text-accent">
