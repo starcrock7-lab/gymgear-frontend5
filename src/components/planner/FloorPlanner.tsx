@@ -562,6 +562,11 @@ export default function FloorPlanner({
                 grid={wallGrid}
                 selectedUid={selectedUid}
                 onSelect={setSelectedUid}
+                cardSlot={
+                  selectedItem ? (
+                    <EquipCard item={selectedItem} onClose={() => setSelectedUid(null)} floating />
+                  ) : null
+                }
               />
             ) : null}
 
@@ -702,9 +707,10 @@ export default function FloorPlanner({
                           : ({
                               "--fc": `${fc}cc`,
                               "--fc-soft": `${fc}55`,
-                              borderColor: isSel ? fc : `${fc}c0`,
+                              /* selected = brand orange, like the home cards */
+                              borderColor: isSel ? "#f0531e" : `${fc}c0`,
                               boxShadow: isSel
-                                ? `0 0 20px ${fc}dd, 0 0 44px ${fc}66`
+                                ? "0 0 20px #f0531edd, 0 0 44px #f0531e66"
                                 : `0 0 10px ${fc}59`,
                               color: fc,
                             } as CSSProperties)
@@ -746,8 +752,9 @@ export default function FloorPlanner({
               })}
             </div>
 
-            {/* Product info card — overlays the active view (2D or 3D) */}
-            {selectedItem ? (
+            {/* Product info card — top-right of the 2D map (the 3D view
+                anchors its own floating card beside the piece) */}
+            {selectedItem && !view3d ? (
               <EquipCard item={selectedItem} onClose={() => setSelectedUid(null)} />
             ) : null}
             </div>

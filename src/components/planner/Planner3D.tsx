@@ -25,6 +25,7 @@ export default function Planner3D({
   grid,
   selectedUid = null,
   onSelect,
+  cardSlot,
 }: {
   placed: PlacedItem[];
   roomW: number; // feet
@@ -34,8 +35,12 @@ export default function Planner3D({
      and the parent shows the product card; empty space deselects. */
   selectedUid?: string | null;
   onSelect?: (uid: string | null) => void;
+  /* Rendered inside the scene wrapper, anchored beside the selected piece —
+     the product card rides the camera like part of the 3D playground. */
+  cardSlot?: React.ReactNode;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const cardAnchorRef = useRef<HTMLDivElement | null>(null);
   const [hover, setHover] = useState("");
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
@@ -78,7 +83,8 @@ export default function Planner3D({
     controls.maxDistance = Math.max(rwIn, rdIn) * 3;
 
     /* Lights */
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xb9c2d1, 1.05));
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xb9c2d1, 1.05);
+    scene.add(hemi);
     const sun = new THREE.DirectionalLight(0xffffff, 1.6);
     sun.position.set(rwIn * 0.6, Math.max(rwIn, rdIn), rdIn * 0.4);
     sun.castShadow = true;
@@ -90,21 +96,22 @@ export default function Planner3D({
     sun.shadow.camera.bottom = -shadowSpan;
     sun.shadow.camera.far = Math.max(rwIn, rdIn) * 4;
     scene.add(sun);
+    /* Movie spotlight for the selected piece — warm cone, faded in with the
+       mood so the hero keeps its real material colours while the room dims. */
+    const spot = new THREE.SpotLight(0xffe9d6, 0, 0, 0.7, 0.55, 0); // decay 0: scene units are inches
+    scene.add(spot);
+    scene.add(spot.target);
 
     /* Ground + room floor (clean, no grid — the shadows carry the depth) */
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(rwIn * 6, rdIn * 6),
-      new THREE.MeshStandardMaterial({ color: 0xc6cdd9, roughness: 1 }),
-    );
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0xc6cdd9, roughness: 1 });
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(rwIn * 6, rdIn * 6), groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.5;
     ground.receiveShadow = true;
     scene.add(ground);
     /* Room floor is the brightest surface — the equipment's stage. */
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(rwIn, rdIn),
-      new THREE.MeshStandardMaterial({ color: 0xe4e9f0, roughness: 0.95 }),
-    );
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0xe4e9f0, roughness: 0.95 });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(rwIn, rdIn), floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
@@ -176,32 +183,56 @@ export default function Planner3D({
     }
     scene.add(pieces);
 
-    /* Glow = emissive lit from the piece's own material colours, so racks
-       glow orange, cardio glows sky, etc. Materials are unique per piece
+    /* Hover glow = the piece's own family colour; SELECTED glow = brand
+       orange, same as the home-page cards. Materials are unique per piece
        (makeMats per build), so mutating them is safe. */
+    const ACCENT = new THREE.Color(0xf0531e);
     let hovered: THREE.Group | null = null;
-    function glowOf(g: THREE.Group): number {
-      if (g.userData.uid === selRef.current) return 0.85;
-      return g === hovered ? 0.4 : 0;
-    }
-    function setGlow(g: THREE.Group, intensity: number) {
+    function setGlow(g: THREE.Group, mode: "off" | "hover" | "selected") {
       g.traverse((o) => {
         const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
         if (!mat || !mat.emissive) return;
-        if (intensity > 0) {
+        if (mode === "selected") {
+          mat.emissive.copy(ACCENT);
+          mat.emissiveIntensity = 0.09; // orange tint; the spotlight carries the reveal
+        } else if (mode === "hover") {
           mat.emissive.copy(mat.color);
-          mat.emissiveIntensity = intensity;
+          mat.emissiveIntensity = 0.4;
         } else {
           mat.emissive.setRGB(0, 0, 0);
           mat.emissiveIntensity = 1;
         }
       });
     }
-    const refreshGlow = () => { for (const g of byUid.values()) setGlow(g, glowOf(g)); };
+    const refreshGlow = () => {
+      for (const g of byUid.values())
+        setGlow(g, g.userData.uid === selRef.current ? "selected" : g === hovered ? "hover" : "off");
+    };
 
-    /* Camera close-up: glide the orbit target + camera toward the piece.
-       Any manual orbit/zoom cancels the glide. */
-    let flyGoal: { target: THREE.Vector3; pos: THREE.Vector3 } | null = null;
+    /* Every scene material we re-tint for the spotlight mood keeps its base
+       colour so the lerp is exact both ways. */
+    pieces.traverse((o) => {
+      const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+      if (mat && !mat.userData.base) mat.userData.base = mat.color.getHex();
+    });
+    const MOOD = {
+      bg: [new THREE.Color(0xe9edf3), new THREE.Color(0x11151d)] as const,
+      floor: [new THREE.Color(0xe4e9f0), new THREE.Color(0x272e3c)] as const,
+      ground: [new THREE.Color(0xc6cdd9), new THREE.Color(0x171c26)] as const,
+      hemi: [1.05, 0.5] as const,
+      sun: [1.6, 1.05] as const,
+    };
+    let mood = 0; // 0 = light showroom · 1 = dark spotlight on the selection
+    const tmpA = new THREE.Color();
+
+    /* Cinematic close-up: a time-eased dolly (ease-in-out) from wherever the
+       camera is to a hero angle on the piece. Manual orbit cancels it. */
+    let fly: {
+      p0: THREE.Vector3; p1: THREE.Vector3;
+      t0: THREE.Vector3; t1: THREE.Vector3;
+      start: number; dur: number;
+    } | null = null;
+    const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     function flyTo(g: THREE.Group) {
       const box = new THREE.Box3().setFromObject(g);
       const center = box.getCenter(new THREE.Vector3());
@@ -211,10 +242,18 @@ export default function Planner3D({
       if (dir.lengthSq() < 1) dir.set(1, 0, 1);
       dir.normalize();
       const pos = center.clone().addScaledVector(dir, span * 2.1);
-      pos.y = center.y + span * 0.9;
-      flyGoal = { target: center, pos };
+      pos.y = center.y + span * 0.85;
+      /* park the spotlight high between camera and piece */
+      spot.position.set(center.x + dir.x * span, center.y + span * 2.2, center.z + dir.z * span);
+      spot.target.position.copy(center);
+      spot.distance = span * 6;
+      fly = {
+        p0: camera.position.clone(), p1: pos,
+        t0: controls.target.clone(), t1: center,
+        start: performance.now(), dur: 1300,
+      };
     }
-    controls.addEventListener("start", () => { flyGoal = null; });
+    controls.addEventListener("start", () => { fly = null; });
 
     sceneApi.current = { byUid, refreshGlow, flyTo };
     refreshGlow();
@@ -277,14 +316,68 @@ export default function Planner3D({
     ro.observe(wrap);
 
     let raf = 0;
+    const corner = new THREE.Vector3();
+    const selBox = new THREE.Box3();
     const tick = () => {
-      if (flyGoal) {
-        controls.target.lerp(flyGoal.target, 0.08);
-        camera.position.lerp(flyGoal.pos, 0.08);
-        if (camera.position.distanceTo(flyGoal.pos) < 1) flyGoal = null;
+      /* eased cinematic dolly */
+      if (fly) {
+        const k = easeInOut(Math.min(1, (performance.now() - fly.start) / fly.dur));
+        camera.position.lerpVectors(fly.p0, fly.p1, k);
+        controls.target.lerpVectors(fly.t0, fly.t1, k);
+        if (k >= 1) fly = null;
       }
+
+      /* spotlight mood: darken the room around a selection, restore after */
+      const sel = selRef.current ? byUid.get(selRef.current) ?? null : null;
+      const target = sel ? 1 : 0;
+      if (Math.abs(mood - target) > 0.002 || target === 1) {
+        mood += (target - mood) * 0.07;
+        (scene.background as THREE.Color).lerpColors(MOOD.bg[0], MOOD.bg[1], mood);
+        (scene.fog as THREE.Fog).color.lerpColors(MOOD.bg[0], MOOD.bg[1], mood);
+        floorMat.color.lerpColors(MOOD.floor[0], MOOD.floor[1], mood);
+        groundMat.color.lerpColors(MOOD.ground[0], MOOD.ground[1], mood);
+        hemi.intensity = MOOD.hemi[0] + (MOOD.hemi[1] - MOOD.hemi[0]) * mood;
+        sun.intensity = MOOD.sun[0] + (MOOD.sun[1] - MOOD.sun[0]) * mood;
+        spot.intensity = mood * 2.4;
+        for (const g of byUid.values()) {
+          const dim = g === sel ? 0 : mood * 0.8;
+          g.traverse((o) => {
+            const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+            if (!mat?.userData.base) return;
+            mat.color.setHex(mat.userData.base as number);
+            if (dim > 0) mat.color.lerp(MOOD.bg[1], dim);
+          });
+        }
+      }
+
       controls.update();
       renderer.render(scene, camera);
+
+      /* anchor the product card just right of the selected piece on screen */
+      const anchor = cardAnchorRef.current;
+      if (anchor) {
+        if (sel) {
+          selBox.setFromObject(sel);
+          let maxX = -Infinity, sumY = 0, n = 0;
+          for (let i = 0; i < 8; i++) {
+            corner.set(
+              i & 1 ? selBox.max.x : selBox.min.x,
+              i & 2 ? selBox.max.y : selBox.min.y,
+              i & 4 ? selBox.max.z : selBox.min.z,
+            ).project(camera);
+            maxX = Math.max(maxX, corner.x);
+            sumY += corner.y;
+            n++;
+          }
+          const bw = wrap.clientWidth, bh = wrap.clientHeight;
+          const px = Math.min(bw - 276, Math.max(8, ((maxX + 1) / 2) * bw + 18));
+          const py = Math.min(bh - 180, Math.max(8, (1 - (sumY / n + 1) / 2) * bh - 110));
+          anchor.style.display = "block";
+          anchor.style.transform = `translate(${Math.round(px)}px, ${Math.round(py)}px)`;
+        } else {
+          anchor.style.display = "none";
+        }
+      }
       raf = requestAnimationFrame(tick);
     };
     tick();
@@ -330,6 +423,11 @@ export default function Planner3D({
       {hover ? (
         <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-lg border border-accent/50 bg-navy/95 px-3 py-1.5 text-xs font-bold text-white shadow-lg">
           {hover}
+        </div>
+      ) : null}
+      {cardSlot ? (
+        <div ref={cardAnchorRef} className="absolute left-0 top-0 z-30" style={{ display: "none" }}>
+          {cardSlot}
         </div>
       ) : null}
       <span className="pointer-events-none absolute bottom-2.5 left-3.5 z-10 select-none font-display text-sm font-extrabold tracking-tight text-[#0d1b35]/75">

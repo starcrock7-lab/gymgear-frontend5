@@ -17,7 +17,17 @@ const cache = new Map<string, KitProduct[]>();
 
 const ft = (inches: number) => Math.round((inches / 12) * 10) / 10;
 
-export default function EquipCard({ item, onClose }: { item: PlacedItem; onClose: () => void }) {
+export default function EquipCard({
+  item,
+  onClose,
+  floating,
+}: {
+  item: PlacedItem;
+  onClose: () => void;
+  /* floating = anchored by the 3D view beside the piece (parent positions
+     it); default = pinned to the map's top-right corner. */
+  floating?: boolean;
+}) {
   const [product, setProduct] = useState<KitProduct | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -53,8 +63,16 @@ export default function EquipCard({ item, onClose }: { item: PlacedItem; onClose
 
   return (
     <div
-      className="gg-pop-in absolute right-3 top-3 z-30 w-64 overflow-hidden rounded-2xl border border-white/12 bg-navy/95 shadow-2xl"
-      style={{ boxShadow: `0 8px 40px rgba(0,0,0,0.5), 0 0 24px ${fc}33` }}
+      className={`gg-pop-in z-30 w-64 overflow-hidden rounded-2xl border shadow-2xl ${
+        floating
+          ? "border-accent/30 bg-navy/90"
+          : "absolute right-3 top-3 border-white/12 bg-navy/95"
+      }`}
+      style={{
+        boxShadow: floating
+          ? `0 12px 48px rgba(0,0,0,0.65), 0 0 34px #f0531e40`
+          : `0 8px 40px rgba(0,0,0,0.5), 0 0 24px ${fc}33`,
+      }}
       onPointerDown={(e) => e.stopPropagation()}
     >
       {/* Faint grid texture — same depth trick as the home cards */}
