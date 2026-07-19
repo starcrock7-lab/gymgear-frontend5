@@ -39,7 +39,6 @@ import ProductModal from "@/components/quiz/ProductModal";
 import Link from "next/link";
 import { Map } from "lucide-react";
 import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
-import FloorPlanner from "@/components/planner/FloorPlanner";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
@@ -154,9 +153,8 @@ export default function KitResult({
     saveKit({ ...data, kits });
   }, [kits, data]);
 
-  /* Selected kit as a placeable list — feeds the embedded floor builder
-     below AND the full-screen /planner (kept in sync live, same as the
-     For Gyms plan). */
+  /* Selected kit as a placeable list — handed off to the full-screen
+     /planner (kept in sync live, same as the For Gyms plan). */
   const floorItems = useMemo<FloorItem[]>(() => {
     const prods = selectedKit?.products ?? [];
     return prods
@@ -249,30 +247,6 @@ export default function KitResult({
           onAdd={addAccessories}
         />
       )}
-
-      {/* Floor-plan builder — the same board as For Gyms, fed by the
-          selected kit. Drop/paste a sketch, auto-arrange, flip to 3D. */}
-      {floorItems.length > 0 ? (
-        <div id="floor-dashboard" className="mt-12 scroll-mt-6 text-left">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-accent">
-                Floor plan dashboard
-              </p>
-              <h2 className="mt-1 font-display text-2xl font-extrabold text-white">
-                See it in your space
-              </h2>
-            </div>
-            <Link
-              href="/planner"
-              className="flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm font-bold text-white/70 transition-colors hover:border-accent/60 hover:text-accent"
-            >
-              Full-screen planner <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <FloorPlanner embedded itemsProp={floorItems} />
-        </div>
-      ) : null}
 
       <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
         <button
@@ -377,15 +351,14 @@ function KitCard({
             {kit.description}
           </p>
         )}
-        {/* Jump to the embedded floor builder below (kept in sync by the
-            parent — no page switch, nothing disappears). */}
+        {/* Open the full-screen planner (kit is synced to it live). */}
         {items.some((p) => PLACEABLE_CATS.has(p.category)) && (
-          <a
-            href="#floor-dashboard"
+          <Link
+            href="/planner"
             className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-xs font-bold text-white/70 transition-colors hover:border-accent/60 hover:text-accent"
           >
             <Map className="h-3.5 w-3.5" /> Visualize it in your space
-          </a>
+          </Link>
         )}
       </div>
 

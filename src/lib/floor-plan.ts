@@ -148,10 +148,23 @@ export const LAYOUT_ADVICE: { title: string; body: string }[] = [
 const ITEMS_KEY = "gymgear.floor.v1";
 const LAYOUT_KEY = "gymgear.floor.layout.v1";
 
-export function saveFloorItems(items: FloorItem[]): void {
+export function saveFloorItems(items: FloorItem[], room?: { w: number; d: number }): void {
   try {
-    sessionStorage.setItem(ITEMS_KEY, JSON.stringify({ items, savedAt: Date.now() }));
+    sessionStorage.setItem(ITEMS_KEY, JSON.stringify({ items, room, savedAt: Date.now() }));
   } catch { /* private mode — planner will just start empty */ }
+}
+
+/* Suggested room size handed off with the items (the gym plan sizes it to
+   the facility area). Only a hint — a saved layout's own dims still win. */
+export function loadFloorRoom(): { w: number; d: number } | null {
+  try {
+    const raw = sessionStorage.getItem(ITEMS_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { room?: { w: number; d: number } };
+    return parsed.room && typeof parsed.room.w === "number" ? parsed.room : null;
+  } catch {
+    return null;
+  }
 }
 
 export function loadFloorItems(): FloorItem[] {

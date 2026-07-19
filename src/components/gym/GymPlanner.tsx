@@ -12,7 +12,6 @@ import { ArrowLeft, ArrowUpRight, Building2, Check, Loader2, Map, Minus, Plus, R
 import { formatPrice } from "@/lib/kit";
 import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
 import { EquipmentIcon } from "@/components/planner/equipment-icon";
-import FloorPlanner from "@/components/planner/FloorPlanner";
 
 /* Persist the built plan so leaving for the floor visualizer (or a stray
    reload) doesn't lose it — returning to /gym restores it, same as the
@@ -401,9 +400,8 @@ export default function GymPlanner() {
     });
   }
 
-  /* The plan as a placeable-equipment list — feeds the embedded floor
-     dashboard below AND the full-screen /planner (kept in sync live, so
-     the layout never "disappears" when moving between the two). */
+  /* The plan as a placeable-equipment list — handed off to the full-screen
+     /planner (kept in sync live). */
   const floorItems = useMemo<FloorItem[]>(() => {
     if (!plan) return [];
     const out: FloorItem[] = [];
@@ -416,19 +414,19 @@ export default function GymPlanner() {
     return out;
   }, [plan]);
 
-  useEffect(() => {
-    if (!plan) return;
-    saveFloorItems(floorItems);
-    saveFloorOrigin("/gym");
-  }, [plan, floorItems]);
-
-  /* Size the dashboard's room to the plan's floor area (3:2-ish) so the
-     first auto-arrange has the real space to work with. */
+  /* Size the planner's room to the plan's floor area (3:2-ish) so the first
+     auto-arrange has the real space to work with. */
   const roomDefaults = useMemo(() => {
     const area = Math.max(400, plan?.areaSqFt ?? 600);
     const w = Math.round(Math.sqrt(area * 1.5));
     return { w, d: Math.max(10, Math.ceil(area / w)) };
   }, [plan]);
+
+  useEffect(() => {
+    if (!plan) return;
+    saveFloorItems(floorItems, roomDefaults);
+    saveFloorOrigin("/gym");
+  }, [plan, floorItems, roomDefaults]);
 
   /* ── Loading ── */
   if (loading) {
@@ -462,12 +460,12 @@ export default function GymPlanner() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <a
-              href="#floor-dashboard"
+            <Link
+              href="/planner"
               className="flex items-center gap-2 rounded-lg bg-accent px-3.5 py-2 text-sm font-bold text-white transition-colors hover:bg-accent-hover"
             >
               <Map className="h-3.5 w-3.5" /> Floor plan
-            </a>
+            </Link>
             <button
               onClick={restart}
               className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
@@ -488,34 +486,6 @@ export default function GymPlanner() {
           <Stat label="Planned spend" value={formatPrice(plan.totalPrice)} accent />
           <Stat label="Held for install & contingency" value={formatPrice(plan.contingency)} />
           <Stat label="Floor / peak" value={`${plan.areaSqFt.toLocaleString()} sq ft · ${plan.peakCapacity}`} />
-        </div>
-
-        {/* Floor-plan dashboard — front and centre with the plan, so it
-            can't be missed and never disappears behind a page switch.
-            Full-screen planner one click away for more space. */}
-        <div id="floor-dashboard" className="mt-8 scroll-mt-6">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-accent">
-                Floor plan dashboard
-              </p>
-              <h2 className="mt-1 font-display text-2xl font-extrabold text-ink">
-                See it on your floor
-              </h2>
-            </div>
-            <Link
-              href="/planner"
-              className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-bold text-ink-2 transition-colors hover:border-accent/60 hover:text-accent"
-            >
-              Full-screen planner <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <FloorPlanner
-            embedded
-            itemsProp={floorItems}
-            defaultRoomW={roomDefaults.w}
-            defaultRoomD={roomDefaults.d}
-          />
         </div>
 
         {/* Written plan */}

@@ -33,6 +33,7 @@ import {
   footprintOf,
   clearanceOf,
   loadFloorItems,
+  loadFloorRoom,
   loadLayout,
   saveLayout,
   loadFloorOrigin,
@@ -103,8 +104,13 @@ export default function FloorPlanner({
     const saved = loadLayout();
     setPlaced(saved.placed);
     setZones(saved.zones ?? []);
+    /* Room size: a saved layout's own dims win; otherwise the size handed
+       off with the items (the gym plan sizes it to the facility area). */
+    const hint = itemsProp ? null : loadFloorRoom();
     if (saved.roomW) setRoomW(saved.roomW);
+    else if (hint) setRoomW(hint.w);
     if (saved.roomD) setRoomD(saved.roomD);
+    else if (hint) setRoomD(hint.d);
     setOrigin(loadFloorOrigin());
     const el = boxRef.current;
     if (!el) return;
