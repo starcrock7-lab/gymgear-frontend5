@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAllProducts, getCategories } from "@/lib/catalog";
 
 /* Slim search index: every product + category in one cached response, so the
-   nav search costs a single request instead of 29 (see ../categories/route.ts
+   nav search costs a single request instead of one per category (see ../categories/route.ts
    for the proxy pattern). Payload stays lean — search needs names, not specs. */
 export const revalidate = 3600;
 
