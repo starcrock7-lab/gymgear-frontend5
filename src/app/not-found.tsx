@@ -21,7 +21,7 @@ export default function NotFound() {
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
-            href="/start"
+            href="/quiz"
             className="rounded-xl bg-accent px-5 py-2.5 font-body text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
           >
             Build My Kit →

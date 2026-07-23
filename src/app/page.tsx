@@ -377,7 +377,7 @@ export default function Home() {
             {/* Shader halo on hover + glow bloom — no 3D lift */}
             <HoverHalo>
               <HighlightButton
-                onClick={() => router.push("/start")}
+                onClick={() => router.push("/quiz")}
                 className="relative h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_36px_rgba(232,84,42,0.6)] hover:brightness-110"
               >
                 Build my kit →
