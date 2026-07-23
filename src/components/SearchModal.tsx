@@ -40,6 +40,14 @@ function rank(p: SearchProduct, q: string, catLabel: string): number {
   if (name.includes(q)) return 1;
   if (catLabel.includes(q)) return 2;
   if (brand.includes(q)) return 3;
+  /* Multi-word queries: every word must land somewhere across name +
+     brand + category, so a natural "rogue rack" finds Rogue racks even
+     though no single field holds that exact phrase. */
+  const words = q.split(/\s+/).filter(Boolean);
+  if (words.length > 1) {
+    const hay = `${name} ${brand} ${catLabel}`;
+    if (words.every((w) => hay.includes(w))) return 4;
+  }
   return -1;
 }
 

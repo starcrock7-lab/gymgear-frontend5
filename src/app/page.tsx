@@ -126,7 +126,7 @@ const steps: FlowStep[] = [
       "Best Value — the cheapest route to your goal",
       "Best Match — balanced for your exact answers",
       "Best Quality — buy once, cry once",
-      "250+ real products across 29 categories, live prices",
+      "250+ real products across 30+ categories, live prices",
     ],
   },
   {
@@ -247,7 +247,7 @@ export default function Home() {
             </LiquidButton>
           </motion.div>
           <motion.p variants={fadeUp} className="mt-5 text-xs text-white/40">
-            No account needed · 250+ products · 29 categories · 100% independent
+            No account needed · 250+ products · 30+ categories · 100% independent
           </motion.p>
 
           {/* Scroll hint, fades as you move (Vectr hero__scroll-btn) */}

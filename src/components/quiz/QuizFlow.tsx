@@ -521,7 +521,7 @@ function OwnedScreen({
 /* --- "Building your kit..." loading screen ----------------------------- */
 
 const BUILD_LINES = [
-  "Scanning 250+ products across 29 categories…",
+  "Scanning 250+ products across 30+ categories…",
   "Optimizing for your budget and space…",
   "Assembling Best Value · Best Match · Best Quality…",
 ];
