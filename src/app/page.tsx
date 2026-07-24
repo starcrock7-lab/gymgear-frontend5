@@ -232,7 +232,7 @@ export default function Home() {
             <HoverHalo>
               <ButtonColorful
                 label="Start the Quiz"
-                onClick={() => router.push("/quiz")}
+                onClick={() => router.push("/start")}
                 className="relative h-14 rounded-xl px-8 font-body text-lg font-bold shadow-lg shadow-accent/30 transition-shadow duration-300 hover:shadow-[0_0_30px_rgba(232,84,42,0.55)]"
               />
             </HoverHalo>
@@ -377,7 +377,7 @@ export default function Home() {
             {/* Shader halo on hover + glow bloom — no 3D lift */}
             <HoverHalo>
               <HighlightButton
-                onClick={() => router.push("/quiz")}
+                onClick={() => router.push("/start")}
                 className="relative h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_36px_rgba(232,84,42,0.6)] hover:brightness-110"
               >
                 Build my kit →
