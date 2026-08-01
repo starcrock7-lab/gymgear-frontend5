@@ -37,7 +37,7 @@ import {
 import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
 import Link from "next/link";
-import { Map } from "lucide-react";
+import { Map, ArrowRight } from "lucide-react";
 import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -351,13 +351,29 @@ function KitCard({
             {kit.description}
           </p>
         )}
-        {/* Open the full-screen planner (kit is synced to it live). */}
+        {/* Open the full-screen planner (kit is synced to it live). The
+            visualizer is the product's headline act, so this is a full-width
+            hero CTA — it outranks everything else in the card. */}
         {items.some((p) => PLACEABLE_CATS.has(p.category)) && (
           <Link
             href="/planner"
-            className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-xs font-bold text-white/70 transition-colors hover:border-accent/60 hover:text-accent"
+            className="group mt-4 flex w-full items-center gap-3 rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/20 via-accent/10 to-transparent px-4 py-4 shadow-[0_0_24px_rgba(240,83,30,0.18)] transition-[border-color,box-shadow] duration-200 hover:border-accent/70 hover:shadow-[0_0_38px_rgba(240,83,30,0.45)] sm:px-5"
           >
-            <Map className="h-3.5 w-3.5" /> Visualize it in your space
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-white shadow-lg shadow-accent/30">
+              <Map className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-base font-extrabold leading-tight tracking-tight text-white sm:text-lg">
+                Visualize it in your space
+              </span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-white/60">
+                Drop in your room and see how every piece fits — to scale.
+              </span>
+            </span>
+            <span className="flex shrink-0 items-center gap-1.5 rounded-xl bg-accent px-3 py-2 font-body text-xs font-bold text-white shadow-md shadow-accent/25 transition-transform duration-150 ease-out group-hover:scale-105 sm:px-3.5 sm:text-sm">
+              <span className="hidden sm:inline">Open</span>
+              <ArrowRight className="h-4 w-4" />
+            </span>
           </Link>
         )}
       </div>
