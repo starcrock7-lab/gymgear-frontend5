@@ -102,8 +102,26 @@ export const FOOTPRINTS: Record<string, { w: number; d: number }> = {
   "waterrower-oak": { w: 84, d: 22 },
 };
 
-/* Only floor-standing pieces get placed on the map. */
-export const PLACEABLE_CATS = new Set(["racks", "machines", "cardio", "benches", "dumbbells"]);
+/* Everything that physically sits on the gym floor gets placed on the map.
+   The big five are the training stations; the rest is the free-weight and
+   mobility gear that makes a real room look like a real room instead of
+   three machines in an empty box. */
+export const PLACEABLE_CATS = new Set([
+  "racks", "machines", "cardio", "benches", "dumbbells",
+  "barbells", "plates", "kettlebells", "bands",
+  "yogamats", "foamrollers", "jumpropes", "flooring",
+]);
+
+/* Small accessories nobody leaves on the floor — they get staged on a single
+   storage shelf instead of littering the room one product at a time. */
+export const SHELF_CATS = new Set([
+  "chalk", "belts", "sleeves", "straps", "wraps", "gymbags",
+  "protein", "creatine", "preworkout", "recovery", "vitamins",
+]);
+
+/* Synthetic piece standing in for the whole accessory pile. */
+export const STORAGE_ID = "kit-storage";
+export const STORAGE_CAT = "storage";
 
 export const CATEGORY_DEFAULT: Record<string, { w: number; d: number }> = {
   racks: { w: 48, d: 48 },
@@ -111,6 +129,15 @@ export const CATEGORY_DEFAULT: Record<string, { w: number; d: number }> = {
   cardio: { w: 72, d: 30 },
   benches: { w: 50, d: 26 },
   dumbbells: { w: 60, d: 24 }, // a set on a rack/stand
+  barbells: { w: 86, d: 12 }, // 7 ft bar in a floor cradle
+  plates: { w: 26, d: 26 }, // loaded plate tree
+  kettlebells: { w: 40, d: 14 }, // a graduated row on the floor
+  bands: { w: 24, d: 16 }, // band stand
+  yogamats: { w: 68, d: 24 }, // rolled out
+  foamrollers: { w: 36, d: 8 },
+  jumpropes: { w: 14, d: 14 }, // coiled
+  flooring: { w: 96, d: 48 }, // a tiled platform area
+  [STORAGE_CAT]: { w: 48, d: 18 }, // shelving unit
 };
 
 /* Safety halo per category (inches on every side). Kept intentionally small
@@ -123,6 +150,15 @@ export const CLEARANCE_IN: Record<string, number> = {
   machines: 6,
   benches: 5,
   dumbbells: 5,
+  barbells: 6, // room to load a plate on either end
+  plates: 4,
+  kettlebells: 4,
+  bands: 3,
+  yogamats: 3,
+  foamrollers: 2,
+  jumpropes: 2,
+  flooring: 0, // a surface, not an obstacle
+  [STORAGE_CAT]: 3,
 };
 export const DEFAULT_CLEARANCE = 4;
 
@@ -131,6 +167,51 @@ export const footprintOf = (id: string, category: string) =>
 
 export const clearanceOf = (category: string) =>
   CLEARANCE_IN[category] ?? DEFAULT_CLEARANCE;
+
+/* One product list → the pieces that belong in the room. Floor gear maps
+   1:1; every shelf accessory in the kit collapses into a single storage unit
+   so the room shows the whole kit without a protein tub on the floor. Used by
+   the kit result, the gym plan and the planner so all three agree. */
+type PlaceableSource = {
+  id: string;
+  name: string;
+  brand?: string;
+  category: string;
+  qty?: number;
+};
+
+export function toFloorItems(products: PlaceableSource[]): FloorItem[] {
+  const out: FloorItem[] = [];
+  for (const p of products) {
+    if (!PLACEABLE_CATS.has(p.category) || (p.qty ?? 1) < 1) continue;
+    const { w, d } = footprintOf(p.id, p.category);
+    out.push({
+      id: p.id,
+      name: p.name,
+      brand: p.brand ?? "",
+      category: p.category,
+      qty: p.qty ?? 1,
+      w,
+      d,
+    });
+  }
+  const shelved = products.filter(
+    (p) => SHELF_CATS.has(p.category) && (p.qty ?? 1) >= 1,
+  );
+  if (shelved.length) {
+    const { w, d } = CATEGORY_DEFAULT[STORAGE_CAT];
+    out.push({
+      id: STORAGE_ID,
+      name: "Storage & accessories",
+      brand: `${shelved.length} item${shelved.length > 1 ? "s" : ""}`,
+      category: STORAGE_CAT,
+      qty: 1,
+      w,
+      d,
+    });
+  }
+  return out;
+}
 
 /* Research-backed layout advice rendered next to the map. */
 export const LAYOUT_ADVICE: { title: string; body: string }[] = [

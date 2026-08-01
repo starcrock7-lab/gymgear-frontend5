@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Building2, Check, Loader2, Map, Minus, Plus, RefreshCw } from "lucide-react";
 import { formatPrice } from "@/lib/kit";
-import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
+import { toFloorItems, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
 import { EquipmentIcon } from "@/components/planner/equipment-icon";
 
 /* Persist the built plan so leaving for the floor visualizer (or a stray
@@ -404,14 +404,7 @@ export default function GymPlanner() {
      /planner (kept in sync live). */
   const floorItems = useMemo<FloorItem[]>(() => {
     if (!plan) return [];
-    const out: FloorItem[] = [];
-    for (const z of plan.zones)
-      for (const i of z.items) {
-        if (!PLACEABLE_CATS.has(i.category) || i.qty < 1) continue;
-        const { w, d } = footprintOf(i.id, i.category);
-        out.push({ id: i.id, name: i.name, brand: i.brand, category: i.category, qty: i.qty, w, d });
-      }
-    return out;
+    return toFloorItems(plan.zones.flatMap((z) => z.items));
   }, [plan]);
 
   /* Size the planner's room to the plan's floor area (3:2-ish) so the first

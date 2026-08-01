@@ -34,6 +34,16 @@ export const TYPE_HEIGHT: Record<string, number> = {
   elliptical: 68,
   bench: 18,
   dumbbellRack: 32,
+  /* Free weights, mobility gear and storage. */
+  barbell: 10, // bar resting in a floor cradle
+  plates: 30, // loaded plate tree
+  kettlebell: 15, // tallest bell in the row
+  band: 40, // band stand
+  yogaMat: 6, // rolled end
+  foamRoller: 6,
+  jumpRope: 3,
+  flooring: 1, // tile surface
+  storageShelf: 60,
   box: 36,
 };
 
@@ -128,6 +138,23 @@ function cylAt(g: THREE.Group, m: THREE.Material, r: number, len: number, x: num
   if (axis === "x") mesh.rotation.z = Math.PI / 2;
   if (axis === "z") mesh.rotation.x = Math.PI / 2;
   mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  g.add(mesh);
+  return mesh;
+}
+function sphereAt(g: THREE.Group, m: THREE.Material, r: number, x: number, y: number, z: number, squash = 1) {
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), m);
+  mesh.position.set(x, y, z);
+  if (squash !== 1) mesh.scale.y = squash;
+  mesh.castShadow = true;
+  g.add(mesh);
+  return mesh;
+}
+/* Ring lying flat on the floor (rope coils) or standing up (band loops). */
+function torusAt(g: THREE.Group, m: THREE.Material, r: number, tube_: number, x: number, y: number, z: number, flat = true) {
+  const mesh = new THREE.Mesh(new THREE.TorusGeometry(r, tube_, 8, 24), m);
+  mesh.position.set(x, y, z);
+  if (flat) mesh.rotation.x = Math.PI / 2;
   mesh.castShadow = true;
   g.add(mesh);
   return mesh;
@@ -533,6 +560,116 @@ const BUILDERS: Record<string, Builder> = {
         cylAt(g, m.chrome, 0.8, 4.4, x, y + r + 1.2, z, "z", 8); // knurled handle
       }
     }
+  },
+  /* ── Free weights, mobility gear & storage ─────────────────────────── */
+  barbell(g, w, d, h, m) {
+    /* 7 ft bar resting in a low two-block floor cradle */
+    const span = w * 0.94;
+    const barY = h * 0.78;
+    for (const sx of [-1, 1]) {
+      const x = sx * w * 0.3;
+      boxAt(g, m.frame, 5, h * 0.6, d * 0.9, x, h * 0.3, 0); // cradle block
+      boxAt(g, m.dark, 5.4, 1.4, d * 0.5, x, h * 0.62, 0); // rubber saddle
+    }
+    cylAt(g, m.chrome, 0.62, span * 0.62, 0, barY, 0, "x", 12); // shaft
+    for (const sx of [-1, 1]) {
+      cylAt(g, m.chrome, 1.05, span * 0.16, sx * span * 0.39, barY, 0, "x", 12); // sleeve
+      cylAt(g, m.dark, 1.25, 0.9, sx * span * 0.3, barY, 0, "x", 10); // collar
+      cylAt(g, m.accent, 1.1, 0.7, sx * span * 0.47, barY, 0, "x", 10); // end cap
+    }
+    for (const k of [-1, 0, 1]) cylAt(g, m.dark, 0.68, 2.2, k * span * 0.14, barY, 0, "x", 10); // knurl
+  },
+  plates(g, w, d, h, m) {
+    /* plate tree: cross base, post, three peg tiers, heaviest at the bottom */
+    boxAt(g, m.frame, w * 0.8, 1.6, 4, 0, 0.8, 0);
+    boxAt(g, m.frame, 4, 1.6, d * 0.8, 0, 0.8, 0);
+    boxAt(g, m.frame, 4, h, 4, 0, h / 2, 0); // post
+    [0.36, 0.6, 0.84].forEach((t, i) => {
+      const y = h * t;
+      const r = 8.4 - i * 1.5;
+      for (const sz of [-1, 1]) {
+        cylAt(g, m.chrome, 1, d * 0.34, 0, y, sz * d * 0.17, "z", 8); // peg
+        for (let k = 0; k < 2; k++) plate(g, m, r, 2.2, 0, y, sz * (d * 0.1 + k * 2.8), "z");
+      }
+    });
+  },
+  kettlebell(g, w, d, h, m) {
+    /* graduated row, light to heavy */
+    const n = 4;
+    for (let i = 0; i < n; i++) {
+      const r = 3.2 + (i / (n - 1)) * 2.4;
+      const x = -w / 2 + 5 + (i + 0.5) * ((w - 10) / n);
+      cylAt(g, m.dark, r * 0.92, 1.2, x, 0.6, 0, "y", 14); // flat base
+      sphereAt(g, m.accent, r, x, r * 0.92, 0, 0.86); // bell
+      torusAt(g, m.dark, r * 0.62, 0.62, x, r * 1.72, 0, false); // handle
+    }
+  },
+  band(g, w, d, h, m) {
+    /* stand with looped bands hanging off the top bar */
+    boxAt(g, m.frame, w * 0.8, 1.8, d * 0.8, 0, 0.9, 0); // base
+    boxAt(g, m.frame, 3, h, 3, 0, h / 2, 0); // post
+    cylAt(g, m.chrome, 0.8, w * 0.8, 0, h - 1.5, 0, "x", 10); // top bar
+    [-0.3, -0.1, 0.1, 0.3].forEach((f, i) => {
+      const len = 12 + (i % 3) * 3.5;
+      const x = f * w;
+      for (const sz of [-1, 1]) boxAt(g, m.accent, 0.9, len, 0.5, x, h - 1.5 - len / 2, sz * 1.1);
+      torusAt(g, m.accent, 1.1, 0.45, x, h - 1.5 - len, 0, false);
+    });
+  },
+  flooring(g, w, d, h, m) {
+    /* interlocking rubber tiles: slab + seam grid */
+    boxAt(g, m.accent, w, h, d, 0, h / 2, 0);
+    const cols = Math.max(2, Math.round(w / 24));
+    const rows = Math.max(2, Math.round(d / 24));
+    for (let i = 1; i < cols; i++) boxAt(g, m.dark, 0.5, h * 1.1, d, -w / 2 + (i * w) / cols, h / 2, 0);
+    for (let j = 1; j < rows; j++) boxAt(g, m.dark, w, h * 1.1, 0.5, 0, h / 2, -d / 2 + (j * d) / rows);
+  },
+  yogaMat(g, w, d, h, m) {
+    /* rolled out, spare roll parked at one end */
+    boxAt(g, m.accent, w * 0.72, 0.8, d * 0.86, -w * 0.12, 0.4, 0);
+    for (const k of [-1, 1]) boxAt(g, m.dark, w * 0.7, 0.9, 0.4, -w * 0.12, 0.45, k * d * 0.26); // ribs
+    const rr = h * 0.42;
+    cylAt(g, m.accent, rr, d * 0.8, w * 0.36, rr, 0, "z", 16); // roll
+    cylAt(g, m.dark, rr * 0.28, d * 0.84, w * 0.36, rr, 0, "z", 10); // core
+  },
+  foamRoller(g, w, d, h, m) {
+    const r = h * 0.45;
+    cylAt(g, m.accent, r, w * 0.72, -w * 0.08, r, 0, "x", 16); // roller
+    for (const sx of [-1, 1]) cylAt(g, m.dark, r * 1.02, 1.2, -w * 0.08 + sx * w * 0.35, r, 0, "x", 16); // caps
+    cylAt(g, m.dark, r * 0.34, w * 0.76, -w * 0.08, r, 0, "x", 10); // hollow core
+    sphereAt(g, m.dark, r * 0.72, w * 0.38, r * 0.72, 0); // massage ball
+  },
+  jumpRope(g, w, d, h, m) {
+    /* coiled on the floor, handles alongside */
+    const r = w * 0.3;
+    torusAt(g, m.accent, r, 0.5, 0, 0.5, 0);
+    torusAt(g, m.accent, r * 0.66, 0.5, 0, 0.5, 0);
+    for (const sz of [-1, 1]) cylAt(g, m.dark, 0.85, h * 1.6, w * 0.32, 1, sz * 2.2, "x", 10); // handles
+  },
+  storageShelf(g, w, d, h, m) {
+    /* four uprights + four shelves, stocked with the kit's accessories */
+    const px = w / 2 - 1.6;
+    const pz = d / 2 - 1.6;
+    for (const sx of [-1, 1])
+      for (const sz of [-1, 1]) boxAt(g, m.frame, 3.2, h, 3.2, sx * px, h / 2, sz * pz);
+    /* Top shelf sits low enough that what stands on it still clears h. */
+    const levels = [0.06, 0.34, 0.6, 0.86];
+    for (const t of levels) boxAt(g, m.frame, w, 1.6, d, 0, h * t, 0);
+    const sy = (t: number) => h * t + 0.8;
+    /* supplement tubs */
+    cylAt(g, m.accent, 3.4, 9, -w * 0.34, sy(0.34) + 4.5, 0, "y", 14);
+    cylAt(g, m.dark, 3.5, 1.2, -w * 0.34, sy(0.34) + 9.6, 0, "y", 14);
+    cylAt(g, m.accent, 2.9, 7.4, -w * 0.17, sy(0.34) + 3.7, d * 0.12, "y", 14);
+    cylAt(g, m.dark, 3, 1.1, -w * 0.17, sy(0.34) + 7.95, d * 0.12, "y", 14);
+    /* chalk bucket, folded belt, strap coil */
+    cylAt(g, m.chrome, 2.6, 5, w * 0.06, sy(0.6) + 2.5, 0, "y", 12);
+    boxAt(g, m.dark, 9, 2.4, 5.5, w * 0.3, sy(0.6) + 1.2, 0);
+    torusAt(g, m.chrome, 2.4, 0.7, -w * 0.28, sy(0.6) + 0.7, 0);
+    /* gym bag down low, bottle up top */
+    boxAt(g, m.dark, w * 0.42, 6.4, d * 0.62, w * 0.16, sy(0.06) + 3.2, 0);
+    cylAt(g, m.chrome, 0.5, w * 0.3, w * 0.16, sy(0.06) + 6.6, 0, "x", 8); // bag strap
+    cylAt(g, m.accent, 1.6, 6, -w * 0.3, sy(0.86) + 3, 0, "y", 12);
+    cylAt(g, m.dark, 1.1, 1.4, -w * 0.3, sy(0.86) + 6.7, 0, "y", 10);
   },
   box(g, w, d, h, m) {
     boxAt(g, m.accent, w, h, d, 0, h / 2, 0);

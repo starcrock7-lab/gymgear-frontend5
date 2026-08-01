@@ -374,6 +374,17 @@ const GAP_IN: Record<string, number> = {
   machines: 24,
   dumbbells: 12,
   benches: 30,
+  /* Free weights and mobility gear line up tight against a wall — giving
+     a foam roller a 24" moat is what left the room looking empty. */
+  barbells: 12,
+  plates: 10,
+  kettlebells: 8,
+  bands: 8,
+  yogamats: 8,
+  foamrollers: 6,
+  jumpropes: 6,
+  flooring: 0,
+  storage: 10,
 };
 /* Keep-clear strip on a piece's open side (inches): fall zones & bar paths. */
 const FRONT_IN: Record<string, number> = {
@@ -382,6 +393,15 @@ const FRONT_IN: Record<string, number> = {
   machines: 30,
   dumbbells: 36, // pickup zone in front of the rack
   benches: 24,
+  barbells: 30, // room to stand and load a plate on either end
+  plates: 18,
+  kettlebells: 18,
+  bands: 18,
+  yogamats: 12,
+  foamrollers: 8,
+  jumpropes: 6,
+  flooring: 0, // you walk on it
+  storage: 18, // room to open the shelf
 };
 const DEFAULT_GAP = 24;
 const DEFAULT_FRONT = 24;

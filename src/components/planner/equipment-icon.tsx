@@ -18,6 +18,17 @@ export const FAMILY_COLORS: Record<string, string> = {
   cardio: "#38bdf8", // sky
   benches: "#f43f5e", // rose
   dumbbells: "#2fbf62", // win green
+  /* Free weights & mobility gear — deliberately calmer hues than the five
+     training stations above, so the big pieces still lead the eye. */
+  barbells: "#94a3b8", // steel
+  plates: "#f59e0b", // amber
+  kettlebells: "#14b8a6", // teal
+  bands: "#d946ef", // fuchsia
+  yogamats: "#818cf8", // indigo
+  foamrollers: "#22d3ee", // cyan
+  jumpropes: "#a3e635", // lime
+  flooring: "#475569", // slate — a surface, not a station
+  storage: "#cbd5e1", // light steel shelving
 };
 export const familyColor = (category: string) => FAMILY_COLORS[category] ?? "#f0531e";
 
@@ -255,6 +266,34 @@ const ICONS = {
     <circle cx="8" cy="8" r="0.8" fill="currentColor" stroke="none" opacity="0.6" />
     <circle cx="16" cy="16" r="0.8" fill="currentColor" stroke="none" opacity="0.6" />
   </>),
+  /* yoga mat: rolled out, with the roll at one end */
+  yogaMat: svg(<>
+    <rect x="3" y="8" width="14" height="8" rx="1" />
+    <path d="M6 8v8M9.5 8v8M13 8v8" opacity="0.5" />
+    <circle cx="19" cy="12" r="3.4" />
+    <circle cx="19" cy="12" r="1.1" fill="currentColor" stroke="none" />
+  </>),
+  /* foam roller: hollow cylinder seen from above */
+  foamRoller: svg(<>
+    <rect x="3.5" y="8.6" width="17" height="6.8" rx="3.4" />
+    <ellipse cx="17.2" cy="12" rx="1.5" ry="3.4" />
+    <path d="M7 8.6v6.8M11 8.6v6.8" opacity="0.5" />
+  </>),
+  /* jump rope: coiled loop with two handles */
+  jumpRope: svg(<>
+    <circle cx="12" cy="12" r="6.2" />
+    <circle cx="12" cy="12" r="3.4" opacity="0.5" />
+    <line x1="16.6" y1="16.2" x2="19.4" y2="19" strokeWidth={2.6} />
+    <line x1="19" y1="15.8" x2="21.4" y2="18.2" strokeWidth={2.6} />
+  </>),
+  /* storage shelf: uprights with stocked shelves */
+  storageShelf: svg(<>
+    <rect x="3.5" y="4.5" width="17" height="15" rx="1" />
+    <path d="M3.5 9.5h17M3.5 14.5h17" />
+    <rect x="6" y="6" width="3.4" height="3.5" fill="currentColor" stroke="none" opacity="0.35" />
+    <rect x="11" y="6.6" width="3" height="2.9" fill="currentColor" stroke="none" opacity="0.25" />
+    <rect x="6" y="11.4" width="4.4" height="3.1" fill="currentColor" stroke="none" opacity="0.3" />
+  </>),
   box: svg(<rect x="6" y="6" width="12" height="12" rx="2" />),
 } as const;
 
@@ -300,6 +339,10 @@ const CATEGORY_TYPE: Record<string, IconType> = {
   kettlebells: "kettlebell",
   bands: "band",
   flooring: "flooring",
+  yogamats: "yogaMat",
+  foamrollers: "foamRoller",
+  jumpropes: "jumpRope",
+  storage: "storageShelf",
 };
 
 export type EquipmentType = IconType;

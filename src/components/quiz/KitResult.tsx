@@ -38,7 +38,7 @@ import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
 import Link from "next/link";
 import { Map, ArrowRight } from "lucide-react";
-import { PLACEABLE_CATS, footprintOf, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
+import { toFloorItems, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
@@ -155,15 +155,10 @@ export default function KitResult({
 
   /* Selected kit as a placeable list — handed off to the full-screen
      /planner (kept in sync live, same as the For Gyms plan). */
-  const floorItems = useMemo<FloorItem[]>(() => {
-    const prods = selectedKit?.products ?? [];
-    return prods
-      .filter((p) => PLACEABLE_CATS.has(p.category))
-      .map((p) => {
-        const { w, d } = footprintOf(p.id, p.category);
-        return { id: p.id, name: p.name, brand: p.brand, category: p.category, qty: 1, w, d };
-      });
-  }, [selectedKit]);
+  const floorItems = useMemo<FloorItem[]>(
+    () => toFloorItems(selectedKit?.products ?? []),
+    [selectedKit],
+  );
 
   useEffect(() => {
     if (!floorItems.length) return;
@@ -354,7 +349,7 @@ function KitCard({
         {/* Open the full-screen planner (kit is synced to it live). The
             visualizer is the product's headline act, so this is a full-width
             hero CTA — it outranks everything else in the card. */}
-        {items.some((p) => PLACEABLE_CATS.has(p.category)) && (
+        {toFloorItems(items).length > 0 && (
           <Link
             href="/planner"
             className="group mt-4 flex w-full items-center gap-3 rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/20 via-accent/10 to-transparent px-4 py-4 shadow-[0_0_24px_rgba(240,83,30,0.18)] transition-[border-color,box-shadow] duration-200 hover:border-accent/70 hover:shadow-[0_0_38px_rgba(240,83,30,0.45)] sm:px-5"
