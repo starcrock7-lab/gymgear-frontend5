@@ -107,7 +107,10 @@ function forbiddenCats(_space: string): Set<string> {
   return new Set();
 }
 
-type Lite = { id: string; cat: string; price: number; quality: number; rating: number; gs: number; compact: boolean };
+/* `price` is what the kit is charged (sale price when there is one); `list` is
+   the undiscounted price, kept so the builder can tell a real deal from a
+   product that is merely cheap. */
+type Lite = { id: string; cat: string; price: number; list: number; quality: number; rating: number; gs: number; compact: boolean };
 
 /* A machine already IS a rack + cables — a kit holding both is redundant;
    whichever lands first blocks the other. (Lockstep: server.js.) */
@@ -138,6 +141,16 @@ const MIN_PIECES = 3;
 const ESSENTIAL_OVERFLOW = 1.35;
 /* Held back per still-unfilled slot so one greedy anchor can't eat the kit. */
 const RESERVE_PER_SLOT = 45;
+/* Discount preference. The site's promise is the best price, so a genuine sale
+   should win ties and beat marginal alternatives — but never drag in a
+   materially worse product, which would turn "best value" into "most stuff on
+   sale". Bounded by the discount itself: a 25% cut moves the quality score by
+   0.5, so it decides between near-equals and nothing more. (Lockstep: server.js.) */
+const DEAL_WEIGHT_MATCH = 1.5;
+const DEAL_WEIGHT_QUALITY = 2.0;
+/* How much built-quality a same-category swap may give up to land a deal. */
+const DEAL_SWAP_MAX_QUALITY_DROP = 1;
+
 /* Own any of these and a bench is what makes them trainable. Soft rule: a kit
    is better with the bench, but dumbbells alone still work standing. */
 const NEEDS_BENCH = new Set(["dumbbells", "barbells", "plates", "racks"]);
@@ -171,10 +184,15 @@ function buildKit(
     const r = p.price / Math.max(ideal, 1);
     return r > 1 ? Math.max(0, 2 - r) : 0.4 + 0.6 * r;
   };
+  /* Fraction off list, 0 when not on sale. Value already prefers a discount
+     implicitly — its score IS the sale price — so only match and quality need
+     it made explicit. */
+  const dealBoost = (p: Lite) => (p.list > 0 ? Math.max(0, (p.list - p.price) / p.list) : 0);
   const score = {
-    value: (p: Lite) => -p.price,                                    // cheapest first
-    match: (p: Lite) => (p.gs / 100) * 2 + p.rating / 5 + fit(p) * 1.5, // score+rating+budget fit
-    quality: (p: Lite) => p.quality + fit(p) * 0.5,                  // best built, fit breaks ties
+    value: (p: Lite) => -p.price,                                    // cheapest first (sale price)
+    match: (p: Lite) =>
+      (p.gs / 100) * 2 + p.rating / 5 + fit(p) * 1.5 + dealBoost(p) * DEAL_WEIGHT_MATCH,
+    quality: (p: Lite) => p.quality + fit(p) * 0.5 + dealBoost(p) * DEAL_WEIGHT_QUALITY,
   }[strategy];
   const picks: Lite[] = [];
   let spent = 0;
@@ -357,6 +375,35 @@ function buildKit(
   }
   /* Composition is final — now decide the bench. */
   seatBench();
+
+  /* Last look: a kit with no deal in it, when a comparable discounted product
+     was sitting right there, is a missed claim on a site that promises the
+     best price. Swaps are same-category and same-slot, so composition — and
+     with it every usability rule above — is untouched. */
+  if (!picks.some((p) => dealBoost(p) > 0)) {
+    for (let i = 0; i < picks.length; i++) {
+      const cur = picks[i];
+      const alt = catalog
+        .filter(
+          (p) =>
+            p.cat === cur.cat &&
+            p.id !== cur.id &&
+            dealBoost(p) > 0 &&
+            p.quality >= cur.quality - DEAL_SWAP_MAX_QUALITY_DROP &&
+            /* A "deal" that costs more than what it replaced makes the kit
+               dearer in the name of the best-price promise — and it was
+               shuffling Best Value above Best Match on the results page. */
+            p.price <= cur.price &&
+            spent - cur.price + p.price <= stretch,
+        )
+        .sort((a, b) => b.quality + dealBoost(b) * 2 - (a.quality + dealBoost(a) * 2))[0];
+      if (alt) {
+        spent += alt.price - cur.price;
+        picks[i] = alt;
+        break;
+      }
+    }
+  }
   return picks.map((p) => p.id);
 }
 
@@ -576,7 +623,7 @@ export async function POST(req: Request) {
 
   const lite: Lite[] = KIT_CATEGORIES.flatMap((cat) =>
     (catalog[cat] || []).map((p) => ({
-      id: p.id, cat, price: priceOf(p), quality: p.quality, rating: p.rating,
+      id: p.id, cat, price: priceOf(p), list: p.price, quality: p.quality, rating: p.rating,
       gs: p.gymgearScore || 0, compact: !!p.compact,
     })),
   );
