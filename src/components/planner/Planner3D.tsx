@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import type { PlacedItem } from "@/lib/floor-plan";
 import type { WallGrid } from "@/lib/auto-layout";
 import { equipmentTypeOf } from "@/components/planner/equipment-icon";
@@ -69,10 +70,21 @@ export default function Planner3D({
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.97;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     wrap.appendChild(renderer.domElement);
+
+    /* Image-based lighting. Without an environment map every metalness > 0
+       surface — chrome bars, steel frames, plate hubs — has nothing to
+       reflect and resolves to flat grey, which is what made the models read
+       as untextured CAD. The generated room costs no network request. */
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+    scene.environment = envRT.texture;
+    scene.environmentIntensity = 0.7;
+    pmrem.dispose();
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 0, 0);
@@ -83,12 +95,25 @@ export default function Planner3D({
     controls.maxDistance = Math.max(rwIn, rdIn) * 3;
 
     /* Lights */
-    const hemi = new THREE.HemisphereLight(0xffffff, 0xb9c2d1, 1.05);
+    /* Ambient now comes mostly from the environment map, so the hemisphere
+       is a gentle top-up rather than the main source — otherwise the two
+       stack and wash the models flat again. */
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xb9c2d1, 0.5);
     scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+    const sun = new THREE.DirectionalLight(0xfff6ec, 1.9);
     sun.position.set(rwIn * 0.6, Math.max(rwIn, rdIn), rdIn * 0.4);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
+    /* Scene units are inches, so the default bias is far too small and the
+       shadows acne on curved surfaces. Keep normalBias small though — push
+       it far and contact shadows detach, leaving everything looking floaty. */
+    sun.shadow.bias = -0.0004;
+    sun.shadow.normalBias = 0.22;
+    /* Cool fill from the opposite side: keeps shadowed faces readable and
+       stops the graphite frames from crushing to black. */
+    const fill = new THREE.DirectionalLight(0xdce8ff, 0.42);
+    fill.position.set(-rwIn * 0.7, Math.max(rwIn, rdIn) * 0.55, -rdIn * 0.6);
+    scene.add(fill);
     const shadowSpan = Math.max(rwIn, rdIn) * 0.75;
     sun.shadow.camera.left = -shadowSpan;
     sun.shadow.camera.right = shadowSpan;
@@ -109,8 +134,38 @@ export default function Planner3D({
     ground.position.y = -0.5;
     ground.receiveShadow = true;
     scene.add(ground);
-    /* Room floor is the brightest surface — the equipment's stage. */
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0xe4e9f0, roughness: 0.95 });
+    /* Room floor is the brightest surface — the equipment's stage. Speckled
+       rubber-tile texture drawn once to a canvas: a flat colour reads as
+       paper, and at close-up range the speckle is what sells "gym floor". */
+    const floorTex = (() => {
+      const c = document.createElement("canvas");
+      c.width = c.height = 256;
+      const x = c.getContext("2d");
+      if (!x) return null;
+      x.fillStyle = "#f4f7fb";
+      x.fillRect(0, 0, 256, 256);
+      for (let i = 0; i < 2800; i++) {
+        const g = 150 + Math.random() * 70;
+        x.fillStyle = `rgba(${g | 0},${g | 0},${(g + 8) | 0},${0.05 + Math.random() * 0.17})`;
+        const s = Math.random() * 2.2 + 0.4;
+        x.fillRect(Math.random() * 256, Math.random() * 256, s, s);
+      }
+      x.strokeStyle = "rgba(118,130,150,0.30)"; // tile seam
+      x.lineWidth = 2;
+      x.strokeRect(1, 1, 254, 254);
+      const t = new THREE.CanvasTexture(c);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      t.repeat.set(Math.max(2, Math.round(rwIn / 24)), Math.max(2, Math.round(rdIn / 24)));
+      return t;
+    })();
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0xd7dee9, // a touch deeper than the walls so the gear reads against it
+      roughness: 0.88,
+      metalness: 0.02,
+      map: floorTex,
+    });
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(rwIn, rdIn), floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
@@ -217,10 +272,13 @@ export default function Planner3D({
     });
     const MOOD = {
       bg: [new THREE.Color(0xe9edf3), new THREE.Color(0x11151d)] as const,
-      floor: [new THREE.Color(0xe4e9f0), new THREE.Color(0x272e3c)] as const,
+      floor: [new THREE.Color(0xd7dee9), new THREE.Color(0x272e3c)] as const,
       ground: [new THREE.Color(0xc6cdd9), new THREE.Color(0x171c26)] as const,
-      hemi: [1.05, 0.5] as const,
-      sun: [1.6, 1.05] as const,
+      hemi: [0.5, 0.22] as const,
+      sun: [1.9, 1.15] as const,
+      /* The environment map has to dim with everything else, or the room
+         stays lit and the close-up spotlight has nothing to reveal. */
+      env: [0.7, 0.22] as const,
     };
     let mood = 0; // 0 = light showroom · 1 = dark spotlight on the selection
     const tmpA = new THREE.Color();
@@ -338,6 +396,7 @@ export default function Planner3D({
         groundMat.color.lerpColors(MOOD.ground[0], MOOD.ground[1], mood);
         hemi.intensity = MOOD.hemi[0] + (MOOD.hemi[1] - MOOD.hemi[0]) * mood;
         sun.intensity = MOOD.sun[0] + (MOOD.sun[1] - MOOD.sun[0]) * mood;
+        scene.environmentIntensity = MOOD.env[0] + (MOOD.env[1] - MOOD.env[0]) * mood;
         spot.intensity = mood * 2.4;
         for (const g of byUid.values()) {
           const dim = g === sel ? 0 : mood * 0.8;
@@ -397,6 +456,8 @@ export default function Planner3D({
         if (Array.isArray(mat)) mat.forEach((mm) => mm.dispose());
         else if (mat) mat.dispose();
       });
+      envRT.dispose();
+      floorTex?.dispose();
       renderer.dispose();
       wrap.removeChild(renderer.domElement);
     };

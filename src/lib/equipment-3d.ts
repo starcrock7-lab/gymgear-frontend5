@@ -112,15 +112,29 @@ type Mats = {
   rubber: THREE.Material;
 };
 
+/* Real gym-equipment surfaces, now that the scene supplies an environment
+   map for them to reflect: powder-coated steel is fairly metallic and matte,
+   bar chrome is a true mirror, upholstery is vinyl with a clearcoat sheen,
+   and bumper rubber barely reflects at all. */
 function makeMats(category: string): Mats {
   const accent = familyHex(category);
   return {
-    frame: new THREE.MeshStandardMaterial({ color: FRAME, roughness: 0.5, metalness: 0.45 }),
-    accent: new THREE.MeshStandardMaterial({ color: accent, roughness: 0.4, metalness: 0.25 }),
-    pad: new THREE.MeshStandardMaterial({ color: PAD, roughness: 0.85 }),
-    dark: new THREE.MeshStandardMaterial({ color: STACK, roughness: 0.7, metalness: 0.3 }),
-    chrome: new THREE.MeshStandardMaterial({ color: CHROME, roughness: 0.25, metalness: 0.9 }),
-    rubber: new THREE.MeshStandardMaterial({ color: RUBBER, roughness: 0.95 }),
+    frame: new THREE.MeshStandardMaterial({ color: FRAME, roughness: 0.42, metalness: 0.75 }),
+    accent: new THREE.MeshStandardMaterial({ color: accent, roughness: 0.36, metalness: 0.28 }),
+    pad: new THREE.MeshPhysicalMaterial({
+      color: PAD,
+      roughness: 0.68,
+      clearcoat: 0.5,
+      clearcoatRoughness: 0.55,
+    }),
+    dark: new THREE.MeshStandardMaterial({ color: STACK, roughness: 0.62, metalness: 0.38 }),
+    chrome: new THREE.MeshStandardMaterial({
+      color: CHROME,
+      roughness: 0.12,
+      metalness: 1,
+      envMapIntensity: 1.35,
+    }),
+    rubber: new THREE.MeshStandardMaterial({ color: RUBBER, roughness: 0.92, metalness: 0.04 }),
   };
 }
 
@@ -133,7 +147,10 @@ function boxAt(g: THREE.Group, m: THREE.Material, w: number, h: number, d: numbe
   g.add(mesh);
   return mesh;
 }
-function cylAt(g: THREE.Group, m: THREE.Material, r: number, len: number, x: number, y: number, z: number, axis: "x" | "y" | "z" = "y", radialSegments = 14) {
+/* Segment defaults are generous: the click-to-inspect close-up puts the
+   camera within a couple of feet of a bar, where faceting is obvious. Call
+   sites that want a faceted look (hex dumbbells) still pass their own. */
+function cylAt(g: THREE.Group, m: THREE.Material, r: number, len: number, x: number, y: number, z: number, axis: "x" | "y" | "z" = "y", radialSegments = 22) {
   const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, radialSegments), m);
   if (axis === "x") mesh.rotation.z = Math.PI / 2;
   if (axis === "z") mesh.rotation.x = Math.PI / 2;
@@ -143,7 +160,7 @@ function cylAt(g: THREE.Group, m: THREE.Material, r: number, len: number, x: num
   return mesh;
 }
 function sphereAt(g: THREE.Group, m: THREE.Material, r: number, x: number, y: number, z: number, squash = 1) {
-  const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), m);
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 26, 18), m);
   mesh.position.set(x, y, z);
   if (squash !== 1) mesh.scale.y = squash;
   mesh.castShadow = true;
@@ -152,7 +169,7 @@ function sphereAt(g: THREE.Group, m: THREE.Material, r: number, x: number, y: nu
 }
 /* Ring lying flat on the floor (rope coils) or standing up (band loops). */
 function torusAt(g: THREE.Group, m: THREE.Material, r: number, tube_: number, x: number, y: number, z: number, flat = true) {
-  const mesh = new THREE.Mesh(new THREE.TorusGeometry(r, tube_, 8, 24), m);
+  const mesh = new THREE.Mesh(new THREE.TorusGeometry(r, tube_, 12, 34), m);
   mesh.position.set(x, y, z);
   if (flat) mesh.rotation.x = Math.PI / 2;
   mesh.castShadow = true;
@@ -161,7 +178,7 @@ function torusAt(g: THREE.Group, m: THREE.Material, r: number, tube_: number, x:
 }
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 /* Tube between two points — frame diagonals, cables, moving arms. */
-function tube(g: THREE.Group, m: THREE.Material, r: number, a: THREE.Vector3, b: THREE.Vector3, radialSegments = 10) {
+function tube(g: THREE.Group, m: THREE.Material, r: number, a: THREE.Vector3, b: THREE.Vector3, radialSegments = 14) {
   const dir = b.clone().sub(a);
   const len = dir.length();
   const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, radialSegments), m);
@@ -173,15 +190,15 @@ function tube(g: THREE.Group, m: THREE.Material, r: number, a: THREE.Vector3, b:
 }
 /* Weight plate: rim + lighter hub, axis x or z. */
 function plate(g: THREE.Group, m: Mats, r: number, th: number, x: number, y: number, z: number, axis: "x" | "z" = "x") {
-  cylAt(g, m.dark, r, th, x, y, z, axis, 20);
-  cylAt(g, m.chrome, r * 0.18, th + 0.4, x, y, z, axis, 10);
+  cylAt(g, m.dark, r, th, x, y, z, axis, 30);
+  cylAt(g, m.chrome, r * 0.18, th + 0.4, x, y, z, axis, 18);
 }
 /* Loaded barbell along x: chrome shaft, sleeves, collars, bumper pairs. */
 function loadedBar(g: THREE.Group, m: Mats, halfSpan: number, y: number, z: number) {
-  cylAt(g, m.chrome, 0.6, halfSpan * 2, 0, y, z, "x", 10);
+  cylAt(g, m.chrome, 0.6, halfSpan * 2, 0, y, z, "x", 24);
   for (const sx of [-1, 1]) {
-    cylAt(g, m.chrome, 1, halfSpan * 0.32, sx * halfSpan * 0.86, y, z, "x", 10); // sleeve
-    cylAt(g, m.dark, 1.5, 1, sx * (halfSpan * 0.7), y, z, "x", 10); // collar
+    cylAt(g, m.chrome, 1, halfSpan * 0.32, sx * halfSpan * 0.86, y, z, "x", 24); // sleeve
+    cylAt(g, m.dark, 1.5, 1, sx * (halfSpan * 0.7), y, z, "x", 18); // collar
     plate(g, m, 8.8, 2.4, sx * (halfSpan * 0.78), y, z);
     plate(g, m, 6.6, 1.8, sx * (halfSpan * 0.78 + 2.6), y, z);
   }
@@ -571,13 +588,13 @@ const BUILDERS: Record<string, Builder> = {
       boxAt(g, m.frame, 5, h * 0.6, d * 0.9, x, h * 0.3, 0); // cradle block
       boxAt(g, m.dark, 5.4, 1.4, d * 0.5, x, h * 0.62, 0); // rubber saddle
     }
-    cylAt(g, m.chrome, 0.62, span * 0.62, 0, barY, 0, "x", 12); // shaft
+    cylAt(g, m.chrome, 0.62, span * 0.62, 0, barY, 0, "x", 24); // shaft
     for (const sx of [-1, 1]) {
-      cylAt(g, m.chrome, 1.05, span * 0.16, sx * span * 0.39, barY, 0, "x", 12); // sleeve
-      cylAt(g, m.dark, 1.25, 0.9, sx * span * 0.3, barY, 0, "x", 10); // collar
-      cylAt(g, m.accent, 1.1, 0.7, sx * span * 0.47, barY, 0, "x", 10); // end cap
+      cylAt(g, m.chrome, 1.05, span * 0.16, sx * span * 0.39, barY, 0, "x", 24); // sleeve
+      cylAt(g, m.dark, 1.25, 0.9, sx * span * 0.3, barY, 0, "x", 18); // collar
+      cylAt(g, m.accent, 1.1, 0.7, sx * span * 0.47, barY, 0, "x", 18); // end cap
     }
-    for (const k of [-1, 0, 1]) cylAt(g, m.dark, 0.68, 2.2, k * span * 0.14, barY, 0, "x", 10); // knurl
+    for (const k of [-1, 0, 1]) cylAt(g, m.dark, 0.68, 2.2, k * span * 0.14, barY, 0, "x", 18); // knurl
   },
   plates(g, w, d, h, m) {
     /* plate tree: cross base, post, three peg tiers, heaviest at the bottom */
