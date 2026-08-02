@@ -69,6 +69,9 @@ export type Kit = {
   coverage?: Coverage;
   coverageGaps?: Pattern[];
   muscles?: MuscleStatus[];
+  /* Categories the buyer said they already own — they aren't in the kit but
+     they do count toward what the buyer can train, so the panel has to know. */
+  ownedCats?: string[];
 };
 
 export type KitResponse = {

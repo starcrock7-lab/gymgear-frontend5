@@ -31,6 +31,11 @@ const BUDGETS = ["under-300", "300-800", "800-2000", "2000-plus"];
 const EXPS = ["beginner", "intermediate", "advanced"];
 const COUNTS = ["key-pieces", "small-setup", "full-home-gym"];
 const SPACES = ["spare-room", "garage", "small-room", "apartment-corner"];
+/* Owned gear is a real branch: those categories are excluded from the kit but
+   still count toward what the buyer can train. A kit for someone who owns a
+   rack must not "fix" their pull-up bar with a resistance band. */
+const OWNED = [["nothing"], ["bench"], ["rack", "barbell"], ["dumbbells", "bench"], ["cardio"]];
+const OWNED_TO_CAT = { barbell: "barbells", dumbbells: "dumbbells", bench: "benches", rack: "racks", cardio: "cardio" };
 
 const KIT_CATS = [
   "racks", "machines", "barbells", "plates", "benches", "dumbbells",
@@ -63,35 +68,40 @@ for (const goal of GOALS)
   for (const budget of BUDGETS)
     for (const experience of EXPS)
       for (const equipmentCount of COUNTS)
-        for (const space of SPACES) {
-          const a = { goal, experience, budget, space, ceiling: "normal", equipmentCount, owned: ["nothing"] };
-          const kits = selectKits(catalog, a);
-          const tag = `${goal}/${budget}/${experience}/${equipmentCount}/${space}`;
-          if (!kits.length) { structural.push(`${tag}: produced NO kits`); continue; }
-          for (const k of kits) {
-            const cats = k.products.map((p) => p.category);
-            const has = (c) => cats.includes(c);
-            const bad = [];
-            if (k.products.length < 3) bad.push(`only ${k.products.length} pieces`);
-            if (NEEDS_BENCH.some(has) && !has("benches")) bad.push("free weights, no bench");
-            for (const [c, needs] of Object.entries(HARD))
-              if (has(c)) for (const nd of needs) if (!has(nd)) bad.push(`${c} without ${nd}`);
-            const ceiling = capFor(k.type, BUDGET_CAP[budget]) * ESSENTIAL_OVERFLOW;
-            if (k.totalPrice > ceiling) bad.push(`$${k.totalPrice} over stretched cap $${Math.round(ceiling)}`);
-            if (new Set(cats).size !== cats.length) bad.push("duplicate category");
-            if (bad.length) structural.push(`${tag} [${k.type}] $${k.totalPrice}: ${bad.join("; ")}`);
+        for (const space of SPACES)
+          for (const owned of OWNED) {
+            const a = { goal, experience, budget, space, ceiling: "normal", equipmentCount, owned };
+            const ownedCats = new Set(owned.map((id) => OWNED_TO_CAT[id]).filter(Boolean));
+            const kits = selectKits(catalog, a);
+            const tag = `${goal}/${budget}/${experience}/${equipmentCount}/${space}/own:${owned.join("+")}`;
+            if (!kits.length) { structural.push(`${tag}: produced NO kits`); continue; }
+            for (const k of kits) {
+              const cats = k.products.map((p) => p.category);
+              const has = (c) => cats.includes(c);
+              const bad = [];
+              if (k.products.length < 3) bad.push(`only ${k.products.length} pieces`);
+              if (NEEDS_BENCH.some(has) && !has("benches") && !ownedCats.has("benches")) bad.push("free weights, no bench");
+              for (const [c, needs] of Object.entries(HARD))
+                if (has(c)) for (const nd of needs) if (!has(nd) && !ownedCats.has(nd)) bad.push(`${c} without ${nd}`);
+              const ceiling = capFor(k.type, BUDGET_CAP[budget]) * ESSENTIAL_OVERFLOW;
+              if (k.totalPrice > ceiling) bad.push(`$${k.totalPrice} over stretched cap $${Math.round(ceiling)}`);
+              if (new Set(cats).size !== cats.length) bad.push("duplicate category");
+              /* Selling someone what they told us they already own is the
+                 single most obvious way to look like we weren't listening. */
+              for (const c of cats) if (ownedCats.has(c)) bad.push(`re-sold owned ${c}`);
+              if (bad.length) structural.push(`${tag} [${k.type}] $${k.totalPrice}: ${bad.join("; ")}`);
 
-            const gaps = coverageGaps(k.products, goal);
-            rows.push({ tag, goal, budget, space, count: equipmentCount, type: k.type, price: k.totalPrice, pieces: k.products.length, gaps, ids: k.products.map((p) => p.id) });
-            if (gaps.length) coverageFails.push({ tag, type: k.type, price: k.totalPrice, gaps, cats });
+              const gaps = coverageGaps(k.products, goal, ownedCats);
+              rows.push({ tag, goal, budget, space, owned, count: equipmentCount, type: k.type, price: k.totalPrice, pieces: k.products.length, gaps, ids: k.products.map((p) => p.id), ownedCats: [...ownedCats] });
+              if (gaps.length) coverageFails.push({ tag, type: k.type, price: k.totalPrice, gaps, cats });
+            }
           }
-        }
 
 const n = rows.length;
 if (JSON_OUT) {
   console.log(JSON.stringify({ checked: n, structural, coverageFails, rows }, null, 2));
 } else {
-  console.log(`kits checked: ${n}  (${GOALS.length}x${BUDGETS.length}x${EXPS.length}x${COUNTS.length}x${SPACES.length} answer combinations x 3 tiers)`);
+  console.log(`kits checked: ${n}  (${GOALS.length}x${BUDGETS.length}x${EXPS.length}x${COUNTS.length}x${SPACES.length}x${OWNED.length} answer combinations x 3 tiers)`);
 
   console.log(`\nSTRUCTURAL problems: ${structural.length}`);
   structural.slice(0, 20).forEach((p) => console.log("  " + p));
@@ -113,7 +123,7 @@ if (JSON_OUT) {
   for (const g of GOALS) {
     const sub = rows.filter((r) => r.goal === g);
     const worst = sub.reduce((m, r) => {
-      const covered = muscleCoverage(r.ids.map((id) => byId(id))).filter((x) => x.level > 0).length;
+      const covered = muscleCoverage(r.ids.map((id) => byId(id)), r.ownedCats).filter((x) => x.level > 0).length;
       return covered < m.covered ? { covered, r } : m;
     }, { covered: 99, r: null });
     console.log(`  ${g.padEnd(16)} ${worst.covered}/8   (worst: ${worst.r.tag} [${worst.r.type}])`);

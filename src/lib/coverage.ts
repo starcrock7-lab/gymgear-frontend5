@@ -140,10 +140,24 @@ export function coverageFromTrains(
   return cov;
 }
 
-export function coverageOf(products: CoverageInput[]): Coverage {
-  return coverageFromTrains(
-    products.map((p) => ({ category: p.category, trains: trainsOf(p) })),
-  );
+/* Gear the buyer already owns counts. The kit deliberately doesn't re-sell you
+   a rack you have, so judging coverage on the kit alone would conclude you
+   can't do pull-ups and bolt a resistance band on to "fix" it. Owning a
+   barbell means owning a loaded one — nobody answers "I have a barbell" about
+   a bare shaft — so it brings its plates with it. */
+export function ownedTrains(ownedCats: Iterable<string>): { category: string; trains: Partial<Record<Pattern, 1 | 2>> }[] {
+  const cats = [...ownedCats];
+  const rows = cats.map((c) => ({ category: c, trains: CAT_TRAINS[c] ?? {} }));
+  if (cats.includes("barbells") && !cats.includes("plates"))
+    rows.push({ category: "plates", trains: {} });
+  return rows;
+}
+
+export function coverageOf(products: CoverageInput[], ownedCats: Iterable<string> = []): Coverage {
+  return coverageFromTrains([
+    ...products.map((p) => ({ category: p.category, trains: trainsOf(p) })),
+    ...ownedTrains(ownedCats),
+  ]);
 }
 
 /* What each goal has to be able to train before the kit is honest about
@@ -162,8 +176,8 @@ export function needsFor(goal: string): Partial<Record<Pattern, 1 | 2>> {
 }
 
 /* Patterns the goal requires that the kit can't deliver. Empty = complete. */
-export function coverageGaps(products: CoverageInput[], goal: string): Pattern[] {
-  const cov = coverageOf(products);
+export function coverageGaps(products: CoverageInput[], goal: string, ownedCats: Iterable<string> = []): Pattern[] {
+  const cov = coverageOf(products, ownedCats);
   return (Object.entries(needsFor(goal)) as [Pattern, 1 | 2][])
     .filter(([k, v]) => cov[k] < v)
     .map(([k]) => k);
@@ -200,8 +214,8 @@ export type MuscleStatus = {
   via: string[];
 };
 
-export function muscleCoverage(products: CoverageInput[]): MuscleStatus[] {
-  const cov = coverageOf(products);
+export function muscleCoverage(products: CoverageInput[], ownedCats: Iterable<string> = []): MuscleStatus[] {
+  const cov = coverageOf(products, ownedCats);
   const maxOf = (ps: Pattern[]): 0 | 1 | 2 =>
     ps.reduce<0 | 1 | 2>((m, p) => (cov[p] > m ? cov[p] : m), 0);
   return MUSCLE_GROUPS.map((g) => ({
@@ -216,8 +230,8 @@ export function muscleCoverage(products: CoverageInput[]): MuscleStatus[] {
 
 /* One-line summary for kit copy: "Trains all 8 muscle groups" or the honest
    version naming what is missing. */
-export function coverageSummary(products: CoverageInput[]): string {
-  const groups = muscleCoverage(products);
+export function coverageSummary(products: CoverageInput[], ownedCats: Iterable<string> = []): string {
+  const groups = muscleCoverage(products, ownedCats);
   const missing = groups.filter((g) => g.level === 0);
   if (!missing.length) return `Trains all ${groups.length} muscle groups.`;
   const names = missing.map((g) => g.label.toLowerCase());

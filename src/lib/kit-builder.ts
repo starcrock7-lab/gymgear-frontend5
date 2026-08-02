@@ -11,8 +11,8 @@
    budget trim, so local and backend kits never diverge. */
 import type { KitProduct, KitType } from "@/lib/kit";
 import {
-  coverageFromTrains, coverageGaps, needsFor, PATTERNS, replacesRack,
-  SPECIALTY_BARS, trainsOf, type Pattern,
+  coverageFromTrains, coverageGaps, needsFor, ownedTrains, PATTERNS,
+  replacesRack, SPECIALTY_BARS, trainsOf, type Pattern,
 } from "@/lib/coverage";
 
 /* Categories that belong in a home-gym kit, in build-priority order. */
@@ -201,15 +201,25 @@ export function buildKit(
   const conflicted = (p: Lite) =>
     (p.cat === "racks" && picks.some((q) => q.rackLike)) ||
     (p.rackLike && picks.some((q) => q.cat === "racks"));
-  /* Everything except the budget test — reused by the usability pass, which
-     spends against a stretched cap rather than the tier cap. */
-  const allowed = (p: Lite) =>
-    !blocked.has(p.cat) && !ownedCats.has(p.cat) && !conflicted(p) &&
+  /* The gates that come from the buyer's own answers: it doesn't fit the room,
+     it doesn't clear the ceiling, they already own it, or it isn't the kind of
+     bar a kit can be built on. These hold for ANY slot — separated from
+     allowed() because the deal swap replaces a product in a slot that is
+     already taken, so it can't use the blocked-category test but absolutely
+     must still respect these (it was swapping a compact all-in-one for a
+     discounted commercial leg press that then failed the room filter, leaving
+     a two-item "kit"). */
+  const eligible = (p: Lite) =>
+    !ownedCats.has(p.cat) &&
     /* An EZ curl bar is not a barbell you can rack, bench or squat. */
     !SPECIALTY_BARS.has(p.id) &&
     !(tight && (p.cat === "machines" || p.cat === "cardio" || p.cat === "racks") && !p.compact) &&
     !(lowCeil && p.cat === "racks" && !LOW_CEIL_RACKS.has(p.id)) &&
     !(lowCeil && p.cat === "machines" && !LOW_CEIL_MACHINES.has(p.id));
+  /* Everything except the budget test — reused by the usability pass, which
+     spends against a stretched cap rather than the tier cap. */
+  const allowed = (p: Lite) =>
+    !blocked.has(p.cat) && !conflicted(p) && eligible(p);
   const fitsIn = (p: Lite, budget: number) => spent + p.price <= budget;
   /* Hold budget back for the slots still to fill. Without this a single
      greedy anchor takes the lot — the $295 dumbbell under a $300 cap that
@@ -387,7 +397,12 @@ export function buildKit(
      the other usability rules use. Cheapest-that-fixes-it (not best) keeps the
      repair from quietly rebuilding the tier's character — a $54 kettlebell
      restores the hinge, it doesn't turn Best Value into Best Quality. */
-  const coverNow = () => coverageFromTrains(picks.map((p) => ({ category: p.cat, trains: p.trains })));
+  /* Owned gear counts toward what the buyer can train — the kit doesn't
+     re-sell you the rack you already have, and without this the repair pass
+     would "fix" your missing pull-up bar with a resistance band. */
+  const owned = ownedTrains(ownedCats);
+  const coverNow = () =>
+    coverageFromTrains([...picks.map((p) => ({ category: p.cat, trains: p.trains })), ...owned]);
   for (let pass = 0; pass < PATTERNS.length; pass++) {
     const cov = coverNow();
     const missing = (Object.entries(needs) as [Pattern, 1 | 2][])
@@ -402,7 +417,7 @@ export function buildKit(
        alongside something to press. */
     const fixes = catalog
       .filter((p) => allowed(p) && !picks.some((q) => q.cat === p.cat) && fitsIn(p, stretch))
-      .filter((p) => coverageFromTrains([...picks, p].map((q) => ({ category: q.cat, trains: q.trains })))[pat] >= want)
+      .filter((p) => coverageFromTrains([...[...picks, p].map((q) => ({ category: q.cat, trains: q.trains })), ...owned])[pat] >= want)
       .sort((a, b) => a.price - b.price);
     if (!fixes.length) break;
     take(fixes[0]);
@@ -420,9 +435,10 @@ export function buildKit(
      able to train everything it could before. */
   const covBefore = coverNow();
   const keepsCoverage = (i: number, alt: Lite) => {
-    const after = coverageFromTrains(
-      picks.map((q, j) => ({ category: j === i ? alt.cat : q.cat, trains: j === i ? alt.trains : q.trains })),
-    );
+    const after = coverageFromTrains([
+      ...picks.map((q, j) => ({ category: j === i ? alt.cat : q.cat, trains: j === i ? alt.trains : q.trains })),
+      ...owned,
+    ]);
     return PATTERNS.every(
       (k) => after[k] >= (needs[k] ?? 0) && !(covBefore[k] > 0 && after[k] === 0),
     );
@@ -442,6 +458,10 @@ export function buildKit(
                shuffling Best Value above Best Match on the results page. */
             p.price <= cur.price &&
             spent - cur.price + p.price <= stretch &&
+            eligible(p) &&
+            /* An all-in-one swapped in next to a rack is the redundancy the
+               rack-like rule exists to prevent. */
+            !(p.rackLike && picks.some((q, j) => j !== i && q.cat === "racks")) &&
             keepsCoverage(i, p),
         )
         .sort((a, b) => b.quality + dealBoost(b) * 2 - (a.quality + dealBoost(a) * 2))[0];
@@ -521,11 +541,11 @@ export function hydrateKits(
         if (total <= cap || products.length <= MIN_PIECES) break;
         /* Trimming for budget must never re-open a coverage gap: a cheaper kit
            that can no longer train your back isn't cheaper, it's broken. */
-        const gapsNow = coverageGaps(products, goal).length;
+        const gapsNow = coverageGaps(products, goal, ownedCats).length;
         const droppable = products
           .map((p, idx) => ({ p, idx }))
           .filter(({ p }) => !(needsBench && p.category === "benches"))
-          .filter(({ idx }) => coverageGaps(products.filter((_, i) => i !== idx), goal).length <= gapsNow);
+          .filter(({ idx }) => coverageGaps(products.filter((_, i) => i !== idx), goal, ownedCats).length <= gapsNow);
         if (!droppable.length) break;
         const worst = droppable.reduce((m, c) => (priceOf(c.p) > priceOf(m.p) ? c : m));
         total -= priceOf(worst.p);

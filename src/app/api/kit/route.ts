@@ -36,7 +36,7 @@ const GOAL_WORD: Record<string, string> = {
   "build-strength": "strength", "lose-weight": "fat-loss",
   "get-fit": "all-round fitness", "home-gym-setup": "complete home-gym",
 };
-function defaultCopy(kit: HydratedKit, goal: string): { name: string; description: string } {
+function defaultCopy(kit: HydratedKit, goal: string, ownedCats: Set<string>): { name: string; description: string } {
   const lead = kit.products[0]?.name || "your essentials";
   const word = GOAL_WORD[goal] || "training";
   const blurb = {
@@ -47,7 +47,7 @@ function defaultCopy(kit: HydratedKit, goal: string): { name: string; descriptio
   /* State the coverage in the blurb — it is the strongest thing we can say
      about a kit, and saying it here keeps the claim honest when it isn't
      complete (coverageSummary names what's missing rather than hiding it). */
-  return { name: kit.name, description: `${blurb} ${coverageSummary(kit.products)}` };
+  return { name: kit.name, description: `${blurb} ${coverageSummary(kit.products, ownedCats)}` };
 }
 
 /* Top complementary accessories for the kit — relevant (pairsWith ∩ kit
@@ -157,12 +157,15 @@ export async function POST(req: Request) {
   );
   const kits = selectKits(catalog, { ...a, goal: a.goal, budget: a.budget }).map((k) => ({
     ...k,
-    ...defaultCopy(k, a.goal as string),
+    ...defaultCopy(k, a.goal as string, ownedCats),
     /* What the kit can actually train — rendered as the coverage panel, and
-       the site's proof that "complete" is a measurement, not a slogan. */
-    coverage: coverageOf(k.products),
-    coverageGaps: coverageGaps(k.products, a.goal as string),
-    muscles: muscleCoverage(k.products),
+       the site's proof that "complete" is a measurement, not a slogan. Owned
+       gear is folded in: the kit doesn't re-sell you the rack you have, but
+       you can still do pull-ups on it. */
+    coverage: coverageOf(k.products, ownedCats),
+    coverageGaps: coverageGaps(k.products, a.goal as string, ownedCats),
+    muscles: muscleCoverage(k.products, ownedCats),
+    ownedCats: [...ownedCats],
   }));
 
   const accessories = accessoryPool(kits, catalog, ownedCats)

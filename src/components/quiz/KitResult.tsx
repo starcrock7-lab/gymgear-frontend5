@@ -34,6 +34,7 @@ import {
   type KitProduct,
   type KitResponse,
 } from "@/lib/kit";
+import { muscleCoverage } from "@/lib/coverage";
 import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
 import Link from "next/link";
@@ -295,6 +296,78 @@ export default function KitResult({
   );
 }
 
+/* What this kit can actually train, live. Recomputed from the products on
+   screen rather than read off the API response, because the kit is editable:
+   pull the bench out and "Chest" has to stop claiming to be covered in the
+   same frame. The claim is only worth showing if it tracks the truth. */
+function CoveragePanel({ products, ownedCats }: { products: KitProduct[]; ownedCats: string[] }) {
+  const groups = useMemo(() => muscleCoverage(products, ownedCats), [products, ownedCats]);
+  const full = groups.filter((g) => g.level === 2).length;
+  const missing = groups.filter((g) => g.level === 0);
+
+  return (
+    <div className="border-b border-white/10 px-4 py-3.5 sm:px-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="font-body text-xs font-bold text-white/70">
+          What you can train
+          {ownedCats.length > 0 && (
+            <span className="ml-1.5 font-normal text-white/35">
+              incl. gear you own
+            </span>
+          )}
+        </p>
+        <p className="text-[0.65rem] font-bold uppercase tracking-wide">
+          {missing.length === 0 ? (
+            <span className="text-win">All {groups.length} groups</span>
+          ) : (
+            <span className="text-white/45">
+              {groups.length - missing.length}/{groups.length} groups
+            </span>
+          )}
+        </p>
+      </div>
+      <ul className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-4">
+        {groups.map((g) => (
+          <li
+            key={g.key}
+            /* `via` names the movements behind the tick, so a green chip is a
+               claim the user can check rather than one they have to trust. */
+            title={g.via.length ? `${g.label}: ${g.via.join(", ")}` : `${g.label}: nothing in this kit trains it`}
+            className="flex items-center gap-1.5"
+          >
+            <span
+              aria-hidden
+              className={
+                g.level === 2
+                  ? "h-1.5 w-1.5 shrink-0 rounded-full bg-win"
+                  : g.level === 1
+                    ? "h-1.5 w-1.5 shrink-0 rounded-full bg-white/40"
+                    : "h-1.5 w-1.5 shrink-0 rounded-full border border-white/25"
+              }
+            />
+            <span
+              className={
+                g.level === 0
+                  ? "truncate text-[0.7rem] text-white/25"
+                  : "truncate text-[0.7rem] text-white/70"
+              }
+            >
+              {g.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {full < groups.length && (
+        <p className="mt-2 text-[0.65rem] leading-snug text-white/35">
+          {missing.length > 0
+            ? `No gear here trains ${missing.map((g) => g.label.toLowerCase()).join(" or ")}.`
+            : "Solid dots are fully trainable; faded ones only at light resistance."}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function KitCard({
   kit,
   flashId,
@@ -372,6 +445,13 @@ function KitCard({
           </Link>
         )}
       </div>
+
+      {/* Muscle coverage — the answer to "is this actually a gym?", measured
+          from the products on screen. Above the deals strip on purpose: what
+          the kit can train matters more than what it saved. */}
+      {items.length > 0 && (
+        <CoveragePanel products={items} ownedCats={kit.ownedCats ?? []} />
+      )}
 
       {/* Live deals in this cart — derived from curated sale prices
           (lib/deals.ts), recomputes on every swap/remove/add. */}
