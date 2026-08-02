@@ -523,6 +523,7 @@ function OwnedScreen({
 const BUILD_LINES = [
   "Scanning 250+ products across 30+ categories…",
   "Optimizing for your budget and space…",
+  "Checking every muscle group is covered…",
   "Assembling Best Value · Best Match · Best Quality…",
 ];
 

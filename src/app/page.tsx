@@ -121,12 +121,12 @@ const steps: FlowStep[] = [
     n: "02",
     icon: <Sparkles className="h-4.5 w-4.5" />,
     title: "AI builds 3 kits",
-    body: "Best Value, Best Match, and Best Quality — assembled from 250+ real products with live prices.",
+    body: "Best Value, Best Match, and Best Quality — each one checked to make sure you can train every muscle group with it.",
     details: [
       "Best Value — the cheapest route to your goal",
       "Best Match — balanced for your exact answers",
       "Best Quality — buy once, cry once",
-      "250+ real products across 30+ categories, live prices",
+      "Every kit covers chest, back, legs, core — not just a pile of gear",
     ],
   },
   {
