@@ -1,6 +1,7 @@
 /* Shapes returned by /api/kit — our local Next route (src/app/api/kit), a
    port of the backend builder; keep in sync with server.js hydrateKits. The
    catalog owns all product data; the frontend only renders it. */
+import type { Coverage, MuscleStatus, Pattern } from "@/lib/coverage";
 
 export type KitProduct = {
   id: string;
@@ -62,6 +63,12 @@ export type Kit = {
   description: string;
   products: KitProduct[];
   totalPrice: number;
+  /* What the kit can actually train (lib/coverage.ts). Measured server-side
+     from the products themselves, never written by a model. Optional because
+     an older backend response won't carry it. */
+  coverage?: Coverage;
+  coverageGaps?: Pattern[];
+  muscles?: MuscleStatus[];
 };
 
 export type KitResponse = {

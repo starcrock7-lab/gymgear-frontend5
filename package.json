@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:deals": "node scripts/check-deals.mjs"
+    "check:deals": "node scripts/check-deals.mjs",
+    "audit:kits": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/audit-kits.mjs",
+    "check:lockstep": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/check-lockstep.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
