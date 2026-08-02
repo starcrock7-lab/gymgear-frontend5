@@ -38,7 +38,10 @@ export async function generateMetadata({
     title: `${p.name} review & GymGear Score`,
     description:
       `${p.name} by ${p.brand}: GymGear Score ${p.gymgearScore ?? "—"}/100, ` +
-      `${p.rating}/5 from ${p.reviewCount.toLocaleString()} owners, ${formatPrice(price)}. ` +
+      (p.rating != null
+        ? `${p.rating}/5${p.reviewCount != null ? ` from ${p.reviewCount.toLocaleString()} owners` : ""}, `
+        : "") +
+      `${formatPrice(price)}. ` +
       (typeof p.expertVerdict === "string" && p.expertVerdict
         ? p.expertVerdict
         : `Our independent take on the ${p.name}.`),
@@ -167,6 +170,10 @@ export default async function ProductPage({
                   </span>
                 )}
               </div>
+              {/* Retailer star rating only when the listing actually publishes
+                  one — an unrated product shows no stars rather than an
+                  invented score. Our GymGear Score is always shown above. */}
+              {p.rating != null && (
               <div className="mt-2 flex items-center gap-1.5 text-sm text-ink-2">
                 <span className="relative inline-flex" aria-hidden>
                   <span className="flex text-line">
@@ -176,7 +183,7 @@ export default async function ProductPage({
                   </span>
                   <span
                     className="absolute inset-y-0 left-0 flex overflow-hidden text-accent"
-                    style={{ width: `${(Math.min(p.rating, 5) / 5) * 100}%` }}
+                    style={{ width: `${(Math.min(p.rating ?? 0, 5) / 5) * 100}%` }}
                   >
                     {[0, 1, 2, 3, 4].map((i) => (
                       <Star key={i} className="h-4 w-4 shrink-0 fill-current" />
@@ -184,10 +191,13 @@ export default async function ProductPage({
                   </span>
                 </span>
                 <span className="font-bold text-ink">{p.rating}</span>
-                <span className="text-ink-3">
-                  from {p.reviewCount.toLocaleString()} owner reviews
-                </span>
+                {p.reviewCount != null && (
+                  <span className="text-ink-3">
+                    from {p.reviewCount.toLocaleString()} owner reviews
+                  </span>
+                )}
               </div>
+              )}
 
               <a
                 href={buyUrl(p)}

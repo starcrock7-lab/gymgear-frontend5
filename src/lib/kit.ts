@@ -12,8 +12,12 @@ export type KitProduct = {
   affiliateUrl: string;
   image: string | null;
   quality: number;
-  rating: number;
-  reviewCount: number;
+  /* OUR 0-10 score is always present. The retailer's star rating is not:
+     most retailers publish no aggregateRating, and inventing one would
+     fabricate social proof. Null means "not published" — render nothing,
+     never a zero. */
+  rating: number | null;
+  reviewCount: number | null;
   expertVerdict: string;
   expertSource: string;
   specs: Record<string, string>;

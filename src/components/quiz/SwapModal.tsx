@@ -227,11 +227,16 @@ function SwapOption({
           </div>
           <div className="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-white/45">
             <span>{p.brand}</span>
-            <span className="text-white/20">·</span>
-            <span className="flex items-center gap-0.5">
-              <Star className="h-2.5 w-2.5 fill-accent text-accent" />
-              {p.rating} ({p.reviewCount.toLocaleString()})
-            </span>
+            {p.rating != null && (
+              <>
+                <span className="text-white/20">·</span>
+                <span className="flex items-center gap-0.5">
+                  <Star className="h-2.5 w-2.5 fill-accent text-accent" />
+                  {p.rating}
+                  {p.reviewCount != null && ` (${p.reviewCount.toLocaleString()})`}
+                </span>
+              </>
+            )}
           </div>
           {p.expertVerdict && (
             <p className="mt-1 line-clamp-2 text-[0.72rem] leading-snug text-white/45">

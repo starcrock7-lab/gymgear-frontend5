@@ -637,12 +637,18 @@ function ComparisonMatrix({
             <Row label="Rating">
               {products.map((p) => (
                 <Cell key={p.id} highlight={p.id === bestRatedId}>
+                  {p.rating == null ? (
+                    <span className="text-ink-3">Not published</span>
+                  ) : (
+                    <>
                   <span className="inline-flex items-center gap-1">
                     <Star className="h-3 w-3 fill-accent text-accent" />
                     {p.rating}
-                    <span className="text-ink-3">
-                      ({p.reviewCount.toLocaleString()})
-                    </span>
+                    {p.reviewCount != null && (
+                      <span className="text-ink-3">
+                        ({p.reviewCount.toLocaleString()})
+                      </span>
+                    )}
                   </span>
                   {p.id === bestRatedId && (
                     <span className="ml-1 text-[0.6rem] font-bold uppercase text-accent">
@@ -654,6 +660,8 @@ function ComparisonMatrix({
                     max={5}
                     best={p.id === bestRatedId}
                   />
+                    </>
+                  )}
                 </Cell>
               ))}
             </Row>

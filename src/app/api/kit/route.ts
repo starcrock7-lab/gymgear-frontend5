@@ -110,7 +110,7 @@ function forbiddenCats(_space: string): Set<string> {
 /* `price` is what the kit is charged (sale price when there is one); `list` is
    the undiscounted price, kept so the builder can tell a real deal from a
    product that is merely cheap. */
-type Lite = { id: string; cat: string; price: number; list: number; quality: number; rating: number; gs: number; compact: boolean };
+type Lite = { id: string; cat: string; price: number; list: number; quality: number; rating: number | null; gs: number; compact: boolean };
 
 /* A machine already IS a rack + cables — a kit holding both is redundant;
    whichever lands first blocks the other. (Lockstep: server.js.) */
@@ -190,8 +190,14 @@ function buildKit(
   const dealBoost = (p: Lite) => (p.list > 0 ? Math.max(0, (p.list - p.price) / p.list) : 0);
   const score = {
     value: (p: Lite) => -p.price,                                    // cheapest first (sale price)
+    /* Unrated products fall back to our own score on the same 0-1 scale — gs
+       already absorbs rating and re-weights when it is absent. Scoring 0
+       would bury every unrated product out of the match tier permanently. */
     match: (p: Lite) =>
-      (p.gs / 100) * 2 + p.rating / 5 + fit(p) * 1.5 + dealBoost(p) * DEAL_WEIGHT_MATCH,
+      (p.gs / 100) * 2 +
+      (p.rating != null ? p.rating / 5 : p.gs / 100) +
+      fit(p) * 1.5 +
+      dealBoost(p) * DEAL_WEIGHT_MATCH,
     quality: (p: Lite) => p.quality + fit(p) * 0.5 + dealBoost(p) * DEAL_WEIGHT_QUALITY,
   }[strategy];
   const picks: Lite[] = [];
@@ -527,7 +533,10 @@ function accessoryPool(kits: HydratedKit[], catalog: Catalog, ownedCats: Set<str
     if (!list || !list.length) continue;
     const pw = list[0].pairsWith || [];
     if (!pw.some((c) => kitCats.has(c))) continue;
-    const best = [...list].sort((a, b) => b.rating - a.rating || b.quality - a.quality)[0];
+    /* quality/2 maps our 0-10 onto the 0-5 rating scale, so an unrated
+       accessory sorts on merit instead of NaN-ing the comparator. */
+    const rk = (p: CatalogProduct) => (p.rating != null ? p.rating : p.quality / 2);
+    const best = [...list].sort((a, b) => rk(b) - rk(a) || b.quality - a.quality)[0];
     if (best) pool.push(best);
   }
   return pool;

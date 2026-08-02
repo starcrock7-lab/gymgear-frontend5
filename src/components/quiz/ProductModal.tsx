@@ -127,13 +127,17 @@ export default function ProductModal({
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-1.5 text-sm text-white/60">
-                  <Star className="h-4 w-4 fill-accent text-accent" />
-                  <span className="font-bold text-white">{p.rating}</span>
-                  <span className="text-white/40">
-                    ({p.reviewCount.toLocaleString()})
-                  </span>
-                </div>
+                {p.rating != null && (
+                  <div className="flex items-center gap-1.5 text-sm text-white/60">
+                    <Star className="h-4 w-4 fill-accent text-accent" />
+                    <span className="font-bold text-white">{p.rating}</span>
+                    {p.reviewCount != null && (
+                      <span className="text-white/40">
+                        ({p.reviewCount.toLocaleString()})
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* GymGear Score — our transparent rubric ("show the working") */}
