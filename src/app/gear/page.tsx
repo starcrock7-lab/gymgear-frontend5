@@ -3,7 +3,9 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { getCategories } from "@/lib/catalog";
+import { getAllProducts, getCategories } from "@/lib/catalog";
+import { findDeals } from "@/lib/deals";
+import DealsStrip from "@/components/DealsStrip";
 
 export const revalidate = 3600;
 
@@ -29,6 +31,9 @@ export default async function GearIndexPage() {
   } catch {
     cats = [];
   }
+  /* Site-wide deals: the whole point of the browse page is "what should I buy
+     right now", and a live discount is the strongest answer we have. */
+  const deals = findDeals(await getAllProducts().catch(() => []));
 
   return (
     <>
@@ -45,6 +50,16 @@ export default async function GearIndexPage() {
         </section>
 
         <div className="mx-auto max-w-4xl px-5 py-12">
+          {deals.length > 0 && (
+            <div className="mb-12">
+              <DealsStrip
+                deals={deals}
+                title={`Best deals right now (${deals.length} live)`}
+                limit={6}
+              />
+            </div>
+          )}
+
           {GROUPS.map((g) => {
             const inGroup = cats.filter((c) => c.group === g.key);
             if (!inGroup.length) return null;

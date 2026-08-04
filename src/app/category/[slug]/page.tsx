@@ -10,7 +10,8 @@ import {
   NOINDEX_CATEGORIES,
 } from "@/lib/catalog";
 import { buyUrl, formatPrice } from "@/lib/kit";
-import { dealsSavings, findDeals, productDeal, rankWithDeals } from "@/lib/deals";
+import { findDeals, productDeal, rankWithDeals } from "@/lib/deals";
+import DealsStrip from "@/components/DealsStrip";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -138,60 +139,9 @@ export default async function CategoryPage({
               itself stays honest about quality; this is where a live discount
               gets its prominence. */}
           {deals.length > 0 && (
-            <section
-              aria-label="Discounted right now"
-              className="mt-8 rounded-2xl border border-accent/30 bg-accent/5 p-4"
-            >
-              <h2 className="font-display text-sm font-extrabold uppercase tracking-wide text-accent">
-                On sale right now
-              </h2>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {deals.slice(0, 4).map((d) => (
-                  <Link
-                    key={d.product.id}
-                    href={`/gear/${d.product.id}`}
-                    /* min-w-0: a grid item defaults to min-width:auto, so the
-                       long product name would push the card past its cell and
-                       scroll the page sideways instead of truncating. */
-                    className="flex min-w-0 items-center gap-3 rounded-xl border border-line bg-card p-3 transition-colors hover:border-accent"
-                  >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-white">
-                      {d.product.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={d.product.image}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <span className="font-display text-sm font-bold text-navy/40">
-                          {d.product.brand.charAt(0)}
-                        </span>
-                      )}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-body text-sm font-bold text-ink">
-                        {d.product.name}
-                      </span>
-                      <span className="text-xs text-ink-3">
-                        {formatPrice(d.product.salePrice ?? d.product.price)}{" "}
-                        <span className="line-through">
-                          {formatPrice(d.product.price)}
-                        </span>
-                      </span>
-                    </span>
-                    <span className="shrink-0 rounded-lg bg-accent px-2 py-1 font-display text-xs font-extrabold text-white">
-                      {d.pct}% off
-                    </span>
-                  </Link>
-                ))}
-              </div>
-              <p className="mt-3 text-xs text-ink-3">
-                Saving {formatPrice(dealsSavings(deals))} across{" "}
-                {deals.length === 1 ? "this deal" : `these ${deals.length} deals`}.
-                Prices come straight from the retailer and are re-checked daily.
-              </p>
-            </section>
+            <div className="mt-8">
+              <DealsStrip deals={deals} />
+            </div>
           )}
 
           {/* The ranking */}
