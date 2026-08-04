@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:deals": "node scripts/check-deals.mjs",
+    "audit:deals": "node --import ./scripts/register-ts.mjs scripts/audit-deals.mjs",
     "audit:kits": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/audit-kits.mjs",
     "audit:layout": "node --import ./scripts/register-ts.mjs scripts/audit-layout.mjs",
     "check:lockstep": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/check-lockstep.mjs"

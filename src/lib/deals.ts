@@ -34,13 +34,84 @@ export function saleExpired(p: KitProduct): boolean {
   return Number.isFinite(t) && t <= Date.now();
 }
 
+/* Smallest cut we will call a deal. Retailers publish 1% "sales" — a $2,315
+   rack listed at $2,298 — and badging those as deals is what turns "the best
+   deals available right now" into noise nobody trusts. Below this the price
+   is still real, it just isn't news. */
+export const MIN_DEAL_PCT = 5;
+
+const salePct = (p: KitProduct): number =>
+  p.salePrice && p.salePrice < p.price
+    ? Math.round((1 - p.salePrice / p.price) * 100)
+    : 0;
+
+/* Resolve what a product's price actually IS, once expiry and the deal floor
+   are applied. Run at the catalog boundary so every surface — cards, kit,
+   compare, planner — reads clean fields instead of each re-deriving the rule.
+
+   Two different outcomes, and mixing them up misprices the product:
+   - Sale expired  → the sale is gone, they pay list. Drop the sale fields.
+   - Under the floor → they still pay the lower number, we just don't call it
+     a deal. So the sale price BECOMES the price. Dropping the field here
+     would quote them the higher list price, which is worse than a small
+     badge. */
+export function settleSale<T extends KitProduct>(p: T): T {
+  if (!p.salePrice) return p;
+  const out = { ...p };
+  if (saleExpired(p)) {
+    delete out.salePrice;
+    delete out.discount;
+    delete out.saleEndsAt;
+    return out;
+  }
+  if (salePct(p) < MIN_DEAL_PCT) {
+    out.price = p.salePrice;
+    delete out.salePrice;
+    delete out.discount;
+    delete out.saleEndsAt;
+  }
+  return out;
+}
+
 export function productDeal(p: KitProduct): Deal | null {
   if (!p.salePrice || p.salePrice >= p.price || saleExpired(p)) return null;
+  const pct = salePct(p);
+  if (pct < MIN_DEAL_PCT) return null;
   return {
     product: p,
     save: p.price - p.salePrice,
-    pct: Math.round((1 - p.salePrice / p.price) * 100),
+    pct,
   };
+}
+
+/* Ranking score for browse surfaces: quality first, with a live discount
+   lifting a product up a bounded amount — the same bargain the kit builder
+   already strikes, so the whole site agrees about what a deal is worth.
+
+   Bounded hard on purpose. Sorting on discount alone puts a product nobody
+   should buy above the category benchmark, which is the opposite of "best
+   deals" — the best deal is a good product that happens to be cheap today.
+   Scores inside a category cluster in a ~10-point band, so the cap is 5: a
+   deal wins ties and near-ties and cannot jump a clearly better product. At
+   /2 a 17%-off rack scoring 82 displaced the 90s, which is the ranking
+   lying. Deals get their prominence from the strip at the top of the page,
+   not from being pretended to be better than they are. */
+export function dealRank(p: KitProduct & { gymgearScore?: number }): number {
+  const deal = productDeal(p);
+  const boost = deal ? Math.min(deal.pct, 30) / 6 : 0;
+  return (p.gymgearScore ?? 0) + boost;
+}
+
+/* Best products first, deals boosted. Ties break toward the bigger discount
+   so an on-sale row is never buried under an identical full-price one. */
+export function rankWithDeals<T extends KitProduct & { gymgearScore?: number }>(
+  products: T[],
+): T[] {
+  return [...products].sort((a, b) => {
+    const d = dealRank(b) - dealRank(a);
+    if (d !== 0) return d;
+    return (productDeal(b)?.pct ?? 0) - (productDeal(a)?.pct ?? 0);
+  });
 }
 
 /* Honest countdown — only when a real end date exists and is close enough

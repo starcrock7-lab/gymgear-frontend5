@@ -6,7 +6,7 @@
    backends, so it works in every environment. Results are cached (ISR) so the
    build hits the backend once, not per page. */
 import type { KitProduct, Category } from "@/lib/kit";
-import { saleExpired } from "@/lib/deals";
+import { settleSale } from "@/lib/deals";
 
 const BASE =
   process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "") ||
@@ -47,21 +47,15 @@ export async function getCategoryProducts(cat: string): Promise<KitProduct[]> {
   const d = await serverFetch<{ products: Omit<KitProduct, "category">[] }>(
     `/api/products/${cat}`,
   );
-  /* Expired-sale strip (deals v2, per-product recheck): a passed saleEndsAt
-     means the sale fields never reach a page — every surface (gear, category,
-     compare, kit, search) shows the clean list price without opting in.
-     Evaluated per ISR revalidate (hourly), and the client-side deal strip
-     re-checks live via productDeal(), so a sale can never outlive its date
-     by more than the cache window. */
-  return (d.products ?? []).map((raw) => {
-    const p = { ...raw, category: cat } as KitProduct;
-    if (saleExpired(p)) {
-      delete p.salePrice;
-      delete p.discount;
-      delete p.saleEndsAt;
-    }
-    return p;
-  });
+  /* Sale settlement (deals v2, per-product recheck): a passed saleEndsAt or a
+     discount under the deal floor never reaches a page — every surface (gear,
+     category, compare, kit, search) reads clean price fields without opting
+     in. Evaluated per ISR revalidate (hourly), and the client-side deal strip
+     re-checks live via productDeal(), so a sale can never outlive its date by
+     more than the cache window. */
+  return (d.products ?? []).map((raw) =>
+    settleSale({ ...raw, category: cat } as KitProduct),
+  );
 }
 
 /* Every product across every category. Underlying per-category fetches are

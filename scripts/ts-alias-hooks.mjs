@@ -26,6 +26,13 @@ export function resolve(specifier, context, next) {
     target = path.resolve(base, specifier);
   }
   const found = target && locate(target);
-  if (found) return { url: pathToFileURL(found).href, shortCircuit: true };
+  if (found) {
+    /* App code imports JSON data (deal-pitches.json) the bundler way, with no
+       import attribute. Node refuses that outright, so supply the attribute
+       here rather than editing app source to suit a test harness. */
+    const importAttributes =
+      path.extname(found) === ".json" ? { type: "json" } : context.importAttributes;
+    return { url: pathToFileURL(found).href, importAttributes, shortCircuit: true };
+  }
   return next(specifier, context);
 }

@@ -5,6 +5,7 @@ import { Loader2, Star, ArrowUpRight } from "lucide-react";
 import { DumbbellMark } from "@/components/ui/dumbbell-mark";
 import { requestCategories, requestAlternatives } from "@/lib/api";
 import { buyUrl, formatPrice, type Category, type KitProduct } from "@/lib/kit";
+import { productDeal, rankWithDeals } from "@/lib/deals";
 import ProductModal from "@/components/quiz/ProductModal";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,7 +48,8 @@ export default function GearFinder() {
     if (!cat) return;
     let live = true;
     requestAlternatives(cat)
-      .then((ps) => live && setProducts(ps))
+      /* Deals first, quality still deciding — same order as /category. */
+      .then((ps) => live && setProducts(rankWithDeals(ps)))
       .catch(() => live && setProducts([]));
     return () => {
       live = false;
@@ -198,10 +200,15 @@ function FinderCard({
           {p.rating}
           <span className="text-ink-3">·</span>
           <span className="font-bold text-ink">{formatPrice(priceOf(p))}</span>
-          {p.salePrice && (
-            <span className="text-ink-3 line-through">
-              {formatPrice(p.price)}
-            </span>
+          {productDeal(p) && (
+            <>
+              <span className="text-ink-3 line-through">
+                {formatPrice(p.price)}
+              </span>
+              <span className="rounded bg-accent/10 px-1 py-0.5 font-display text-[0.6rem] font-extrabold uppercase text-accent">
+                {productDeal(p)!.pct}% off
+              </span>
+            </>
           )}
         </div>
         <a
