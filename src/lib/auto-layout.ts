@@ -17,6 +17,7 @@
    the grid is only an internal acceleration structure. */
 
 import type { Crop, FloorItem, PlacedItem, Zone } from "./floor-plan";
+import { CLEARANCE_IN, DEFAULT_CLEARANCE, clearanceOf } from "./floor-plan";
 
 export type WallGrid = {
   cols: number;
@@ -440,30 +441,46 @@ export function autoPlace(
   const blockedAt = (x: number, y: number) =>
     x < 0 || x >= cols || y < 0 || y >= rows || occ[idx(x, y)] === 1;
 
-  /* Footprint must be fully free; a PAD ring around it must hold no other
-     equipment (walls in the ring are fine — that's what "against the wall"
-     means; keep-clear zones may touch). 17" beats the worst-case sum of two
-     display halos (8"+8"), so an auto-arranged floor never renders red. */
-  const PAD_C = Math.max(1, Math.ceil(17 / cell));
-  function canPlace(x: number, y: number, wC: number, dC: number): boolean {
+  /* Footprint must be fully free, and no placed piece may sit close enough
+     that the two display halos overlap — that is exactly the rule that paints
+     a floor red, so matching it is what keeps an auto-arranged room clean.
+
+     The separation two pieces need is their own halos summed, which is 16"
+     between two racks but 4" between a jump rope and a foam roller. A single
+     flat pad sized for the worst case made every small item claim a rack's
+     worth of floor: a 12×14 ft room took 6 of 12 pieces and dropped the mat,
+     rope, roller and storage shelf — the room looked empty again. */
+  const clrOf = new Uint8Array(cols * rows); // halo (in) of the piece on a cell
+  const MAX_CLR = Math.max(...Object.values(CLEARANCE_IN), DEFAULT_CLEARANCE);
+  function canPlace(x: number, y: number, wC: number, dC: number, category: string): boolean {
     if (x < 0 || y < 0 || x + wC > cols || y + dC > rows) return false;
     for (let yy = y; yy < y + dC; yy++)
       for (let xx = x; xx < x + wC; xx++) if (occ[idx(xx, yy)] !== 0) return false;
-    for (let yy = y - PAD_C; yy < y + dC + PAD_C; yy++)
-      for (let xx = x - PAD_C; xx < x + wC + PAD_C; xx++) {
+    const mine = clearanceOf(category);
+    /* Only cells that could possibly be too close are worth testing. */
+    const reach = Math.max(1, Math.ceil((mine + MAX_CLR) / cell));
+    for (let yy = y - reach; yy < y + dC + reach; yy++)
+      for (let xx = x - reach; xx < x + wC + reach; xx++) {
         if (xx >= x && xx < x + wC && yy >= y && yy < y + dC) continue;
         if (xx < 0 || xx >= cols || yy < 0 || yy >= rows) continue;
-        if (occ[idx(xx, yy)] === 2) return false;
+        const i = idx(xx, yy);
+        if (occ[i] !== 2) continue; // walls and keep-clear strips may touch
+        const need = mine + clrOf[i];
+        /* Halo rectangles miss each other if either axis clears the gap. */
+        const gapX = Math.max(0, x - xx - 1, xx - (x + wC)) * cell;
+        const gapY = Math.max(0, y - yy - 1, yy - (y + dC)) * cell;
+        if (gapX < need && gapY < need) return false;
       }
     return true;
   }
 
-  function fill(x: number, y: number, wC: number, dC: number, val: 2 | 3) {
+  function fill(x: number, y: number, wC: number, dC: number, val: 2 | 3, clr = 0) {
     for (let yy = Math.max(0, y); yy < Math.min(rows, y + dC); yy++)
       for (let xx = Math.max(0, x); xx < Math.min(cols, x + wC); xx++) {
         const i = idx(xx, yy);
         if (occ[i] === 0) occ[i] = val;
         else if (val === 2 && occ[i] === 3) occ[i] = 2;
+        if (val === 2 && occ[i] === 2) clrOf[i] = clr;
       }
   }
 
@@ -508,7 +525,7 @@ export function autoPlace(
   const placements: (Placement & { u: Unit })[] = [];
 
   function commit(u: Unit, p: Placement) {
-    fill(p.x, p.y, p.wC, p.dC, 2);
+    fill(p.x, p.y, p.wC, p.dC, 2, clearanceOf(u.category));
     reserveFront(p, u.category);
     placements.push({ ...p, u });
   }
@@ -535,7 +552,7 @@ export function autoPlace(
             py >= 0 &&
             py + o.dC <= rows &&
             anchored(side, x, py, o.wC, o.dC) &&
-            canPlace(x, py, o.wC, o.dC)
+            canPlace(x, py, o.wC, o.dC, u.category)
           ) {
             commit(u, { x, y: py, wC: o.wC, dC: o.dC, rot: o.rot, side });
             x += o.wC + gapOf(u);
@@ -559,7 +576,7 @@ export function autoPlace(
             px >= 0 &&
             px + o.wC <= cols &&
             anchored(side, px, y, o.wC, o.dC) &&
-            canPlace(px, y, o.wC, o.dC)
+            canPlace(px, y, o.wC, o.dC, u.category)
           ) {
             commit(u, { x: px, y, wC: o.wC, dC: o.dC, rot: o.rot, side });
             y += o.dC + gapOf(u);
@@ -590,7 +607,7 @@ export function autoPlace(
         for (let s = 0; s < 6 && !done; s++) {
           const sx = r.side === "N" || r.side === "S" || r.side === null ? x + s * (o.wC + 1) : x;
           const sy = r.side === "E" || r.side === "W" ? y + s * (o.dC + 1) : y;
-          if (canPlace(sx, sy, o.wC, o.dC)) {
+          if (canPlace(sx, sy, o.wC, o.dC, u.category)) {
             commit(u, { x: sx, y: sy, wC: o.wC, dC: o.dC, rot: o.rot, side: r.side });
             done = true;
           }
@@ -613,7 +630,7 @@ export function autoPlace(
       while (x <= bx1 && qi < units.length) {
         const u = units[qi];
         const o = orient(u, null);
-        if (canPlace(x, y, o.wC, o.dC)) {
+        if (canPlace(x, y, o.wC, o.dC, u.category)) {
           commit(u, { x, y, wC: o.wC, dC: o.dC, rot: o.rot, side: null });
           rowDepth = Math.max(rowDepth, o.dC);
           x += o.wC + toC(GAP_IN[u.category] ?? DEFAULT_GAP);
@@ -633,7 +650,7 @@ export function autoPlace(
       const dC = toC(rot ? u.w : u.d);
       for (let y = by0; y <= by1; y++)
         for (let x = bx0; x <= bx1; x++)
-          if (canPlace(x, y, wC, dC)) {
+          if (canPlace(x, y, wC, dC, u.category)) {
             commit(u, { x, y, wC, dC, rot, side: null });
             return true;
           }
@@ -700,6 +717,7 @@ export function autoPlace(
 
   const machLeft = placeAlongSide(machines, machineSide);
   leftovers.push(...placeOpenRows(machLeft));
+
   leftovers.push(...placeOpenRows(others));
 
   /* Sweep every leftover through the open-floor scan. */
