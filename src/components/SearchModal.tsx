@@ -220,13 +220,22 @@ export default function SearchModal({
                       active === i ? "bg-white/10" : "hover:bg-white/5"
                     }`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element -- remote unsplash thumb, fixed size */}
-                    <img
-                      src={p.image}
-                      alt=""
-                      loading="lazy"
-                      className="h-9 w-9 shrink-0 rounded-lg object-cover"
-                    />
+                    {/* The catalog no longer substitutes a stock photo, so a
+                        product without a verified image has none — show the
+                        brand tile the other surfaces use, not a broken icon. */}
+                    {p.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- remote retailer photo, fixed size
+                      <img
+                        src={p.image}
+                        alt=""
+                        loading="lazy"
+                        className="h-9 w-9 shrink-0 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 font-display text-xs font-bold text-white/70">
+                        {p.brand?.charAt(0) ?? "?"}
+                      </span>
+                    )}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-bold text-white">
                         {p.name}

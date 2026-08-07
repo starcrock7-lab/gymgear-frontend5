@@ -7,6 +7,9 @@
 4. [AGENTS.md](AGENTS.md) — **Next.js 16 differs from your training data**; read `node_modules/next/dist/docs/` before writing Next-specific code
 5. `graphify-out/graph.json` — knowledge graph (query via `/graphify`); a merged cross-repo graph lives in `..\gymgear-compare-graph\graphify-out\`
 
+## Active plan — read this before touching catalog-driven surfaces
+Catalog expansion + deals-first priority is running out of the backend repo: **`..\gymgear-backend-new\docs\plans\catalog-expansion.md`**. Products are added there; this repo owns the surfaces a new product must reach — kit builder (`src/lib/kit-builder.ts`, in lockstep with the backend copy), footprints (`src/lib/floor-plan.ts`), map glyph (`src/components/planner/equipment-icon.tsx`) and 3D model (`src/lib/equipment-3d.ts`). Gates for any catalog-touching change: `npm run audit:kits`, `npm run check:lockstep`, `npm run audit:layout`, `npm run build`.
+
 ## What it is
 The live Next.js app for **gymgearcompare.com**: quiz → personalized gear **kit** (3 tiers), `/compare` tool, `/extras` gear finder, guides, and the **GymGear Score** (data-derived quality rubric, `src/lib/kit.ts`, explained at `/methodology`).
 Stack: **Next 16.2.9 (App Router, `src/`), React 19.2.4, Tailwind v4, framer-motion 12, GSAP + lenis**. Deployed on Vercel; Express backend on Render (`..\gymgear-backend-new`).
