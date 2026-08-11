@@ -33,7 +33,12 @@ async function load(slug: string) {
     getCategories(),
     getCategoryProducts(slug).catch(() => []),
   ]);
+  /* A category the backend no longer offers is gone, whatever cached products
+     may still be lying around for it. Without this check a retired category
+     kept rendering from stale data — the page only 404s on an empty ranking,
+     and the stale ranking was not empty. */
   const category = cats.find((c) => c.key === slug) ?? null;
+  if (!category) return { category: null, ranked: [], deals: [] };
   /* Score first, live discounts boosted — same bargain the kit builder makes,
      so the ranking and the kits never disagree about what a deal is worth. */
   const ranked = rankWithDeals(products);

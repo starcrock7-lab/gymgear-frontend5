@@ -111,6 +111,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-08-10 · a retired category now 404s even when stale product data lingers (the page only checked for an empty ranking, and Vercel's persisted fetch cache kept re-rendering "Best Hoodies" after the category was gone); category list revalidates at 5 min instead of 60 · this commit
 - 2026-08-10 · Apparel group removed from browse, the gear finder and compare, and the clothing wording dropped from privacy/sponsors copy — the backend retired the category · this commit
 - 2026-08-07 · self-hosted product photos land in `public/product-images/` (backend IMGS points at `/product-images/<id>.<ext>`); SearchModal no longer renders a bare `<img>` for a product without a photo · this commit
 - 2026-08-04 · shared `DealsStrip` component: the browse index now leads with the best live deals site-wide (top 6 by saving, 43 live today) and category pages reuse the same strip · this commit

@@ -21,25 +21,36 @@ const SITE_ORIGIN =
    keeps every generated page fresh without a redeploy. */
 export const CATALOG_REVALIDATE = 3600;
 
+/* The category LIST decides what the site offers at all — nav, the browse
+   grid, the sitemap, and which category pages exist. It is one small request,
+   and staleness here is the visible kind: when the clothing categories were
+   retired, Vercel kept serving a cached "Best Hoodies, ranked" page because
+   the build reused its persisted fetch cache. Five minutes of drift on a list
+   this cheap is a better trade than an hour. */
+export const CATEGORY_REVALIDATE = 300;
+
 /* Categories we keep out of the index/sitemap. Fat burners are a YMYL /
    health-claim risk for AdSense, so we render the pages but don't index them. */
 export const NOINDEX_CATEGORIES = new Set(["fatburners"]);
 
-async function serverFetch<T>(path: string): Promise<T> {
+async function serverFetch<T>(path: string, revalidate = CATALOG_REVALIDATE): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
       "X-Site-Key": SITE_KEY,
       Origin: SITE_ORIGIN,
     },
-    next: { revalidate: CATALOG_REVALIDATE },
+    next: { revalidate },
   });
   if (!res.ok) throw new Error(`${path} → ${res.status}`);
   return (await res.json()) as T;
 }
 
 export async function getCategories(): Promise<Category[]> {
-  const d = await serverFetch<{ categories: Category[] }>("/api/categories");
+  const d = await serverFetch<{ categories: Category[] }>(
+    "/api/categories",
+    CATEGORY_REVALIDATE,
+  );
   return d.categories ?? [];
 }
 
