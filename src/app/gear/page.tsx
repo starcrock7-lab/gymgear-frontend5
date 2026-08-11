@@ -21,7 +21,6 @@ const GROUPS: { key: string; label: string }[] = [
   { key: "gear", label: "Lifting Gear" },
   { key: "accessories", label: "Accessories" },
   { key: "supplements", label: "Supplements" },
-  { key: "clothing", label: "Apparel" },
 ];
 
 export default async function GearIndexPage() {

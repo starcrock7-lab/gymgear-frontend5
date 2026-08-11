@@ -7,7 +7,7 @@ import SponsorForm from "@/components/SponsorForm";
 export const metadata: Metadata = {
   title: "Partner With Us",
   description:
-    "Put your brand in front of fitness buyers actively comparing gym equipment, clothing, and supplements.",
+    "Put your brand in front of fitness buyers actively comparing gym equipment and supplements.",
 };
 
 const stats = [
@@ -31,7 +31,7 @@ const reasons = [
   {
     icon: BarChart3,
     title: "Full category coverage",
-    body: "Equipment, clothing, and supplements — your brand appears in the right context for every purchase a gym-goer makes.",
+    body: "Equipment and supplements — your brand appears in the right context for every purchase a gym-goer makes.",
   },
   {
     icon: Handshake,
@@ -65,7 +65,7 @@ export default function SponsorsPage() {
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-white/60">
           Put your brand in front of fitness enthusiasts actively comparing and
-          buying gym equipment, clothing, and supplements.
+          buying gym equipment and supplements.
         </p>
         <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4">
           {stats.map((s) => (

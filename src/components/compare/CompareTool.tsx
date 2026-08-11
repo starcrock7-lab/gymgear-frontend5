@@ -33,7 +33,6 @@ const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
 
 const GROUPS = [
   { key: "equipment", label: "Equipment" },
-  { key: "clothing", label: "Clothing" },
   { key: "supplements", label: "Supplements" },
   { key: "gear", label: "Gear" },
   { key: "accessories", label: "Accessories" },

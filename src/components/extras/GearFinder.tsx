@@ -19,7 +19,6 @@ const GROUPS = [
   { key: "gear", label: "Lifting Gear" },
   { key: "accessories", label: "Accessories" },
   { key: "supplements", label: "Supplements" },
-  { key: "clothing", label: "Apparel" },
 ] as const;
 
 export default function GearFinder() {

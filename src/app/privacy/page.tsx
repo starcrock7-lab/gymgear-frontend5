@@ -52,7 +52,7 @@ export default function PrivacyPage() {
           <p>
             GymGear Compare (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;)
             operates gymgearcompare.com — a free, independent gym equipment,
-            clothing, and supplement comparison tool. We are not affiliated with
+            equipment and supplement comparison tool. We are not affiliated with
             any brand or retailer we feature.
           </p>
         </Section>
