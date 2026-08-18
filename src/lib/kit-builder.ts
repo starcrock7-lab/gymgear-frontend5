@@ -11,9 +11,10 @@
    budget trim, so local and backend kits never diverge. */
 import type { KitProduct, KitType } from "@/lib/kit";
 import {
-  coverageFromTrains, coverageGaps, needsFor, ownedTrains, PATTERNS,
-  replacesRack, SPECIALTY_BARS, trainsOf, type Pattern,
+  coverageFromTrains, coverageGaps, FIXED_PAIR_DUMBBELLS, HEAVY_FIXED_PAIR_DUMBBELLS,
+  needsFor, ownedTrains, PATTERNS, replacesRack, SPECIALTY_BARS, trainsOf, type Pattern,
 } from "@/lib/coverage";
+import { footprintOf } from "@/lib/floor-plan";
 
 /* Categories that belong in a home-gym kit, in build-priority order. */
 export const KIT_CATEGORIES = [
@@ -55,45 +56,130 @@ export const priceOf = (p: CatalogProduct) => p.salePrice || p.price;
    Machines placement is the small-vs-big trade: a small setup leads with one
    efficient all-in-one; a full home gym prefers the variety of separates and
    only reaches a machine after the core iron is in. (Lockstep: server.js.) */
+/* Each answer states how much it WANTS a category, and the weights add up.
+   This used to be a sequence of prepends, which meant the last prepend won
+   the front of the order outright: the experience list landed on top of the
+   goal list and erased it, so every beginner got a machine-led kit and every
+   advanced lifter a barbell-led one no matter what they said their goal was.
+   The personalization probe caught it as goal changes leaving 43% of kits
+   byte-identical. Weights compose — a beginner chasing strength now gets a
+   beginner's slant ON a strength kit, instead of one answer deleting the
+   other. Signs matter as much as sizes: a goal pushes gear DOWN as well as up,
+   which is what makes a fat-loss kit look different rather than merely
+   re-sorted. */
+const GOAL_WEIGHT: Record<string, Record<string, number>> = {
+  /* Conditioning leads, but strength gear stays present — holding lean mass
+     in a deficit is what stops fat loss becoming weight loss. */
+  "lose-weight": { cardio: 10, jumpropes: 6, kettlebells: 6, bands: 4, dumbbells: 3, yogamats: 1, racks: -6, plates: -5, barbells: -4, machines: -2 },
+  "get-fit": { cardio: 7, kettlebells: 5, dumbbells: 4, bands: 3, jumpropes: 2, yogamats: 1, racks: -2, plates: -2 },
+  "build-strength": { racks: 10, barbells: 9, plates: 8, benches: 6, dumbbells: 2, cardio: -6, jumpropes: -5, yogamats: -3, foamrollers: -1 },
+  "home-gym-setup": { machines: 8, racks: 7, barbells: 5, benches: 5, plates: 4, cardio: 3, dumbbells: 2 },
+};
+/* Deliberately smaller than the goal weights: experience should slant a kit,
+   never redefine it. Beginners do better on guided, adjustable, machine-led
+   gear; advanced lifters want the barbell path reinforced. */
+const EXPERIENCE_WEIGHT: Record<string, Record<string, number>> = {
+  beginner: { machines: 4, dumbbells: 3, kettlebells: 2, bands: 2, barbells: -3, plates: -3, racks: -2 },
+  intermediate: {},
+  advanced: { racks: 4, barbells: 4, plates: 3, benches: 2, machines: -3, bands: -1 },
+};
+/* The room's taste, on top of the hard gates in eligible(). A tight space
+   leans on gear that stores upright or under a bed; a garage has the floor
+   to spend on an anchor. */
+const SPACE_WEIGHT: Record<string, Record<string, number>> = {
+  "apartment-corner": { dumbbells: 5, bands: 4, kettlebells: 4, jumpropes: 3, yogamats: 2, foamrollers: 1, racks: -8, cardio: -3, machines: -1 },
+  "small-room": { dumbbells: 4, kettlebells: 3, bands: 2, jumpropes: 1, racks: -3, cardio: -2 },
+  garage: { racks: 3, plates: 2, barbells: 2, cardio: 1 },
+  /* Conditioning outdoors is a rope and a kettlebell, not a treadmill —
+     the machines and cardio it would otherwise reach for are banned above. */
+  outdoor: { kettlebells: 4, jumpropes: 3, racks: 2, plates: 1, barbells: 1 },
+};
+
 export function categoryOrder(goal: string, space: string, pieces: number, experience?: string | null): string[] {
-  let order = [...KIT_CATEGORIES];
-  const bump = (cats: string[]) => {
-    order = [...cats, ...order.filter((c) => !cats.includes(c))];
-  };
-  if (goal === "lose-weight" || goal === "get-fit")
-    bump(["cardio", "kettlebells", "bands", "dumbbells"]);
-  if (goal === "build-strength") bump(["racks", "barbells", "plates", "benches"]);
-  if (goal === "home-gym-setup") bump(["machines", "racks", "barbells", "benches"]);
-  /* Experience shapes the path: beginners get guided, adjustable, machine-led
-     gear; advanced lifters get the barbell + rack path reinforced. */
-  if (experience === "beginner") bump(["machines", "dumbbells", "kettlebells", "bands"]);
-  if (experience === "advanced" && goal !== "lose-weight") bump(["racks", "barbells", "plates", "benches"]);
-  /* Few pieces + strength-ish goal → the all-in-one anchors the whole kit. */
-  if (pieces <= 4 && (goal === "build-strength" || goal === "home-gym-setup")) bump(["machines"]);
-  /* Big builds: machine drops to the back — separates give the variety. */
-  if (pieces >= 6 && goal !== "home-gym-setup") {
-    order = order.filter((c) => c !== "machines");
-    order.push("machines");
-  }
-  /* Tight spaces can't host a normal rack or a treadmill-class machine, but
-     compact units (cable tower, rod gyms, wall-folding rack, folding rower)
-     still qualify — buildKit gates non-compact ones at product level. */
-  if (space === "apartment-corner" || space === "small-room") {
+  const goalW = GOAL_WEIGHT[goal] || {};
+  const expW = EXPERIENCE_WEIGHT[experience || ""] || {};
+  const spaceW = SPACE_WEIGHT[space] || {};
+  const weight = (c: string) => {
+    /* Base priority is the hand-tuned build order, kept as a tiebreak so a
+       category with no opinion attached still lands where it always did. */
+    let w = (KIT_CATEGORIES.length - KIT_CATEGORIES.indexOf(c)) * 0.5;
+    w += goalW[c] || 0;
+    w += expW[c] || 0;
+    w += spaceW[c] || 0;
+    /* Few pieces and a strength-ish goal → one all-in-one has to carry the
+       whole kit, so it earns the anchor slot. Many pieces → separates give
+       more range for the money, and the machine drops to the back. */
     const strengthy = goal === "build-strength" || goal === "home-gym-setup";
-    const tight = strengthy
-      ? ["machines", "racks", "dumbbells", "kettlebells", "bands", "benches", "jumpropes", "yogamats", "foamrollers"]
-      : ["dumbbells", "kettlebells", "cardio", "bands", "machines", "racks", "jumpropes", "yogamats", "foamrollers", "benches"];
-    order = [...tight.filter((c) => order.includes(c)), ...order.filter((c) => !tight.includes(c))];
-  }
-  return order;
+    if (c === "machines") {
+      if (pieces <= 4 && strengthy) w += 9;
+      if (pieces >= 6 && goal !== "home-gym-setup") w -= 12;
+    }
+    return w;
+  };
+  /* Stable: equal weights keep KIT_CATEGORIES order, so the result is
+     deterministic and the lockstep check can compare it against server.js. */
+  return [...KIT_CATEGORIES].sort((a, b) => weight(b) - weight(a));
 }
 
-/* Space fit is enforced per-product via the compact flag (see hydrateKits) —
-   a wall-folding rack IS apartment-friendly, so no category is banned
-   wholesale anymore. Kept as a hook for future hard category bans. */
-export function forbiddenCats(_space: string): Set<string> {
-  return new Set<string>();
+/* Most space fit is per-product via the compact flag (a wall-folding rack IS
+   apartment-friendly), but some gear is ruled out by the room itself rather
+   than by its size. A barbell needs seven feet of clear length, somewhere to
+   load and unload plates, and a floor you are allowed to drop weight on —
+   none of which exists in the corner of a flat you share a wall and a
+   ceiling with. Recommending bumper plates there is the kind of answer that
+   tells a buyer we did not read their answer. */
+const SPACE_BANS: Record<string, string[]> = {
+  "apartment-corner": ["racks", "barbells", "plates"],
+  /* "Outdoor" promises weather-proof picks, and until now the word appeared
+     nowhere outside the quiz file — an outdoor answer built exactly the same
+     kit as a garage. Weather is unkind to specific things, not to iron in
+     general: cable stacks, bearings and consoles corrode, foam soaks and
+     rots, and a mat left in UV goes brittle. Powder-coated iron, bumper
+     rubber and a bench you can cover are genuinely fine, so they stay. */
+  outdoor: ["machines", "cardio", "yogamats", "foamrollers"],
+};
+export function forbiddenCats(space: string): Set<string> {
+  return new Set(SPACE_BANS[space] || []);
 }
+
+/* --- The room as a budget ---------------------------------------------
+   Space used to be one boolean (`tight`), which made "garage" and "spare
+   room" the same query: the personalization probe found garage and
+   spare-room kits identical in 100% of cases, and apartment-corner and
+   small-room likewise. A boolean can gate a category; only a budget can
+   grade one, so the room is now spent in square feet the way money is
+   spent in dollars.
+
+   These are EQUIPMENT footprint budgets, not room sizes. A gym you can
+   still move in fills roughly half its floor, and the accepted working
+   minimum around a rack alone is an 8x8 ft platform. Raw footprints, no
+   clearance halo — halos overlap in any real layout, so summing them
+   would double-count the same aisle several times over. */
+export const SPACE_SQFT: Record<string, number> = {
+  "apartment-corner": 24, // a corner of a room you also live in
+  "small-room": 55,       // a 10x10 spare room or home office
+  garage: 150,            // a single-car bay given over to training
+  outdoor: 120,           // a patio, deck or driveway
+};
+/* An unanswered space must not silently shrink anyone's kit. */
+export const SPACE_SQFT_DEFAULT = 9999;
+
+/* Folding and stowable gear — the `compact` flag: wall-folding racks,
+   folding rowers, a cable tower — only holds its deployed footprint while
+   you are actually training. Charging it full area is what would keep the
+   folding rack, the one honest way to run a barbell in an apartment, out
+   of apartments. */
+const COMPACT_AREA_MULT = 0.5;
+/* Held back per still-unfilled slot, so one big anchor cannot take the
+   whole room and leave the bench that makes it usable with nowhere to go.
+   The square-foot twin of RESERVE_PER_SLOT. */
+const AREA_RESERVE_PER_SLOT = 2.5;
+
+/* Floor area one piece costs the room, in square feet. */
+export const areaOf = (id: string, cat: string, compact: boolean): number => {
+  const { w, d } = footprintOf(id, cat);
+  return ((w * d) / 144) * (compact ? COMPACT_AREA_MULT : 1);
+};
 
 /* `price` is what the kit is charged (sale price when there is one); `list` is
    the undiscounted price, kept so the builder can tell a real deal from a
@@ -101,6 +187,9 @@ export function forbiddenCats(_space: string): Set<string> {
 export type Lite = {
   id: string; cat: string; price: number; list: number; quality: number;
   rating: number | null; gs: number; compact: boolean;
+  /* Square feet of floor this piece costs — spent against the room budget
+     exactly as `price` is spent against the money budget. */
+  area: number;
   /* What this piece lets you train, and whether it stands in for a rack.
      See lib/coverage.ts — the kit is judged on the union of these. */
   trains: Partial<Record<Pattern, 1 | 2>>;
@@ -165,7 +254,7 @@ const HARD_PAIRS: Record<string, string[]> = {
 export function buildKit(
   strategy: KitType,
   catalog: Lite[],
-  { cap, target, ownedCats, order, tight, lowCeil, needs }: { cap: number; target: number; ownedCats: Set<string>; order: string[]; tight: boolean; lowCeil: boolean; needs: Partial<Record<Pattern, 1 | 2>> },
+  { cap, areaCap, target, ownedCats, banned, order, tight, lowCeil, needs, goal, experience }: { cap: number; areaCap: number; target: number; ownedCats: Set<string>; banned: Set<string>; order: string[]; tight: boolean; lowCeil: boolean; needs: Partial<Record<Pattern, 1 | 2>>; goal: string; experience?: string | null },
 ): string[] {
   const perSlot = cap / Math.max(target, 1);
   /* 1.0 when the price sits at the category's ideal share of budget, falling
@@ -179,6 +268,16 @@ export function buildKit(
      implicitly — its score IS the sale price — so only match and quality need
      it made explicit. */
   const dealBoost = (p: Lite) => (p.list > 0 ? Math.max(0, (p.list - p.price) / p.list) : 0);
+  /* A single fixed-weight dumbbell pair is a real, buyable thing — just a
+     worse "the kit's dumbbells" than an adjustable or a boxed multi-weight
+     set, because it offers no range to progress through. Bounded like the
+     deal weight: enough to decide between near-equal options, never enough to
+     price an affordable fixed pair out of a kit that cannot afford a real
+     range. Value stays untouched — "the cheapest thing that trains you" is
+     its whole purpose, and a fixed pair is often exactly that. */
+  const FIXED_PAIR_PENALTY = 0.5;
+  const versatilityPenalty = (p: Lite) =>
+    p.cat === "dumbbells" && FIXED_PAIR_DUMBBELLS.has(p.id) ? FIXED_PAIR_PENALTY : 0;
   const score = {
     value: (p: Lite) => -p.price,                                    // cheapest first (sale price)
     /* Unrated products fall back to our own score on the same 0-1 scale — gs
@@ -188,11 +287,14 @@ export function buildKit(
       (p.gs / 100) * 2 +
       (p.rating != null ? p.rating / 5 : p.gs / 100) +
       fit(p) * 1.5 +
-      dealBoost(p) * DEAL_WEIGHT_MATCH,
-    quality: (p: Lite) => p.quality + fit(p) * 0.5 + dealBoost(p) * DEAL_WEIGHT_QUALITY,
+      dealBoost(p) * DEAL_WEIGHT_MATCH -
+      versatilityPenalty(p),
+    quality: (p: Lite) => p.quality + fit(p) * 0.5 + dealBoost(p) * DEAL_WEIGHT_QUALITY - versatilityPenalty(p),
   }[strategy];
   const picks: Lite[] = [];
   let spent = 0;
+  /* The room's running total, kept in step with `spent` by take()/drop(). */
+  let areaUsed = 0;
   const blocked = new Set<string>();
   /* A rack and the machine that IS one (uprights + cables) are redundant
      together — but only a genuine all-in-one replaces a rack. Deriving this
@@ -211,8 +313,19 @@ export function buildKit(
      a two-item "kit"). */
   const eligible = (p: Lite) =>
     !ownedCats.has(p.cat) &&
+    /* The room rules this category out outright. Gated here as well as in
+       hydrateKits: letting the builder spend slots on gear hydration will
+       strip is how a kit arrives two pieces short. */
+    !banned.has(p.cat) &&
     /* An EZ curl bar is not a barbell you can rack, bench or squat. */
     !SPECIALTY_BARS.has(p.id) &&
+    /* A 90-115 lb-per-hand fixed pair is not a beginner's dumbbells — they
+       cannot press it — and it is not what lose-weight/get-fit training needs
+       either, which wants a load light enough to do many reps at, not one
+       heavy top-end number. Everyone else may still buy one; the softer
+       versatility penalty above is what nudges them toward a real range when
+       they can afford it. */
+    !(HEAVY_FIXED_PAIR_DUMBBELLS.has(p.id) && (experience === "beginner" || goal === "lose-weight" || goal === "get-fit")) &&
     !(tight && (p.cat === "machines" || p.cat === "cardio" || p.cat === "racks") && !p.compact) &&
     !(lowCeil && p.cat === "racks" && !LOW_CEIL_RACKS.has(p.id)) &&
     !(lowCeil && p.cat === "machines" && !LOW_CEIL_MACHINES.has(p.id));
@@ -221,10 +334,14 @@ export function buildKit(
   const allowed = (p: Lite) =>
     !blocked.has(p.cat) && !conflicted(p) && eligible(p);
   const fitsIn = (p: Lite, budget: number) => spent + p.price <= budget;
+  /* The room's twin of fitsIn — same shape, same reserve discipline, so a
+     piece has to clear BOTH budgets to be picked. */
+  const areaFits = (p: Lite, budget: number) => areaUsed + p.area <= budget;
   /* Hold budget back for the slots still to fill. Without this a single
      greedy anchor takes the lot — the $295 dumbbell under a $300 cap that
      left users looking at a one-item "kit". */
   const reserve = () => Math.max(0, target - picks.length - 1) * RESERVE_PER_SLOT;
+  const areaReserve = () => Math.max(0, target - picks.length - 1) * AREA_RESERVE_PER_SLOT;
   /* Cheapest bench the kit could seat, held back while shopping for anything
      that will need one. Without this a $295 set of dumbbells eats a $300
      budget and the bench can never be afforded afterwards. */
@@ -263,9 +380,11 @@ export function buildKit(
       0,
     );
   const pickable = (p: Lite) =>
-    allowed(p) && fitsIn(p, cap - reserve() - benchHeld(p) - pairHeld(p));
+    allowed(p) &&
+    fitsIn(p, cap - reserve() - benchHeld(p) - pairHeld(p)) &&
+    areaFits(p, areaCap - areaReserve());
   const take = (p: Lite) => {
-    picks.push(p); spent += p.price; blocked.add(p.cat);
+    picks.push(p); spent += p.price; areaUsed += p.area; blocked.add(p.cat);
   };
   for (const cat of order) {
     if (picks.length >= target) break;
@@ -275,7 +394,10 @@ export function buildKit(
        budget back can never silently drop a category entirely. */
     if (!cands.length)
       cands = catalog.filter(
-        (p) => p.cat === cat && allowed(p) && fitsIn(p, cap - benchHeld(p) - pairHeld(p)),
+        (p) => p.cat === cat && allowed(p) && fitsIn(p, cap - benchHeld(p) - pairHeld(p)) &&
+          /* The room is a hard fact, so it keeps its full budget here even
+             though the money reserve is being relaxed. */
+          areaFits(p, areaCap),
       );
     /* Value still wants decent gear — gate to quality ≥7 unless nothing fits. */
     if (strategy === "value") {
@@ -290,8 +412,14 @@ export function buildKit(
      last — and running last is what lets it judge the FINAL composition
      instead of one that later passes go on to change. */
   const stretch = cap * ESSENTIAL_OVERFLOW;
+  /* The usability passes may overrun the room by the same margin they may
+     overrun the budget: these footprints are documented approximations, and
+     a kit that is a few square feet optimistic beats one with free weights
+     and nothing to press them on. */
+  const areaStretch = areaCap * ESSENTIAL_OVERFLOW;
   const drop = (i: number) => {
     spent -= picks[i].price;
+    areaUsed -= picks[i].area;
     blocked.delete(picks[i].cat);
     picks.splice(i, 1);
   };
@@ -316,7 +444,11 @@ export function buildKit(
          Priciest expendable goes first so the bench costs the fewest pieces. */
       const cut = new Set<number>();
       let sim = spent;
-      while (sim + bench.price > stretch) {
+      let simArea = areaUsed;
+      /* Both budgets, one plan: a bench can be unaffordable OR homeless, and
+         trading only against the money would seat it in a room with no floor
+         left for it. */
+      while (sim + bench.price > stretch || simArea + bench.area > areaStretch) {
         let worst = -1;
         picks.forEach((p, i) => {
           if (cut.has(i) || !DROP_FOR_BENCH.has(p.cat)) return;
@@ -327,8 +459,9 @@ export function buildKit(
         if (worst < 0) break;
         cut.add(worst);
         sim -= picks[worst].price;
+        simArea -= picks[worst].area;
       }
-      if (sim + bench.price <= stretch) {
+      if (sim + bench.price <= stretch && simArea + bench.area <= areaStretch) {
         [...cut].sort((a, b) => b - a).forEach(drop);
         take(bench);
       }
@@ -343,21 +476,34 @@ export function buildKit(
   for (let pass = 0; pass < 6; pass++) {
     let changed = false;
     for (const [cat, needsCats] of Object.entries(HARD_PAIRS)) {
-      if (!picks.some((p) => p.cat === cat)) continue;
-      for (const need of needsCats) {
-        if (picks.some((p) => p.cat === need) || ownedCats.has(need)) continue;
-        const cands = catalog.filter((p) => p.cat === need && allowed(p) && fitsIn(p, stretch));
+      const anchor = picks.findIndex((p) => p.cat === cat);
+      if (anchor < 0) continue;
+      const missing = needsCats.filter((n) => !picks.some((p) => p.cat === n) && !ownedCats.has(n));
+      if (!missing.length) continue;
+      /* Price the WHOLE set of missing partners before buying any of it.
+         Buying them one at a time and dropping the last one bought when the
+         next turned out unaffordable made this oscillate: it bought a bar to
+         satisfy the rack, dropped the bar because it could not also afford
+         plates, then bought the bar again next pass — six times over, ending
+         with the rack still orphaned for hydrateKits to strip. The piece that
+         has to go is the anchor that cannot afford its partners, not the
+         partner that exposed it. */
+      const chosen: Lite[] = [];
+      let ok = true, sim = spent, simArea = areaUsed;
+      for (const need of missing) {
+        const cands = catalog.filter((p) =>
+          p.cat === need && allowed(p) && sim + p.price <= stretch && simArea + p.area <= areaStretch);
         const decent = cands.filter((p) => p.quality >= 7);
         const partner = (decent.length ? decent : cands).sort((a, b) => a.price - b.price)[0];
-        if (partner) {
-          take(partner);
-        } else {
-          const i = picks.findIndex((p) => p.cat === cat);
-          if (i >= 0) drop(i);
-        }
-        changed = true;
-        break;
+        if (!partner) { ok = false; break; }
+        chosen.push(partner);
+        sim += partner.price;
+        simArea += partner.area;
       }
+      if (ok) chosen.forEach(take);
+      else drop(anchor);
+      changed = true;
+      break;
     }
     if (!changed) break;
   }
@@ -390,7 +536,7 @@ export function buildKit(
        prune then stripped straight back out, leaving the short kit it was
        called in to fix. */
     const next = catalog
-      .filter((p) => p.cat !== "benches" && !HARD_PAIRS[p.cat] && allowed(p) && fitsIn(p, stretch))
+      .filter((p) => p.cat !== "benches" && !HARD_PAIRS[p.cat] && allowed(p) && fitsIn(p, stretch) && areaFits(p, areaStretch))
       .sort((a, b) => b.quality / b.price - a.quality / a.price)[0];
     if (!next) break;
     take(next);
@@ -411,6 +557,14 @@ export function buildKit(
   const owned = ownedTrains(ownedCats);
   const coverNow = () =>
     coverageFromTrains([...picks.map((p) => ({ category: p.cat, trains: p.trains })), ...owned]);
+  /* The repair runs AFTER the hard-pair pass, so anything it adds keeps
+     whatever partners it arrives with. A rack bought here to restore
+     pull-ups has no bar and no plates behind it, and hydrateKits' orphan
+     prune then strips it right back out — reopening the exact gap this pass
+     just closed, which is how an outdoor "home gym" went out with no way to
+     pull. A patch may only use gear that stands on its own. */
+  const standsAlone = (p: Lite) =>
+    (HARD_PAIRS[p.cat] || []).every((n) => picks.some((q) => q.cat === n) || ownedCats.has(n));
   for (let pass = 0; pass < PATTERNS.length; pass++) {
     const cov = coverNow();
     const missing = (Object.entries(needs) as [Pattern, 1 | 2][])
@@ -424,10 +578,43 @@ export function buildKit(
        kit's own enablers are applied — a bench "covers" chest press only
        alongside something to press. */
     const fixes = catalog
-      .filter((p) => allowed(p) && !picks.some((q) => q.cat === p.cat) && fitsIn(p, stretch))
+      .filter((p) => allowed(p) && !picks.some((q) => q.cat === p.cat) && standsAlone(p) && fitsIn(p, stretch) && areaFits(p, areaStretch))
       .filter((p) => coverageFromTrains([...[...picks, p].map((q) => ({ category: q.cat, trains: q.trains })), ...owned])[pat] >= want)
       .sort((a, b) => a.price - b.price);
-    if (!fixes.length) break;
+    if (!fixes.length) {
+      /* Nothing AFFORDABLE closes the gap — which on a small budget can mean
+         the kit spent its last $3 on a jump rope and cannot reach a $12 band.
+         Coverage outranks an accessory, so trade the priciest piece the kit
+         can lose for the piece that closes the hole. seatBench() trades the
+         same way and for the same reason. */
+      const cheapestFix = catalog
+        .filter((p) => allowed(p) && !picks.some((q) => q.cat === p.cat) && standsAlone(p) && areaFits(p, areaStretch))
+        .filter((p) => coverageFromTrains([...[...picks, p].map((q) => ({ category: q.cat, trains: q.trains })), ...owned])[pat] >= want)
+        .sort((a, b) => a.price - b.price)[0];
+      if (!cheapestFix) break;
+      const traded = picks
+        .map((p, i) => ({ p, i }))
+        /* Never trade away the bench, the free weights that justify it, or
+           either half of a hard pair — those trades just move the breakage. */
+        .filter(({ p }) => p.cat !== "benches" && !NEEDS_BENCH.has(p.cat) && !HARD_PAIRS[p.cat])
+        /* Only a trade that actually pays for the fix, so the kit never loses
+           a piece for nothing. */
+        .filter(({ p }) => spent - p.price + cheapestFix.price <= stretch)
+        /* And never one that surrenders a need the kit already meets. */
+        .filter(({ i }) => {
+          const after = coverageFromTrains([
+            ...picks.filter((_, j) => j !== i).map((q) => ({ category: q.cat, trains: q.trains })),
+            ...owned,
+          ]);
+          return (Object.entries(needs) as [Pattern, 1 | 2][])
+            .every(([k, v]) => cov[k] < v || after[k] >= v);
+        })
+        .sort((a, b) => b.p.price - a.p.price)[0];
+      if (!traded) break;
+      drop(traded.i);
+      take(cheapestFix);
+      continue;
+    }
     take(fixes[0]);
   }
   /* Repair can bring in the free weights that make a bench worth having. */
@@ -466,6 +653,9 @@ export function buildKit(
                shuffling Best Value above Best Match on the results page. */
             p.price <= cur.price &&
             spent - cur.price + p.price <= stretch &&
+            /* Same slot, but not necessarily the same size — a discounted
+               piece that no longer fits the room is not a deal. */
+            areaUsed - cur.area + p.area <= areaStretch &&
             eligible(p) &&
             /* An all-in-one swapped in next to a rack is the redundancy the
                rack-like rule exists to prevent. */
@@ -475,6 +665,7 @@ export function buildKit(
         .sort((a, b) => b.quality + dealBoost(b) * 2 - (a.quality + dealBoost(a) * 2))[0];
       if (alt) {
         spent += alt.price - cur.price;
+        areaUsed += alt.area - cur.area;
         picks[i] = alt;
         break;
       }
@@ -604,10 +795,13 @@ export function selectKits(catalog: Catalog, a: BuilderAnswers): HydratedKit[] {
   const lowCeil = a.ceiling === "under-8ft";
   const needs = needsFor(a.goal);
 
+  const areaCap = SPACE_SQFT[a.space || ""] ?? SPACE_SQFT_DEFAULT;
+
   const lite: Lite[] = KIT_CATEGORIES.flatMap((cat) =>
     (catalog[cat] || []).map((p) => ({
       id: p.id, cat, price: priceOf(p), list: p.price, quality: p.quality, rating: p.rating,
       gs: p.gymgearScore || 0, compact: !!p.compact,
+      area: areaOf(p.id, cat, !!p.compact),
       trains: trainsOf({ id: p.id, category: cat, specs: p.specs }),
       rackLike: replacesRack(cat, p.specs),
     })),
@@ -617,7 +811,8 @@ export function selectKits(catalog: Catalog, a: BuilderAnswers): HydratedKit[] {
   const rawKits = KIT_TIERS.map((t) => ({
     ...t,
     productIds: buildKit(t.type, lite, {
-      cap: capFor(t.type, cap), target, ownedCats, order, tight, lowCeil, needs,
+      cap: capFor(t.type, cap), areaCap, target, ownedCats, banned: forbidden, order, tight, lowCeil, needs,
+      goal: a.goal, experience: a.experience,
     }),
   }));
   return hydrateKits(rawKits, byId, cap, forbidden, ownedCats, tight, lowCeil, a.goal);

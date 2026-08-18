@@ -100,6 +100,22 @@ export const FOOTPRINTS: Record<string, { w: number; d: number }> = {
   "lf-club-treadmill": { w: 80, d: 39 },
   "lf-club-elliptical": { w: 84, d: 32 },
   "waterrower-oak": { w: 84, d: 22 },
+  /* Dumbbells — the category default below describes a full set on a rack,
+     which is 4x the truth for the products that exist precisely to avoid
+     one. Two archetypes, each taken from what the listing itself states:
+     a name that says "adjustable", or specs that say the quantity is a
+     single pair. Anything ambiguous is left on the category default rather
+     than guessed at. */
+  "nuobell-adj": { w: 30, d: 16 }, // adjustable pair in cradles
+  "bells-nuobell-s-adjustable-dumbbells": { w: 30, d: 16 },
+  "bowflex-552": { w: 30, d: 16 },
+  "ironmaster-ql": { w: 30, d: 16 },
+  "powerblock-elite": { w: 26, d: 14 }, // squarer stack, smallest of the four
+  "titan-25-lb-rubber-hex-pair": { w: 24, d: 14 }, // one fixed pair on the floor
+  "titan-80-lb-straight-stainless-steel-hex-dum": { w: 24, d: 14 },
+  "titan-90-lb-straight-stainless-steel-hex-dum": { w: 24, d: 14 },
+  "titan-110-lb-straight-stainless-steel-hex-du": { w: 24, d: 14 },
+  "titan-115-lb-straight-stainless-steel-hex-du": { w: 24, d: 14 },
 };
 
 /* Everything that physically sits on the gym floor gets placed on the map.

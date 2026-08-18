@@ -68,7 +68,9 @@ const CAT_TRAINS: Record<string, Partial<Record<Pattern, 1 | 2>>> = {
 export function machineTrains(specs: Record<string, string> | undefined): Partial<Record<Pattern, 1 | 2>> {
   const type = String(specs?.Type || "");
   const move = String(specs?.Movement || "");
-  if (/Leg Press/i.test(move)) return { squat: 2 };
+  /* A hack squat is the same knee-dominant job as a leg press: it loads the
+     squat pattern and nothing else. */
+  if (/Leg Press|Hack Squat/i.test(move)) return { squat: 2 };
   if (/Row/i.test(move)) return { "pull-h": 2 };
   if (/Posterior/i.test(move) || /GHD/i.test(type)) return { hinge: 2, core: 2 };
   if (/All-In-One/i.test(type))
@@ -86,11 +88,50 @@ export function machineTrains(specs: Record<string, string> | undefined): Partia
    squat stand and bumper plates with a curl bar. */
 const PRODUCT_TRAINS: Record<string, Partial<Record<Pattern, 1 | 2>>> = {
   "rep-equalizer": { "pull-h": 1 },
+  "bells-ez-curl-bar": { "pull-h": 1 },
+  "bells-rackable-ez-curl-bar": { "pull-h": 1 },
 };
 
 /* Bars that cannot anchor a barbell setup — excluded from the kit's barbell
-   slot entirely (they stay in the catalog as the accessory bars they are). */
-export const SPECIALTY_BARS = new Set(["rep-equalizer"]);
+   slot entirely (they stay in the catalog as the accessory bars they are).
+   The catalog carries three EZ curl bars and this set listed only one, so a
+   $2,167 "Best Match" strength kit shipped a squat stand with a 54.5" curl
+   bar as its barbell. Matched by id, never by category — all three sit in
+   `barbells`, which is exactly why the category cannot be trusted here. */
+export const SPECIALTY_BARS = new Set([
+  "rep-equalizer", "bells-ez-curl-bar", "bells-rackable-ez-curl-bar",
+]);
+
+/* Dumbbell listings vary in what one purchase actually gets you: a twist-lock
+   adjustable, a boxed multi-weight set, or one pair at one fixed weight. The
+   category default treats all three as equally good "a dumbbell solution",
+   which is how a lose-weight kit ended up recommending a single 110-lb-per-
+   hand pair — plenty heavy to anchor a strength kit, useless for the varied
+   high-rep work fat loss and general fitness need, and nothing a beginner
+   could press at all. Classified from what each listing itself states: an
+   adjustable mechanism or a named multi-pair set is a real range; anything
+   sold as one pair at one weight is not. */
+export const FIXED_PAIR_DUMBBELLS = new Set([
+  "rogue-hex", "rep-hex", // single-weight hex pair — no adjuster, no pair count
+  "titan-90-lb-straight-stainless-steel-hex-dum",
+  "titan-80-lb-straight-stainless-steel-hex-dum",
+  "titan-115-lb-straight-stainless-steel-hex-du",
+  "titan-110-lb-straight-stainless-steel-hex-du",
+  "titan-25-lb-rubber-hex-pair",
+]);
+/* Of those, the ones whose OWN listing states a per-dumbbell weight heavy
+   enough that nobody should get them as their only pair: a beginner cannot
+   press 90–115 lb, and lose-weight/get-fit work needs a load light enough to
+   do many reps at, not one heavy top-end number. The 25 lb pair is excluded
+   from this stricter set on purpose — light enough to be a genuine starter
+   weight, it only lacks room to progress, which the softer penalty below
+   already prices in. */
+export const HEAVY_FIXED_PAIR_DUMBBELLS = new Set([
+  "titan-90-lb-straight-stainless-steel-hex-dum",
+  "titan-80-lb-straight-stainless-steel-hex-dum",
+  "titan-115-lb-straight-stainless-steel-hex-du",
+  "titan-110-lb-straight-stainless-steel-hex-du",
+]);
 
 /* A machine only makes a rack redundant when it IS one: uprights plus cables.
    A leg press, an iso-lateral row or a GHD is a single station — letting those

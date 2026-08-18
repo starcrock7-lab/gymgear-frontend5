@@ -12,7 +12,7 @@
    your back, passed every structural rule there was.
 
    Usage:
-     npm run audit:kits            # all 432 combinations
+     npm run audit:kits            # every answer combination the quiz can emit
      npm run audit:kits -- --json  # machine-readable, for CI
 
    Exits non-zero on any failure, so it works as a gate. */
@@ -30,7 +30,12 @@ const GOALS = ["lose-weight", "build-strength", "get-fit", "home-gym-setup"];
 const BUDGETS = ["under-300", "300-800", "800-2000", "2000-plus"];
 const EXPS = ["beginner", "intermediate", "advanced"];
 const COUNTS = ["key-pieces", "small-setup", "full-home-gym"];
-const SPACES = ["spare-room", "garage", "small-room", "apartment-corner"];
+/* These must be the ids the quiz actually emits (see lib/quiz.ts). They drifted
+   once — the audit swept a "spare-room" the quiz can't produce while never
+   testing "outdoor", and pinned ceiling to a "normal" that isn't an option
+   either, so the low-ceiling gate went unexercised for its whole life. */
+const SPACES = ["apartment-corner", "small-room", "garage", "outdoor"];
+const CEILINGS = ["under-8ft", "8-9ft", "9ft-plus"];
 /* Owned gear is a real branch: those categories are excluded from the kit but
    still count toward what the buyer can train. A kit for someone who owns a
    rack must not "fix" their pull-up bar with a resistance band. */
@@ -69,11 +74,12 @@ for (const goal of GOALS)
     for (const experience of EXPS)
       for (const equipmentCount of COUNTS)
         for (const space of SPACES)
+         for (const ceiling of CEILINGS)
           for (const owned of OWNED) {
-            const a = { goal, experience, budget, space, ceiling: "normal", equipmentCount, owned };
+            const a = { goal, experience, budget, space, ceiling, equipmentCount, owned };
             const ownedCats = new Set(owned.map((id) => OWNED_TO_CAT[id]).filter(Boolean));
             const kits = selectKits(catalog, a);
-            const tag = `${goal}/${budget}/${experience}/${equipmentCount}/${space}/own:${owned.join("+")}`;
+            const tag = `${goal}/${budget}/${experience}/${equipmentCount}/${space}/${ceiling}/own:${owned.join("+")}`;
             if (!kits.length) { structural.push(`${tag}: produced NO kits`); continue; }
             for (const k of kits) {
               const cats = k.products.map((p) => p.category);
@@ -101,7 +107,7 @@ const n = rows.length;
 if (JSON_OUT) {
   console.log(JSON.stringify({ checked: n, structural, coverageFails, rows }, null, 2));
 } else {
-  console.log(`kits checked: ${n}  (${GOALS.length}x${BUDGETS.length}x${EXPS.length}x${COUNTS.length}x${SPACES.length}x${OWNED.length} answer combinations x 3 tiers)`);
+  console.log(`kits checked: ${n}  (${GOALS.length}x${BUDGETS.length}x${EXPS.length}x${COUNTS.length}x${SPACES.length}x${CEILINGS.length}x${OWNED.length} answer combinations x 3 tiers)`);
 
   console.log(`\nSTRUCTURAL problems: ${structural.length}`);
   structural.slice(0, 20).forEach((p) => console.log("  " + p));
