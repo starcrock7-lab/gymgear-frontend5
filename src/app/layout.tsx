@@ -20,7 +20,7 @@ const spaceGrotesk = Space_Grotesk({
 const SITE_URL = "https://gymgearcompare.com";
 const TITLE = "GymGear Compare — Your Perfect Home Gym, Built by AI";
 const DESCRIPTION =
-  "Answer 7 quick questions and get three personalized gym equipment kits — Best Value, Best Match, Best Quality — with live prices and honest AI verdicts.";
+  "Answer a few quick questions and get three personalized home gym kits — Best Value, Best Match, Best Quality — with real prices.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

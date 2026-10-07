@@ -129,12 +129,30 @@ export function optionLabel(key: QuizQuestion["key"], id: string): string {
   return q?.options.find((o) => o.id === id)?.label ?? id;
 }
 
-/* Every question answered — the quiz is finished and ready to build. */
+/* The quiz only asks what changes the kit most. The other answers keep their
+   ids (the builder, audits and saved sessions still read them) and get
+   neutral defaults in withDefaults() instead of a screen each. */
+export const ASKED: QuizQuestion["key"][] = ["goal", "budget", "space"];
+export const QUIZ_QUESTIONS = QUESTIONS.filter((q) => ASKED.includes(q.key));
+
+const PIECES_FOR_BUDGET: Record<string, string> = {
+  "under-300": "key-pieces",
+  "300-800": "small-setup",
+  "800-2000": "full-home-gym",
+  "2000-plus": "full-home-gym",
+};
+
+export function withDefaults(a: QuizAnswers): QuizAnswers {
+  return {
+    ...a,
+    equipmentCount: a.equipmentCount ?? (a.budget ? PIECES_FOR_BUDGET[a.budget] ?? null : null),
+    owned: a.owned.length ? a.owned : [OWNED_NONE],
+  };
+}
+
+/* Every asked question answered — the quiz is finished and ready to build. */
 export function isComplete(a: QuizAnswers): boolean {
-  return Boolean(
-    a.goal && a.experience && a.budget && a.space && a.ceiling &&
-      a.equipmentCount && a.owned.length > 0,
-  );
+  return ASKED.every((k) => Boolean(a[k]));
 }
 
 /* --- Persistence (sessionStorage) ------------------------------------- */

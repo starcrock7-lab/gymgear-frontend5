@@ -1,4 +1,4 @@
-import type { QuizAnswers } from "@/lib/quiz";
+import { withDefaults, type QuizAnswers } from "@/lib/quiz";
 import type { KitResponse, KitProduct, Category } from "@/lib/kit";
 
 /* All backend calls go through apiFetch so the base URL and the site-key
@@ -32,7 +32,7 @@ export async function requestKit(answers: QuizAnswers): Promise<KitResponse> {
   const res = await fetch("/api/kit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(answers),
+    body: JSON.stringify(withDefaults(answers)),
   });
   if (!res.ok) {
     throw new Error(`Kit request failed (${res.status})`);

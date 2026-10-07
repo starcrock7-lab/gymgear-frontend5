@@ -132,8 +132,8 @@ export default function FlowCard({ step }: { step: FlowStep }) {
           {step.body}
         </p>
 
-        {/* Details always visible — the card reads tall and complete */}
-        <ul className="mt-6 border-t border-white/10 pt-1.5">
+        {/* Optional detail list — the home page keeps cards to one line now */}
+        {step.details.length > 0 && <ul className="mt-6 border-t border-white/10 pt-1.5">
           {step.details.map((d) => (
             <li
               key={d}
@@ -143,7 +143,7 @@ export default function FlowCard({ step }: { step: FlowStep }) {
               {d}
             </li>
           ))}
-        </ul>
+        </ul>}
       </div>
     </motion.div>
   );

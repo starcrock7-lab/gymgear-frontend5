@@ -20,6 +20,7 @@ Comparison tool stays as secondary path for people who already know what they wa
 - Stays updated — weekly refresh pipeline already built (search.js, not yet active)
 
 ### The quiz (5 questions, one screen each)
+> **2026-10-06:** the live quiz now asks only goal, budget and space (`ASKED` in `src/lib/quiz.ts`); experience, ceiling, setup size and owned gear are defaulted by `withDefaults()` before `/api/kit`, and `audit:kits` sweeps the empty (null) answers too. The home-or-gym chooser (`/start`) redirects to `/quiz`; For Gyms is unlinked but its routes still exist.
 1. **Goal** — Build strength / Lose weight / Get fit / Home gym setup
 2. **Budget** — Under $300 / $300–$800 / $800–$2,000 / $2,000+
 3. **Space** — Apartment corner / Small room / Garage / Outdoor

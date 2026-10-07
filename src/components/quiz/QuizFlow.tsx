@@ -34,6 +34,7 @@ import {
   EMPTY_ANSWERS,
   OWNED_NONE,
   QUESTIONS,
+  QUIZ_QUESTIONS,
   clearAnswers,
   isComplete,
   loadAnswers,
@@ -93,6 +94,13 @@ export default function QuizFlow() {
   const [answers, setAnswers] = useState<QuizAnswers>(EMPTY_ANSWERS);
   const [kit, setKit] = useState<KitState>({ status: "loading" });
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* The last answer builds the kit straight away (no extra "Build" screen);
+     these refs give the delayed advance the latest answers and builder. */
+  const answersRef = useRef(answers);
+  const buildRef = useRef<(a: QuizAnswers) => void>(() => {});
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
 
   /* During a screen transition the exiting screen's buttons are still in
      the DOM with live handlers. These refs let handlers check they belong
@@ -104,7 +112,7 @@ export default function QuizFlow() {
     phaseRef.current = phase;
   }, [step, phase]);
 
-  const question = QUESTIONS[step];
+  const question = QUIZ_QUESTIONS[step];
 
   /* On mount, pick up where the user left off:
      - finished quiz  → "returning" choice screen (see kits / start new)
@@ -121,10 +129,10 @@ export default function QuizFlow() {
       setPhase("returning");
       return;
     }
-    const firstOpen = QUESTIONS.findIndex((q) =>
+    const firstOpen = QUIZ_QUESTIONS.findIndex((q) =>
       q.multi ? saved.owned.length === 0 : !saved[q.key],
     );
-    setStep(firstOpen === -1 ? QUESTIONS.length - 1 : firstOpen);
+    setStep(firstOpen === -1 ? QUIZ_QUESTIONS.length - 1 : firstOpen);
   }, []);
 
   useEffect(() => {
@@ -142,7 +150,7 @@ export default function QuizFlow() {
 
   const selectSingle = useCallback(
     (key: Exclude<QuizQuestion["key"], "owned">, id: string) => {
-      if (phaseRef.current !== "quiz" || QUESTIONS[stepRef.current].key !== key)
+      if (phaseRef.current !== "quiz" || QUIZ_QUESTIONS[stepRef.current].key !== key)
         return;
       cancelPendingAdvance();
       setAnswers((prev) => {
@@ -150,17 +158,22 @@ export default function QuizFlow() {
         saveAnswers(next);
         return next;
       });
+      const isLast = stepRef.current === QUIZ_QUESTIONS.length - 1;
       /* Brief pause so the selected state registers before the slide. */
       advanceTimer.current = setTimeout(() => {
+        if (isLast) {
+          buildRef.current(answersRef.current);
+          return;
+        }
         setDirection(1);
-        setStep((s) => Math.min(s + 1, QUESTIONS.length - 1));
+        setStep((s) => Math.min(s + 1, QUIZ_QUESTIONS.length - 1));
       }, 260);
     },
     [],
   );
 
   const toggleOwned = useCallback((id: string) => {
-    if (phaseRef.current !== "quiz" || !QUESTIONS[stepRef.current].multi)
+    if (phaseRef.current !== "quiz" || !QUIZ_QUESTIONS[stepRef.current].multi)
       return;
     setAnswers((prev) => {
       let owned: string[];
@@ -201,6 +214,10 @@ export default function QuizFlow() {
       setPhase("ready");
     })();
   }, []);
+
+  useEffect(() => {
+    buildRef.current = startBuild;
+  }, [startBuild]);
 
   const submit = useCallback(() => {
     if (phaseRef.current !== "quiz") return;
@@ -245,7 +262,7 @@ export default function QuizFlow() {
         if (step > 0) goBack();
         return;
       }
-      const q = QUESTIONS[step];
+      const q = QUIZ_QUESTIONS[step];
       if (e.key === "Enter" && q.multi && answers.owned.length > 0) {
         submit();
         return;
@@ -270,7 +287,7 @@ export default function QuizFlow() {
     selectSingle,
   ]);
 
-  const progress = phase === "quiz" ? (step + 1) / QUESTIONS.length : 1;
+  const progress = phase === "quiz" ? (step + 1) / QUIZ_QUESTIONS.length : 1;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -310,8 +327,8 @@ export default function QuizFlow() {
                 Back
               </button>
               <p className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-white/50">
-                Question {Math.min(step + 1, QUESTIONS.length)} of{" "}
-                {QUESTIONS.length}
+                Question {Math.min(step + 1, QUIZ_QUESTIONS.length)} of{" "}
+                {QUIZ_QUESTIONS.length}
               </p>
             </div>
             <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/10">
@@ -597,8 +614,6 @@ function ReturningPanel({
     answers.goal && optionLabel("goal", answers.goal),
     answers.budget && optionLabel("budget", answers.budget),
     answers.space && optionLabel("space", answers.space),
-    answers.equipmentCount &&
-      optionLabel("equipmentCount", answers.equipmentCount),
   ].filter(Boolean) as string[];
 
   return (

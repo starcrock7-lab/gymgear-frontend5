@@ -10,7 +10,6 @@ const NAV_LINKS = [
   { href: "/gear", label: "Gear" },
   { href: "/guides", label: "Guides" },
   { href: "/compare", label: "Compare" },
-  { href: "/gym", label: "For Gyms" },
 ];
 
 export default function SiteNav() {
@@ -83,7 +82,7 @@ export default function SiteNav() {
             </kbd>
           </button>
           <Link
-            href="/start"
+            href="/quiz"
             className="rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white shadow-md shadow-accent/20 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_22px_rgba(232,84,42,0.65)]"
           >
             Build My Kit →
@@ -126,7 +125,7 @@ export default function SiteNav() {
             </Link>
           ))}
           <Link
-            href="/start"
+            href="/quiz"
             onClick={close}
             className="mt-2 flex items-center justify-center rounded-lg bg-accent px-4 py-3 font-bold text-white"
           >

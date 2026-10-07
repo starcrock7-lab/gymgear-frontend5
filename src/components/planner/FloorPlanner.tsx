@@ -370,7 +370,7 @@ export default function FloorPlanner({
     }
   }
 
-  const backHref = origin === "/gym" ? "/gym" : origin === "/quiz" ? "/quiz" : "/start";
+  const backHref = origin === "/gym" ? "/gym" : "/quiz";
   const backLabel = origin === "/gym" ? "Back to your plan" : origin === "/quiz" ? "Back to your kit" : "Back";
 
   const Root = embedded ? "div" : "main";
@@ -398,10 +398,8 @@ export default function FloorPlanner({
         {items.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-line bg-card p-6 text-sm text-ink-2">
             No equipment list found. Build a kit with the{" "}
-            <Link href="/quiz" className="font-bold text-accent hover:underline">home quiz</Link>{" "}
-            or a facility plan in{" "}
-            <Link href="/gym" className="font-bold text-accent hover:underline">For Gyms</Link>,
-            then hit &quot;Visualize floor plan&quot; there.
+            <Link href="/quiz" className="font-bold text-accent hover:underline">quiz</Link>{" "}
+            first, then come back here.
           </div>
         ) : null}
 

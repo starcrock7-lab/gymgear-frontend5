@@ -38,8 +38,30 @@ import { muscleCoverage } from "@/lib/coverage";
 import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
 import Link from "next/link";
-import { Map, ArrowRight } from "lucide-react";
+import dynamic from "next/dynamic";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { toFloorItems, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
+import { autoPlace, emptyGrid } from "@/lib/auto-layout";
+import { loadAnswers } from "@/lib/quiz";
+
+/* three.js only loads once a kit is on screen. */
+const Planner3D = dynamic(() => import("@/components/planner/Planner3D"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[420px] w-full items-center justify-center rounded-2xl border border-line bg-navy sm:h-[520px]">
+      <Loader2 className="h-8 w-8 animate-spin text-accent" />
+    </div>
+  ),
+});
+
+/* A room the size of the answer to "how much space", in feet, so the kit is
+   shown at true scale in a space like the buyer's own. */
+const ROOM_FOR_SPACE: Record<string, { w: number; d: number }> = {
+  "apartment-corner": { w: 8, d: 8 },
+  "small-room": { w: 10, d: 11 },
+  garage: { w: 14, d: 12 },
+  outdoor: { w: 12, d: 12 },
+};
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
@@ -170,21 +192,17 @@ export default function KitResult({
   return (
     <div className="flex flex-col">
       <div className="text-center">
-        <p className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
-          Your kit is ready
-        </p>
-        <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Everything for your gym.
+        <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+          Your home gym
         </h1>
         <p className="mt-3 text-white/55">
-          Start from an AI build, then swap, remove, or add anything to make it
-          yours.
+          Pick a kit, turn it around, swap anything you like.
         </p>
       </div>
 
       {/* Tier selector — the kit's starting point (Value / Match / Quality) */}
       <div className="mt-10 flex flex-col items-center">
-        <div className="inline-flex flex-wrap justify-center gap-1 rounded-2xl border border-white/12 bg-white/5 p-1">
+        <div className="inline-flex max-w-full justify-center gap-1 rounded-2xl border border-white/12 bg-white/5 p-1">
           {kits.map((k) => {
             const meta = KIT_TIER_META[k.type];
             const on = k.type === selected;
@@ -194,7 +212,7 @@ export default function KitResult({
                 type="button"
                 onClick={() => setSelected(k.type)}
                 className={
-                  "relative rounded-xl px-5 py-2.5 text-center transition-all duration-200 sm:px-7 " +
+                  "relative min-w-0 rounded-xl px-3 py-2.5 text-center transition-all duration-200 sm:px-7 " +
                   (on
                     ? "bg-accent text-white shadow-[0_0_26px_rgba(232,84,42,0.55)]"
                     : "text-white/65 hover:bg-white/5 hover:text-white")
@@ -211,30 +229,43 @@ export default function KitResult({
             );
           })}
         </div>
-        <p className="mt-3 text-xs text-white/40">
-          Your starting point — edit anything in the kit below.
-        </p>
       </div>
 
-      {/* The cart */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={selectedKit.type}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.28, ease: EASE }}
-          className="mt-8"
-        >
-          <KitCard
-            kit={selectedKit}
-            flashId={flashId}
-            onSwap={(product) => setSwap({ kitType: selectedKit.type, product })}
-            onRemove={removeProduct}
-            onInfo={setDetail}
-          />
-        </motion.div>
-      </AnimatePresence>
+      {/* The kit in 3D beside the cart: the 3D view stays put on desktop while
+          the cart scrolls; on phones it sits above the cart. */}
+      <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <div className="lg:sticky lg:top-24">
+          <KitStage products={selectedKit.products} />
+          {floorItems.length > 0 && (
+            <Link
+              href="/planner"
+              className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-bold text-white/60 transition-colors hover:text-accent"
+            >
+              Place it in your own room
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
+        </div>
+        {/* The cart */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedKit.type}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.28, ease: EASE }}
+            className="min-w-0"
+          >
+            <KitCard
+              kit={selectedKit}
+              flashId={flashId}
+              onSwap={(product) => setSwap({ kitType: selectedKit.type, product })}
+              onRemove={removeProduct}
+              onInfo={setDetail}
+            />
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
       {accessories.length > 0 && (
         <FbtPanel
@@ -262,12 +293,6 @@ export default function KitResult({
             </>
           )}
         </button>
-        <a
-          href="/compare"
-          className="rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-body font-bold text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/10 hover:text-white"
-        >
-          Compare products
-        </a>
         <button
           type="button"
           onClick={onRetake}
@@ -294,6 +319,26 @@ export default function KitResult({
       )}
     </div>
   );
+}
+
+/* The selected kit, auto-placed in a room the size of the buyer's space and
+   shown with the planner's real-size 3D models. Rebuilds on every swap. */
+function KitStage({ products }: { products: KitProduct[] }) {
+  const [space, setSpace] = useState<string | null>(null);
+  useEffect(() => {
+    // sessionStorage is client-only; read it after mount so SSR markup matches
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSpace(loadAnswers()?.space ?? null);
+  }, []);
+  const room = ROOM_FOR_SPACE[space ?? ""] ?? { w: 12, d: 12 };
+  const placed = useMemo(() => {
+    const items = toFloorItems(products);
+    if (!items.length) return [];
+    const wIn = room.w * 12, dIn = room.d * 12;
+    return autoPlace(items, wIn, dIn, emptyGrid(wIn, dIn)).placed;
+  }, [products, room.w, room.d]);
+  if (!placed.length) return null;
+  return <Planner3D placed={placed} roomW={room.w} roomD={room.d} grid={null} />;
 }
 
 /* What this kit can actually train, live. Recomputed from the products on
@@ -419,31 +464,6 @@ function KitCard({
             {kit.description}
           </p>
         )}
-        {/* Open the full-screen planner (kit is synced to it live). The
-            visualizer is the product's headline act, so this is a full-width
-            hero CTA — it outranks everything else in the card. */}
-        {toFloorItems(items).length > 0 && (
-          <Link
-            href="/planner"
-            className="group mt-4 flex w-full items-center gap-3 rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/20 via-accent/10 to-transparent px-4 py-4 shadow-[0_0_24px_rgba(240,83,30,0.18)] transition-[border-color,box-shadow] duration-200 hover:border-accent/70 hover:shadow-[0_0_38px_rgba(240,83,30,0.45)] sm:px-5"
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-white shadow-lg shadow-accent/30">
-              <Map className="h-5 w-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-display text-base font-extrabold leading-tight tracking-tight text-white sm:text-lg">
-                Visualize it in your space
-              </span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-white/60">
-                Drop in your room and see how every piece fits — to scale.
-              </span>
-            </span>
-            <span className="flex shrink-0 items-center gap-1.5 rounded-xl bg-accent px-3 py-2 font-body text-xs font-bold text-white shadow-md shadow-accent/25 transition-transform duration-150 ease-out group-hover:scale-105 sm:px-3.5 sm:text-sm">
-              <span className="hidden sm:inline">Open</span>
-              <ArrowRight className="h-4 w-4" />
-            </span>
-          </Link>
-        )}
       </div>
 
       {/* Muscle coverage — the answer to "is this actually a gym?", measured
@@ -490,13 +510,9 @@ function KitCard({
               You save {formatPrice(savings)} vs. list price
             </p>
           )}
-          <p className="font-display text-xl font-extrabold text-white">
-            {items.length} {items.length === 1 ? "item" : "items"} ·{" "}
-            <span className="text-accent">{formatPrice(subtotal)}</span>
-          </p>
-          <p className="mt-2.5 text-[0.65rem] leading-snug text-white/35">
-            Buy each piece from its Buy button above — every link goes straight
-            to the store. We may earn a commission, at no cost to you.
+          <p className="text-[0.65rem] leading-snug text-white/35">
+            Every Buy link goes straight to the store. We may earn a
+            commission, at no cost to you.
           </p>
         </div>
       )}
@@ -530,7 +546,8 @@ function DealsStrip({ products }: { products: KitProduct[] }) {
             </span>
           )}
         </p>
-        <p className="mt-0.5 text-[0.72rem] leading-snug text-white/50">
+        {/* one line keeps the cart calm; the full pitch is on hover */}
+        <p title={dealsPitch(deals)} className="mt-0.5 line-clamp-1 text-[0.72rem] leading-snug text-white/50">
           {dealsPitch(deals)}
         </p>
       </div>

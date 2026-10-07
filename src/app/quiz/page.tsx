@@ -4,7 +4,7 @@ import QuizFlow from "@/components/quiz/QuizFlow";
 export const metadata: Metadata = {
   title: "Build Your Kit",
   description:
-    "Answer 7 quick questions about your goal, experience, space, and budget. Our AI assembles three personalized gym equipment kits from 250+ real products.",
+    "Answer a few quick questions about your goal, budget and space, and get three personalized home gym kits from real products.",
   robots: { index: false, follow: true },
 };
 

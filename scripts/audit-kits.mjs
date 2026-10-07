@@ -28,14 +28,16 @@ const JSON_OUT = process.argv.includes("--json");
 
 const GOALS = ["lose-weight", "build-strength", "get-fit", "home-gym-setup"];
 const BUDGETS = ["under-300", "300-800", "800-2000", "2000-plus"];
-const EXPS = ["beginner", "intermediate", "advanced"];
+/* null = not asked: the quiz now asks only goal, budget and space, so
+   experience and ceiling arrive empty (lib/quiz.ts withDefaults). */
+const EXPS = ["beginner", "intermediate", "advanced", null];
 const COUNTS = ["key-pieces", "small-setup", "full-home-gym"];
 /* These must be the ids the quiz actually emits (see lib/quiz.ts). They drifted
    once — the audit swept a "spare-room" the quiz can't produce while never
    testing "outdoor", and pinned ceiling to a "normal" that isn't an option
    either, so the low-ceiling gate went unexercised for its whole life. */
 const SPACES = ["apartment-corner", "small-room", "garage", "outdoor"];
-const CEILINGS = ["under-8ft", "8-9ft", "9ft-plus"];
+const CEILINGS = ["under-8ft", "8-9ft", "9ft-plus", null];
 /* Owned gear is a real branch: those categories are excluded from the kit but
    still count toward what the buyer can train. A kit for someone who owns a
    rack must not "fix" their pull-up bar with a resistance band. */

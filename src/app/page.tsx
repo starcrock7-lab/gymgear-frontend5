@@ -2,20 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useTransform,
-  type Variants,
-} from "framer-motion";
-import { ClipboardList, Sparkles, ShieldCheck } from "lucide-react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { ClipboardList, Sparkles, Box } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import DumbbellWall from "@/components/ui/dumbbell-wall";
-import IntroLoader from "@/components/ui/intro-loader";
 import AuroraBackground from "@/components/ui/aurora-background";
-import FloatingPaths from "@/components/ui/background-paths";
 import { TextScramble } from "@/components/ui/text-scramble";
 import { ButtonColorful } from "@/components/ui/button-colorful";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
@@ -108,38 +100,23 @@ const steps: FlowStep[] = [
   {
     n: "01",
     icon: <ClipboardList className="h-4.5 w-4.5" />,
-    title: "Answer 7 questions",
-    body: "Your goal, experience, budget, space, ceiling, setup size, and what you already own. Takes under a minute.",
-    details: [
-      "Goal — build strength, lose weight, get fit, or full home gym",
-      "Budget — from under $300 to $2,000+",
-      "Space — apartment corner up to a full garage",
-      "Tell it what you already own, it builds around it",
-    ],
+    title: "Answer a few questions",
+    body: "Your goal, your budget and your space. That's it.",
+    details: [],
   },
   {
     n: "02",
     icon: <Sparkles className="h-4.5 w-4.5" />,
-    title: "AI builds 3 kits",
-    body: "Best Value, Best Match, and Best Quality — each one checked to make sure you can train every muscle group with it.",
-    details: [
-      "Best Value — the cheapest route to your goal",
-      "Best Match — balanced for your exact answers",
-      "Best Quality — buy once, cry once",
-      "Every kit covers chest, back, legs, core — not just a pile of gear",
-    ],
+    title: "Get three kits",
+    body: "Best Value, Best Match and Best Quality, each checked to train every muscle group.",
+    details: [],
   },
   {
     n: "03",
-    icon: <ShieldCheck className="h-4.5 w-4.5" />,
-    title: "Buy with confidence",
-    body: "Every pick explained in plain English, with direct buy links. Swap anything you don't like.",
-    details: [
-      "Plain-English reason behind every pick",
-      "Swap any product for an alternative in one click",
-      "Send picks into the comparison tool side by side",
-      "Direct buy links — same price, zero markup",
-    ],
+    icon: <Box className="h-4.5 w-4.5" />,
+    title: "See it in 3D",
+    body: "Turn your kit around in 3D, swap anything you don't like, and buy from the store.",
+    details: [],
   },
 ];
 
@@ -152,13 +129,9 @@ const tileContainer: Variants = {
 
 export default function Home() {
   const router = useRouter();
-  const [introDone, setIntroDone] = useState(false);
-  const { scrollY } = useScroll();
-  const hintOpacity = useTransform(scrollY, [0, 160], [1, 0]);
 
   return (
     <>
-      <IntroLoader onComplete={() => setIntroDone(true)} />
       <SiteNav />
 
       {/* Hero — full first viewport (immersive: nothing below bleeds in),
@@ -169,16 +142,9 @@ export default function Home() {
         <motion.div
           variants={heroStagger}
           initial="hidden"
-          animate={introDone ? "show" : "hidden"}
+          animate="show"
           className="pointer-events-none relative mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center px-5 py-16 text-center"
         >
-          <motion.p
-            variants={fadeUp}
-            className="mb-6 flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-medium tracking-wide text-white/80 backdrop-blur-sm"
-          >
-            <span className="text-[0.5rem] text-accent">●</span>
-            Free · No Sign-Up · AI-Powered · Always Independent
-          </motion.p>
           <motion.h1
             variants={wordStagger}
             className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-7xl"
@@ -220,9 +186,8 @@ export default function Home() {
             variants={fadeUp}
             className="mt-6 max-w-xl text-lg leading-relaxed text-white/70"
           >
-            Answer 7 quick questions. Our AI builds you three complete
-            equipment kits — optimized for value, fit, and quality — from real
-            products with real prices.
+            A few quick questions, then three complete kits from real products
+            at real prices.
           </motion.p>
           <motion.div
             variants={fadeUp}
@@ -231,8 +196,8 @@ export default function Home() {
             {/* Shader halo ignites only on hover (was always-on: laggy) */}
             <HoverHalo>
               <ButtonColorful
-                label="Start the Quiz"
-                onClick={() => router.push("/start")}
+                label="Build my kit"
+                onClick={() => router.push("/quiz")}
                 className="relative h-14 rounded-xl px-8 font-body text-lg font-bold shadow-lg shadow-accent/30 transition-shadow duration-300 hover:shadow-[0_0_30px_rgba(232,84,42,0.55)]"
               />
             </HoverHalo>
@@ -245,29 +210,6 @@ export default function Home() {
             >
               Just compare products
             </LiquidButton>
-          </motion.div>
-          <motion.p variants={fadeUp} className="mt-5 text-xs text-white/40">
-            No account needed · 250+ products · 30+ categories · 100% independent
-          </motion.p>
-
-          {/* Scroll hint, fades as you move (Vectr hero__scroll-btn) */}
-          <motion.div
-            variants={fadeUp}
-            style={{ opacity: hintOpacity }}
-            className="mt-14 flex flex-col items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.25em] text-white/40"
-          >
-            scroll to see how it works
-            <motion.span
-              animate={{ y: [0, 6, 0] }}
-              transition={{
-                duration: 1.6,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              }}
-              className="text-accent"
-            >
-              ↓
-            </motion.span>
           </motion.div>
         </motion.div>
       </section>
@@ -345,10 +287,6 @@ export default function Home() {
           className="absolute inset-x-16 top-0 z-10 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent shadow-[0_0_14px_rgba(232,84,42,0.6)]"
         />
         <AuroraBackground />
-        <div className="text-white/40">
-          <FloatingPaths position={1} />
-          <FloatingPaths position={-1} />
-        </div>
         {/* Star speckle continues the space backdrop */}
         <div aria-hidden className="starfield absolute inset-0 opacity-60" />
         {/* Section transition 2 (how → CTA): rise + settle-in scale */}
@@ -370,14 +308,13 @@ export default function Home() {
             </span>
           </h2>
           <p className="mt-4 max-w-lg text-white/60">
-            One minute of questions. Three kits built for your space, your
-            budget, your goals.
+            Three kits built for your goal, your budget and your space.
           </p>
           <div className="mt-9">
             {/* Shader halo on hover + glow bloom — no 3D lift */}
             <HoverHalo>
               <HighlightButton
-                onClick={() => router.push("/start")}
+                onClick={() => router.push("/quiz")}
                 className="relative h-14 rounded-xl bg-accent px-10 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_36px_rgba(232,84,42,0.6)] hover:brightness-110"
               >
                 Build my kit →
