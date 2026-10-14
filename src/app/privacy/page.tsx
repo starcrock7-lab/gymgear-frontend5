@@ -27,7 +27,7 @@ function Section({
   );
 }
 
-const MAIL = "roei.karpik@gmail.com";
+const MAIL = "gymgearcompare@gmail.com";
 
 export default function PrivacyPage() {
   return (
