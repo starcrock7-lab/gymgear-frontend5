@@ -233,8 +233,8 @@ export default function KitResult({
 
       {/* The kit in 3D beside the cart: the 3D view stays put on desktop while
           the cart scrolls; on phones it sits above the cart. */}
-      <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <div className="lg:sticky lg:top-24">
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <div className="min-w-0 lg:sticky lg:top-24">
           <KitStage products={selectedKit.products} />
           {floorItems.length > 0 && (
             <Link
