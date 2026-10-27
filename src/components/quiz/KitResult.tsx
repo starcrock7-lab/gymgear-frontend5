@@ -338,7 +338,7 @@ function KitStage({ products }: { products: KitProduct[] }) {
     return autoPlace(items, wIn, dIn, emptyGrid(wIn, dIn)).placed;
   }, [products, room.w, room.d]);
   if (!placed.length) return null;
-  return <Planner3D placed={placed} roomW={room.w} roomD={room.d} grid={null} />;
+  return <Planner3D placed={placed} roomW={room.w} roomD={room.d} grid={null} walls={false} />;
 }
 
 /* What this kit can actually train, live. Recomputed from the products on

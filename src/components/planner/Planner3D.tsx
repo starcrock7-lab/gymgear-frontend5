@@ -27,6 +27,7 @@ export default function Planner3D({
   selectedUid = null,
   onSelect,
   cardSlot,
+  walls = true,
 }: {
   placed: PlacedItem[];
   roomW: number; // feet
@@ -39,6 +40,9 @@ export default function Planner3D({
   /* Rendered inside the scene wrapper, anchored beside the selected piece —
      the product card rides the camera like part of the 3D playground. */
   cardSlot?: React.ReactNode;
+  /* See-through walls help when planning a real room; the kit preview
+     leaves them out so they never sit in front of the gear. */
+  walls?: boolean;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const cardAnchorRef = useRef<HTMLDivElement | null>(null);
@@ -182,7 +186,9 @@ export default function Planner3D({
       opacity: 0.28,
       depthWrite: false, // keep equipment behind glass walls fully visible
     });
-    if (grid && grid.detected) {
+    if (!walls) {
+      /* no walls: the gear stands on the room floor alone */
+    } else if (grid && grid.detected) {
       const { cols, rows, cell, blocked } = grid;
       const shell: [number, number][] = [];
       for (let y = 0; y < rows; y++)
@@ -461,7 +467,7 @@ export default function Planner3D({
       renderer.dispose();
       wrap.removeChild(renderer.domElement);
     };
-  }, [placed, roomW, roomD, grid]);
+  }, [placed, roomW, roomD, grid, walls]);
 
   /* Selection changed (click here or in the 2D view): update glows and glide
      to the piece — without rebuilding the scene. */
