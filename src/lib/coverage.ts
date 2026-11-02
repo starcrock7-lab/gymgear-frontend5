@@ -133,6 +133,17 @@ export const HEAVY_FIXED_PAIR_DUMBBELLS = new Set([
   "titan-110-lb-straight-stainless-steel-hex-du",
 ]);
 
+/* Two listings in `plates` sell one 10 lb pair, not a set: 20 lb in total. As
+   "the kit's plates" they let a barbell pass every check with nothing on it.
+   They stay in the catalog as the add-ons they are. */
+export const SMALL_PLATE_PAIRS = new Set(["bells-colour-bumper-plates", "bells-crumb-bumper-plates"]);
+
+/* Plate-loaded gear ships without weight, so it trains nothing until the kit
+   has plates. Read from what the listing states. */
+export function isPlateLoaded(p: { category: string; name?: string; specs?: Record<string, string> }): boolean {
+  return p.category === "machines" && /plate[- ]loaded/i.test(`${p.name ?? ""} ${p.specs?.Type ?? ""}`);
+}
+
 /* A machine only makes a rack redundant when it IS one: uprights plus cables.
    A leg press, an iso-lateral row or a GHD is a single station — letting those
    block the rack is what left $8k kits with nothing to squat in or pull from. */

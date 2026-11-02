@@ -111,6 +111,8 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-01 · kits: budget is a hard limit on every tier, no plate-loaded gear without plates, no 10 lb plate pairs as a set, no single-station anchors, heavy fixed dumbbells for stated-advanced lifters only, pressure copy removed; audit now fails these (30,482 of 46,080 kits failed before, 0 after) · this commit
+
 - 2026-10-27 · Kit result 3D drops the see-through walls (Planner3D `walls` prop, default on for the planner) so nothing sits in front of the gear · this commit
 - 2026-10-06 · Declutter: quiz asks 3 questions (goal, budget, space; rest defaulted in withDefaults), result shows the kit in 3D beside the cart, home trimmed (no intro loader, pill, stats line, scroll hint, background paths), /start redirects to /quiz, For Gyms unlinked · this commit
 - 2026-08-10 · a retired category now 404s even when stale product data lingers (the page only checked for an empty ranking, and Vercel's persisted fetch cache kept re-rendering "Best Hoodies" after the category was gone); category list revalidates at 5 min instead of 60 · this commit

@@ -93,6 +93,11 @@ export default function KitResult({
   const [flashId, setFlashId] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
   const selectedKit = kits.find((k) => k.type === selected) ?? kits[0];
+  /* A small budget can leave two tiers with the same gear. Show it once, under
+     Best Match when that is one of them. */
+  const gearOf = (k: Kit) => k.products.map((p) => p.id).join();
+  const tiers = kits.filter((k, i) => !kits.some((o, j) =>
+    j !== i && gearOf(o) === gearOf(k) && (o.type === "match" || (k.type !== "match" && j < i))));
   const accessories = data.accessories ?? [];
 
   /* Share the selected kit — native share sheet where available, otherwise
@@ -203,7 +208,7 @@ export default function KitResult({
       {/* Tier selector — the kit's starting point (Value / Match / Quality) */}
       <div className="mt-10 flex flex-col items-center">
         <div className="inline-flex max-w-full justify-center gap-1 rounded-2xl border border-white/12 bg-white/5 p-1">
-          {kits.map((k) => {
+          {tiers.map((k) => {
             const meta = KIT_TIER_META[k.type];
             const on = k.type === selected;
             return (

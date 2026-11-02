@@ -76,7 +76,7 @@ function accessoryPool(kits: HydratedKit[], catalog: Catalog, ownedCats: Set<str
 /* "Why add this" per accessory category — the backend's deterministic copy,
    dash-free house style. */
 const WHY_FALLBACK: Record<string, string> = {
-  yogamats: "Your setup is built for standing lifts with nothing for floor core, mobility, or stretching. The mat fills that gap, it is the cheapest piece here, and you will use it every session.",
+  yogamats: "Your setup is built for standing lifts with nothing for floor core, mobility, or stretching. The mat fills that gap, and you will use it every session.",
   chalk: "Heavy pulls and presses slip at the grip long before the muscle gives out. A little chalk keeps the bar locked in and adds clean reps to every working set.",
   belts: "As your squat and deadlift climb, your lower back becomes the limit. A belt braces your core so you can load heavier with confidence and keep progressing.",
   sleeves: "Heavy squats and leg work wear on the knees over time. Sleeves add warmth, support, and rebound out of the bottom so you train harder and recover faster.",

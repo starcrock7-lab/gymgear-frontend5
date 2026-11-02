@@ -17,9 +17,10 @@
 
    Exits non-zero on any failure, so it works as a gate. */
 import {
-  coverageOf, coverageGaps, muscleCoverage, needsFor, PATTERN_LABEL,
+  coverageGaps, HEAVY_FIXED_PAIR_DUMBBELLS, isPlateLoaded, muscleCoverage, PATTERN_LABEL,
+  replacesRack, SMALL_PLATE_PAIRS,
 } from "../src/lib/coverage.ts";
-import { selectKits, BUDGET_CAP, capFor, ESSENTIAL_OVERFLOW } from "../src/lib/kit-builder.ts";
+import { selectKits, BUDGET_CAP } from "../src/lib/kit-builder.ts";
 
 const BASE = (process.env.NEXT_PUBLIC_BACKEND_URL || "https://gymgear-backend5.onrender.com").replace(/\/$/, "");
 const SITE_KEY = process.env.NEXT_PUBLIC_SITE_KEY || "";
@@ -90,10 +91,23 @@ for (const goal of GOALS)
               if (k.products.length < 3) bad.push(`only ${k.products.length} pieces`);
               if (NEEDS_BENCH.some(has) && !has("benches") && !ownedCats.has("benches")) bad.push("free weights, no bench");
               for (const [c, needs] of Object.entries(HARD))
-                if (has(c)) for (const nd of needs) if (!has(nd) && !ownedCats.has(nd)) bad.push(`${c} without ${nd}`);
-              const ceiling = capFor(k.type, BUDGET_CAP[budget]) * ESSENTIAL_OVERFLOW;
-              if (k.totalPrice > ceiling) bad.push(`$${k.totalPrice} over stretched cap $${Math.round(ceiling)}`);
+                /* Plates also load a plate-loaded machine, no barbell needed. */
+                if (has(c) && !(c === "plates" && k.products.some(isPlateLoaded)))
+                  for (const nd of needs) if (!has(nd) && !ownedCats.has(nd)) bad.push(`${c} without ${nd}`);
+              /* The buyer's budget is a promise, on every tier. */
+              if (k.totalPrice > BUDGET_CAP[budget] + 0.005) bad.push(`$${k.totalPrice} over the $${BUDGET_CAP[budget]} budget`);
               if (new Set(cats).size !== cats.length) bad.push("duplicate category");
+              /* Coverage can pass and the kit still be unusable: a plate-loaded
+                 machine with nothing to load, a bar with 20 lb of plates, a pair
+                 of 110s for someone who never said they were advanced. */
+              const rackLike = k.products.some((p) => replacesRack(p.category, p.specs));
+              const base = has("racks") || rackLike || ownedCats.has("racks");
+              for (const p of k.products) {
+                if (isPlateLoaded(p) && !has("plates") && !ownedCats.has("barbells")) bad.push(`${p.id} has no plates`);
+                if (SMALL_PLATE_PAIRS.has(p.id)) bad.push(`${p.id} is not a plate set`);
+                if (p.category === "machines" && !replacesRack(p.category, p.specs) && !base) bad.push(`single-station ${p.id} with no rack or all-in-one`);
+                if (HEAVY_FIXED_PAIR_DUMBBELLS.has(p.id) && experience !== "advanced") bad.push(`${p.id} for a ${experience ?? "unstated"} lifter`);
+              }
               /* Selling someone what they told us they already own is the
                  single most obvious way to look like we weren't listening. */
               for (const c of cats) if (ownedCats.has(c)) bad.push(`re-sold owned ${c}`);

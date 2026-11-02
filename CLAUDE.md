@@ -27,7 +27,7 @@ Stack: **Next 16.2.9 (App Router, `src/`), React 19.2.4, Tailwind v4, framer-mot
 ## Key flows (detail in README)
 - **Quiz → kit:** `/quiz` (`QuizFlow.tsx`) stores answers in sessionStorage `gymgear.quiz.v1` (option ids in `src/lib/quiz.ts`) → `requestKit()` → local `POST /api/kit` (`src/app/api/kit/route.ts` — a thin shell around `src/lib/kit-builder.ts`, the deterministic port of the backend builder; keep in lockstep with server.js) → `KitResult.tsx` (3 tiers, swap via `SwapModal`, live muscle-coverage panel).
 - **Kit quality is measured, not assumed** (`src/lib/coverage.ts`): a kit must let you train every muscle group its goal requires. Two gates, neither of which runs on Vercel — **run them yourself after any change to selection, coverage, the catalog or the quiz**:
-  - `npm run audit:kits` — builds all 8,640 kits the quiz can produce, fails on any untrainable or structurally broken one
+  - `npm run audit:kits` — builds all 46,080 kits the quiz can produce, fails on any over budget, untrainable or structurally broken one
   - `npm run check:lockstep -- <backendUrl>` — proves this builder and `server.js` still agree
   Full rules and the traps behind them: `gymgear-kits` skill.
 - **Compare:** `/compare` (`CompareTool.tsx`) — pick 2–4 in a category → spec matrix + best-value verdict.

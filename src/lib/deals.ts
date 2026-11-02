@@ -153,11 +153,11 @@ export function dealsPitch(deals: Deal[]): string {
     /* AI line when the weekly job wrote one for this product; template else. */
     return (
       AI_PITCH[d.product.id] ||
-      `The ${name(d)} is ${d.pct}% off right now. Sale prices can end without notice, so it is a smart time to lock it in.`
+      `The ${name(d)} is ${d.pct}% off right now. We check sale prices daily.`
     );
   }
   if (deals.length === 2) {
-    return `The ${name(deals[0])} and the ${name(deals[1])} are both discounted right now. Deals rotate all the time, so buying them while the discounts overlap saves you the most.`;
+    return `The ${name(deals[0])} and the ${name(deals[1])} are both discounted right now. We check sale prices daily.`;
   }
-  return `${deals.length} of your picks are discounted at the same time, led by the ${name(deals[0])}. Overlaps like this rotate away quickly, so it is a good week to buy the bundle.`;
+  return `${deals.length} of your picks are discounted at the same time, led by the ${name(deals[0])}. We check sale prices daily.`;
 }
