@@ -11,6 +11,7 @@
     "audit:deals": "node --import ./scripts/register-ts.mjs scripts/audit-deals.mjs",
     "audit:kits": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/audit-kits.mjs",
     "audit:layout": "node --import ./scripts/register-ts.mjs scripts/audit-layout.mjs",
+    "check:search": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/check-search.mjs",
     "check:lockstep": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/check-lockstep.mjs",
     "audit:personalization": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/audit-personalization.mjs"
   },

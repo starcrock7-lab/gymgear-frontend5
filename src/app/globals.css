@@ -436,3 +436,45 @@ body {
     animation: gg-pop-in 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
 }
+
+/* Hover glow for the homepage's main buttons. The glow is its own layer that
+   only fades in, so the browser never repaints a shadow while it animates.
+   Tap and keyboard focus get it too, because phones have no hover. */
+.glow-btn {
+  position: relative;
+  transition: border-color 180ms ease;
+}
+.glow-btn::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 14px rgba(240, 83, 30, 0.75),
+    0 0 42px rgba(240, 83, 30, 0.4);
+  transition: opacity 180ms ease;
+}
+.glow-btn:hover::after,
+.glow-btn:active::after,
+.glow-btn:focus-visible::after {
+  opacity: 1;
+}
+.glow-btn:focus-visible {
+  outline: none;
+}
+
+/* The homepage search bar's rotating example. */
+.search-hint {
+  animation: search-hint-in 320ms ease-out;
+}
+@keyframes search-hint-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glow-btn, .glow-btn::after { transition: none; }
+  .search-hint { animation: none; }
+}

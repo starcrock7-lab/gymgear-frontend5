@@ -1,15 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, type Variants } from "framer-motion";
-import { Search } from "lucide-react";
-import SiteNav from "@/components/SiteNav";
+import { Dumbbell, Flame, HeartPulse, Home as HomeIcon, Search, type LucideIcon } from "lucide-react";
+import SiteNav, { OPEN_SEARCH } from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import SearchModal from "@/components/SearchModal";
 import DumbbellWall from "@/components/ui/dumbbell-wall";
 import { clearKit } from "@/lib/kit";
-import { EMPTY_ANSWERS, questionFor, saveAnswers, type QuizAnswers } from "@/lib/quiz";
+import { EMPTY_ANSWERS, questionFor, saveAnswers } from "@/lib/quiz";
 
 const heroStagger: Variants = {
   hidden: {},
@@ -26,23 +25,39 @@ const fadeUp: Variants = {
   },
 };
 
-/* Common starting points. Each fills in what it already knows, and the quiz
-   only asks for what's left. */
-const SHORTCUTS: { label: string; answers: Partial<QuizAnswers> }[] = [
-  { label: "Apartment gym under $300", answers: { space: "apartment-corner", budget: "under-300" } },
-  { label: "Garage gym under $800", answers: { space: "garage", budget: "300-800" } },
-  { label: "Garage gym under $2,000", answers: { space: "garage", budget: "800-2000" } },
-  { label: "Gym for a low ceiling", answers: { space: "garage", ceiling: "under-8ft" } },
-];
+const GOAL_ICONS: Record<string, LucideIcon> = {
+  "build-strength": Dumbbell,
+  "lose-weight": Flame,
+  "get-fit": HeartPulse,
+  "home-gym-setup": HomeIcon,
+};
+
+/* Real things we list, so the bar shows what it can find before it's tapped. */
+const HINTS = ["squat racks", "adjustable dumbbells", "weight benches", "treadmills", "Rogue", "bumper plates"];
+
+/* Its own component, so changing the word re-renders only this span and not
+   the whole page. */
+function SearchHint() {
+  const [hint, setHint] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setInterval(() => setHint((h) => (h + 1) % HINTS.length), 2600);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <span key={hint} className="search-hint font-medium text-white">
+      {HINTS[hint]}
+    </span>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
-  const [searchOpen, setSearchOpen] = useState(false);
   const goal = questionFor("goal");
 
-  const startQuiz = (answers: Partial<QuizAnswers>) => {
+  const startQuiz = (id: string) => {
     clearKit();
-    saveAnswers({ ...EMPTY_ANSWERS, ...answers });
+    saveAnswers({ ...EMPTY_ANSWERS, goal: id });
     router.push("/quiz");
   };
 
@@ -57,7 +72,7 @@ export default function Home() {
           variants={heroStagger}
           initial="hidden"
           animate="show"
-          className="pointer-events-none relative mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-5 py-8 sm:py-12"
+          className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-5 py-8 sm:py-12"
         >
           <motion.h1
             variants={fadeUp}
@@ -66,50 +81,41 @@ export default function Home() {
             Home gym plans for your budget and space
           </motion.h1>
 
-          <motion.button
-            variants={fadeUp}
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className="pointer-events-auto mt-6 flex min-h-12 w-full items-center gap-3 rounded-xl border border-white/20 bg-navy-deep px-4 text-left text-white/65 transition-colors hover:border-white/40 hover:text-white"
-          >
-            <Search className="h-4 w-4 shrink-0" />
-            Search racks, dumbbells, brands
-          </motion.button>
-
-          <motion.div variants={fadeUp} className="mt-7">
-            <h2 className="font-display text-xl font-bold">
-              Or build a plan: {goal.title.toLowerCase()}
-            </h2>
-            <div className="pointer-events-auto mt-3 grid grid-cols-2 gap-2.5">
-              {goal.options.map((o) => (
-                <button
-                  key={o.id}
-                  type="button"
-                  onClick={() => startQuiz({ goal: o.id })}
-                  className="min-h-14 rounded-xl bg-accent px-3 py-3 text-center font-body font-bold text-white shadow-[0_8px_20px_-8px_rgba(0,0,0,0.6)] transition-colors hover:bg-accent-hover"
-                >
-                  {o.label}
-                </button>
-              ))}
+          <motion.div variants={fadeUp} className="mt-8">
+            <h2 className="font-display text-xl font-bold">{goal.title}</h2>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {goal.options.map((o) => {
+                const Icon = GOAL_ICONS[o.id];
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => startQuiz(o.id)}
+                    className="glow-btn flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-white/15 bg-navy-deep px-3 py-4 text-center font-body font-bold text-white"
+                  >
+                    <Icon className="h-6 w-6 text-accent" />
+                    {o.label}
+                  </button>
+                );
+              })}
             </div>
           </motion.div>
 
-          <motion.div variants={fadeUp} className="pointer-events-auto mt-6 flex flex-wrap gap-2">
-            {SHORTCUTS.map((s) => (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => startQuiz(s.answers)}
-                className="min-h-10 rounded-lg border border-white/15 bg-navy-deep px-3 text-sm font-medium text-white/80 transition-colors hover:border-accent/60 hover:text-white"
-              >
-                {s.label}
-              </button>
-            ))}
-          </motion.div>
+          <motion.button
+            variants={fadeUp}
+            type="button"
+            onClick={() => window.dispatchEvent(new Event(OPEN_SEARCH))}
+            aria-label="Search products"
+            className="glow-btn mt-5 flex min-h-14 w-full items-center gap-3 rounded-xl border border-white/15 bg-navy-deep px-4 text-left"
+          >
+            <Search className="h-5 w-5 shrink-0 text-accent" />
+            <span className="min-w-0 truncate text-white/70">
+              Or search <SearchHint />
+            </span>
+          </motion.button>
         </motion.div>
       </section>
 
-      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
       <SiteFooter />
     </>
   );

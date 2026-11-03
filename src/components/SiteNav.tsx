@@ -1,10 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { Menu, Search, X } from "lucide-react";
 import { LogoMark } from "@/components/ui/logo-mark";
 import SearchModal from "@/components/SearchModal";
+
+/* Fired by the homepage's search bar: the nav owns the one search panel. */
+export const OPEN_SEARCH = "gymgear:open-search";
 
 const NAV_LINKS = [
   { href: "/gear", label: "Gear" },
@@ -16,6 +21,17 @@ export default function SiteNav() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const close = () => setOpen(false);
+  /* The homepage already has a search bar and goal buttons, so the nav doesn't
+     repeat them there. */
+  const isHome = usePathname() === "/";
+  /* Rendered inside the tap, so the panel can focus its input in time for a
+     phone to raise the keyboard. */
+  const openSearch = () => flushSync(() => setSearchOpen(true));
+
+  useEffect(() => {
+    window.addEventListener(OPEN_SEARCH, openSearch);
+    return () => window.removeEventListener(OPEN_SEARCH, openSearch);
+  }, []);
 
   // "/" or Ctrl/Cmd+K opens search from anywhere (unless typing in a field).
   useEffect(() => {
@@ -69,36 +85,42 @@ export default function SiteNav() {
               />
             </Link>
           ))}
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm text-white/60 transition-colors hover:border-white/30 hover:text-white"
-            aria-label="Search products"
-          >
-            <Search className="h-3.5 w-3.5" />
-            <span>Search</span>
-            <kbd className="rounded border border-white/15 px-1 font-body text-[0.65rem] text-white/40">
-              /
-            </kbd>
-          </button>
-          <Link
-            href="/quiz"
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white shadow-md shadow-accent/20 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_22px_rgba(232,84,42,0.65)]"
-          >
-            Build My Kit →
-          </Link>
+          {!isHome && (
+            <>
+              <button
+                type="button"
+                onClick={openSearch}
+                className="flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm text-white/60 transition-colors hover:border-white/30 hover:text-white"
+                aria-label="Search products"
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span>Search</span>
+                <kbd className="rounded border border-white/15 px-1 font-body text-[0.65rem] text-white/40">
+                  /
+                </kbd>
+              </button>
+              <Link
+                href="/quiz"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-bold text-white shadow-md shadow-accent/20 transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_22px_rgba(232,84,42,0.65)]"
+              >
+                Build My Kit →
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile: search + menu toggles */}
         <div className="flex items-center sm:hidden">
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            aria-label="Search products"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10"
-          >
-            <Search className="h-5 w-5" />
-          </button>
+          {!isHome && (
+            <button
+              type="button"
+              onClick={openSearch}
+              aria-label="Search products"
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
