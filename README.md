@@ -111,6 +111,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-02 · homepage lag: dumbbell wall is now one tile on two layers moved by transform (main thread 98% busy to 34% on a throttled phone, DOM nodes 2,722 to 178); nav blur and the footer's pointer-tracked light removed; dumbbell hover glow gone · this commit
 - 2026-11-02 · rebrand build: homepage is search + first question + shortcuts, ceiling asked on the space screen, experience and owned gear are quick edits on a results page ordered Buy now / Will it fit / Add later with a phone bar; tier labels go by final price; light kettlebells and bands no longer count as full training; Amazon claims, unused-service claims and pressure pitches removed; blank ratings fixed · this commit
 - 2026-11-01 · kits: budget is a hard limit on every tier, no plate-loaded gear without plates, no 10 lb plate pairs as a set, no single-station anchors, heavy fixed dumbbells for stated-advanced lifters only, pressure copy removed; audit now fails these (30,482 of 46,080 kits failed before, 0 after) · this commit
 

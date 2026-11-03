@@ -34,7 +34,7 @@ Stack: **Next 16.2.9 (App Router, `src/`), React 19.2.4, Tailwind v4, framer-mot
 - **Catalog:** local Next API routes `src/app/api/catalog/*` + `src/lib/catalog.ts`.
 
 ## Style
-Brand: orange `#e8542a` accent, navy `#0d1b35`, Syne + DM Sans. Site-wide dark, techy/futuristic ("gym gear in space"), premium, Whoop-inspired; token source of truth is `src/app/globals.css` (dark-flipped `--off/--ink*/--line`, `--card` surface, `.starfield` utility). Hero wallpaper = `ui/dumbbell-wall.tsx` (SVG glass dumbbells, whole-dumbbell hover ignition — no cursor-following spotlights, they were rejected as laggy). Motion recipes: `smooth-motion` skill.
+Brand: orange `#e8542a` accent, navy `#0d1b35`, Syne + DM Sans. Site-wide dark, techy/futuristic ("gym gear in space"), premium, Whoop-inspired; token source of truth is `src/app/globals.css` (dark-flipped `--off/--ink*/--line`, `--card` surface, `.starfield` utility). Hero wallpaper = `ui/dumbbell-wall.tsx` (one tile repeated on two layers that slide by transform only; never move individual SVG shapes or mask moving layers, and no cursor-following spotlights, all three were laggy). Motion recipes: `smooth-motion` skill.
 
 ## Known issues / deferred
 - Local `npm run build` spams `[TypeError: fetch failed] ECONNREFUSED` during page-data collection: `.env.local` points `NEXT_PUBLIC_BACKEND_URL` at `localhost:3001`, and SSG pages fetch the catalog at build time. Build still passes (fallback data), but a faithful local prod preview needs the backend running first (`node server.js` in the backend repo). Vercel builds are unaffected (no `.env.local` → Render URL).

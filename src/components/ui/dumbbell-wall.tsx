@@ -1,130 +1,49 @@
-"use client";
+/* Hero wallpaper v6: a drifting wall of glass dumbbells that costs almost
+   nothing to run. The last version moved about 2,100 SVG shapes every frame on
+   the main thread (98% busy on a throttled phone). Here one dumbbell is drawn
+   once as a tile, the tile repeats as a background image, and two layers slide
+   by transform only, so the browser's compositor does all the moving. */
 
-import * as React from "react";
-
-/* Hero wallpaper v5 — part-by-part ignition, no cursor light at all.
-   The wall is one inline SVG grid of glass dumbbells (45°). Every bar and
-   plate is its own <rect> with a CSS :hover rule: sweep the mouse across a
-   dumbbell and the exact parts you touch flash molten orange, hold a beat,
-   then cool back to glass (fast transition in, delayed slow transition
-   out). Zero JavaScript at runtime, no masks, no filters chasing the
-   cursor — just shapes lighting under the pointer. Touch devices never
-   hover, so the wall simply rests. */
-
-/* Art is drawn on a 120px grid, then scaled down so the wall reads as a
-   dense wallpaper rather than a few big props. */
-const ART = 120;
+/* The tile is public/dumbbell-tile.svg: two rows tall with the dumbbell in the
+   top row. One layer shows the odd rows and the other the even rows, shifted
+   down one cell, so neighboring rows can drift in opposite directions. */
 const CELL = 78;
-const SCALE = CELL / ART;
-const COLS = 28; // ~2180px wide — covers ultrawide, parent clips the rest
-const ROWS = 14; // ~1090px tall
+const TILE = "url(/dumbbell-tile.svg)";
 
-/* One dumbbell's parts, local coords (drawn at 0..120, rotated 45°). */
-const PARTS = [
-  { x: 27, y: 56, w: 66, h: 8 }, // bar
-  { x: 17, y: 44, w: 9, h: 32 }, // inner plate L
-  { x: 94, y: 44, w: 9, h: 32 }, // inner plate R
-  { x: 6, y: 50, w: 8, h: 20 }, // outer plate L
-  { x: 106, y: 50, w: 8, h: 20 }, // outer plate R
-];
+const BACKDROP =
+  "radial-gradient(ellipse 85% 78% at 50% 38%, #17294f 0%, #0d1b35 46%, #060c1b 100%)";
 
-/* Per-row cells with one buffer column on each side: rows drift ±one cell
-   and loop, so the pattern must extend past both edges to never show gaps. */
-const ROW_IDX = Array.from({ length: ROWS }, (_, r) => r);
-const ROW_CELLS = Array.from({ length: COLS + 2 }, (_, i) => (i - 1) * CELL);
-
-/* Clear the pattern out of the middle so the dumbbells frame the headline
-   instead of sitting behind it; they fade in toward the edges. On the
-   viewport-sized wrapper, so the clear zone tracks the centered text. */
-const FRAME_MASK =
-  "radial-gradient(ellipse 56% 60% at 50% 46%, transparent 44%, #000 82%)";
+/* The backdrop again, solid in the middle, laid over the dumbbells so they
+   frame the headline. It never changes, so it paints once. Masking the moving
+   layers instead would re-composite the mask on every frame. */
+const CLEAR_CENTER =
+  "radial-gradient(ellipse 56% 60% at 50% 46%, #000 44%, transparent 82%)";
 
 export default function DumbbellWall() {
   return (
     <div aria-hidden className="absolute inset-0 overflow-hidden">
-      {/* Reactive ignition: lights the instant you touch a dumbbell, snaps
-          back quickly — feels alive as you sweep, not a slow ember. */}
       <style>{`
-        .db-part {
-          fill: rgba(255,255,255,0.035);
-          stroke: url(#db-glass);
-          transition:
-            stroke 360ms ease 90ms,
-            fill 360ms ease 90ms,
-            filter 360ms ease 90ms;
-        }
-        /* Hover anywhere on a dumbbell -> the WHOLE dumbbell ignites now */
-        g:hover > .db-part {
-          fill: rgba(232,84,42,0.34);
-          stroke: #ff9a6a;
-          filter: drop-shadow(0 0 4px rgba(232,84,42,1)) drop-shadow(0 0 15px rgba(232,84,42,0.7));
-          transition-duration: 0ms;
-          transition-delay: 0ms;
-        }
-        /* Conveyor drift: each row slides exactly one cell then loops (the
-           loop frame is identical -> seamless), and neighbors run opposite
-           directions. Transform-only, GPU-composited. */
-        @keyframes db-drift-a { from { transform: translateX(-${CELL}px); } to { transform: translateX(0); } }
-        @keyframes db-drift-b { from { transform: translateX(0); } to { transform: translateX(-${CELL}px); } }
-        .db-row-a { animation: db-drift-a 26s linear infinite; }
-        .db-row-b { animation: db-drift-b 26s linear infinite; }
+        @keyframes db-drift-a { from { transform: translate3d(-${CELL}px,0,0); } to { transform: translate3d(0,0,0); } }
+        @keyframes db-drift-b { from { transform: translate3d(0,0,0); } to { transform: translate3d(-${CELL}px,0,0); } }
+        .db-layer { position: absolute; inset: 0 -${CELL}px 0 0; will-change: transform; }
+        .db-layer-a { animation: db-drift-a 26s linear infinite; }
+        .db-layer-b { animation: db-drift-b 26s linear infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .db-row-a, .db-row-b { animation: none; }
+          .db-layer-a, .db-layer-b { animation: none; }
         }
       `}</style>
 
-      {/* Different backdrop: a cosmic radial (gym gear in space) instead of
-          the flat navy used everywhere else, plus a faint starfield. */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_78%_at_50%_38%,#17294f_0%,#0d1b35_46%,#060c1b_100%)]" />
-      <div className="starfield absolute inset-0 opacity-50" />
-
-      {/* Dumbbells, masked to frame the text (clear center → dense edges) */}
+      <div className="absolute inset-0" style={{ background: BACKDROP }} />
+      <div className="db-layer db-layer-a" style={{ backgroundImage: TILE }} />
       <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ maskImage: FRAME_MASK, WebkitMaskImage: FRAME_MASK }}
-      >
-        <svg
-          width={(COLS + 2) * CELL}
-          height={ROWS * CELL}
-          className="absolute left-0 top-0"
-        >
-          <defs>
-            {/* Glass stroke: bright catch-light at the ends, faint middle */}
-            <linearGradient id="db-glass" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="rgba(255,255,255,0.32)" />
-              <stop offset="0.5" stopColor="rgba(255,255,255,0.05)" />
-              <stop offset="1" stopColor="rgba(255,255,255,0.32)" />
-            </linearGradient>
-          </defs>
-          {/* Each row is one conveyor; neighbors drift opposite ways. The
-              row <g> carries ONLY the CSS animation (a CSS transform would
-              override an attribute transform, so cells keep their own). */}
-          {ROW_IDX.map((row) => (
-            <g key={row} className={row % 2 ? "db-row-b" : "db-row-a"}>
-              {ROW_CELLS.map((cx) => (
-                <g
-                  key={cx}
-                  transform={`translate(${cx} ${row * CELL}) scale(${SCALE}) rotate(45 ${ART / 2} ${ART / 2})`}
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                >
-                  {PARTS.map((p, j) => (
-                    <rect
-                      key={j}
-                      className="db-part"
-                      x={p.x}
-                      y={p.y}
-                      width={p.w}
-                      height={p.h}
-                      rx="4"
-                    />
-                  ))}
-                </g>
-              ))}
-            </g>
-          ))}
-        </svg>
-      </div>
+        className="db-layer db-layer-b"
+        style={{ backgroundImage: TILE, backgroundPosition: `0 ${CELL}px` }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: BACKDROP, maskImage: CLEAR_CENTER, WebkitMaskImage: CLEAR_CENTER }}
+      />
+      <div className="starfield absolute inset-0 opacity-50" />
 
       {/* Soft floor fade into the next section */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-navy to-transparent" />

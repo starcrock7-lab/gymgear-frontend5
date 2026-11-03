@@ -35,7 +35,7 @@ export default function SiteNav() {
   }, []);
 
   return (
-    <nav className="group/nav sticky top-0 z-50 border-b border-white/10 bg-navy/90 backdrop-blur-md">
+    <nav className="group/nav sticky top-0 z-50 border-b border-white/10 bg-navy/95">
       {/* The line between nav and page ignites while the nav is hovered */}
       <div
         aria-hidden

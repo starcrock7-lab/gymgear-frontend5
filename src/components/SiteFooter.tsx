@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useMotionTemplate,
-} from "framer-motion";
+import { motion } from "framer-motion";
 
 const navLinks = [
   { href: "/quiz", label: "Build My Kit" },
@@ -35,44 +29,21 @@ function ArrowIcon({ className }: { className?: string }) {
 }
 
 /**
- * Footer nav row — glow-up hover (per Roe: no 3D tilt on these): the orange
- * fill rises, a soft light tracks the pointer, the label and row edges
- * ignite. Arrow-swap stays.
+ * Footer nav row: the orange fill rises and the arrow swaps. Transform only,
+ * so the hover stays smooth.
  */
 function GlowRow({ href, label }: { href: string; label: string }) {
-  const ref = useRef<HTMLAnchorElement>(null);
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const lightX = useSpring(mx, { stiffness: 300, damping: 30 });
-  const lightY = useSpring(my, { stiffness: 300, damping: 30 });
-
-  const onMouseMove = (e: React.MouseEvent) => {
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-    mx.set(e.clientX - rect.left);
-    my.set(e.clientY - rect.top);
-  };
-
-  const shine = useMotionTemplate`radial-gradient(220px circle at ${lightX}px ${lightY}px, rgba(255,255,255,0.22), transparent 70%)`;
-
   return (
     <MotionLink
       href={href}
-      ref={ref}
-      onMouseMove={onMouseMove}
       whileTap={{ scale: 0.985 }}
-      className="group relative flex items-center justify-between overflow-hidden border-t border-white/10 py-7 transition-shadow duration-400 last:border-b hover:shadow-[0_0_34px_rgba(232,84,42,0.35)]"
+      className="group relative flex items-center justify-between overflow-hidden border-t border-white/10 py-7 last:border-b"
     >
         <span
           aria-hidden
           className="absolute inset-0 origin-bottom scale-y-0 bg-accent transition-transform duration-400 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:scale-y-100"
         />
-        <motion.span
-          aria-hidden
-          style={{ background: shine }}
-          className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        />
-        <span className="relative font-display text-2xl font-bold text-white transition-all duration-300 group-hover:[text-shadow:0_0_20px_rgba(255,255,255,0.65)] sm:text-3xl">
+        <span className="relative font-display text-2xl font-bold text-white sm:text-3xl">
           {label}
         </span>
         <span className="relative h-8 w-8 overflow-hidden">
