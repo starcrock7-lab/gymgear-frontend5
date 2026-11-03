@@ -5,7 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 export const metadata: Metadata = {
   title: "Affiliate disclosure",
   description:
-    "How GymGear Compare makes money: affiliate commissions that never influence our scores or rankings. Full transparency on our independence.",
+    "How GymGear Compare can earn money: affiliate commissions that never influence our scores or rankings.",
   alternates: { canonical: "/disclosure" },
 };
 
@@ -25,22 +25,20 @@ export default function DisclosurePage() {
 
         <div className="mx-auto max-w-3xl space-y-6 px-5 py-12 text-ink-2">
           <p className="leading-relaxed">
-            GymGear Compare is reader-supported. When you click a{" "}
+            GymGear Compare is free to use. When you click a{" "}
             &ldquo;Check price&rdquo; or &ldquo;Buy&rdquo; link and go on to
             purchase from a retailer, we may earn a small commission at{" "}
-            <strong className="text-ink">no extra cost to you</strong>. That
-            commission is how the site stays free.
+            <strong className="text-ink">no extra cost to you</strong>.
           </p>
 
           <div>
             <h2 className="font-display text-xl font-extrabold text-ink">
-              We participate in affiliate programs
+              Where our links go
             </h2>
             <p className="mt-2 leading-relaxed">
-              As an Amazon Associate we earn from qualifying purchases. We also
-              participate in affiliate programs run by equipment brands and
-              retailers we feature. We only ever link to products we have
-              actually placed in our rankings.
+              Each Buy link opens that product&rsquo;s page at the store. A
+              commission only applies where we have joined that store&rsquo;s
+              affiliate program. We only link to products in our rankings.
             </p>
           </div>
 

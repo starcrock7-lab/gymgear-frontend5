@@ -32,13 +32,14 @@ import { requestKit } from "@/lib/api";
 import { saveKit, loadKit, clearKit, type KitResponse } from "@/lib/kit";
 import {
   EMPTY_ANSWERS,
-  OWNED_NONE,
-  QUESTIONS,
   QUIZ_QUESTIONS,
   clearAnswers,
+  firstOpenStep,
   isComplete,
   loadAnswers,
+  needsCeiling,
   optionLabel,
+  questionFor,
   saveAnswers,
   type QuizAnswers,
   type QuizQuestion,
@@ -93,6 +94,8 @@ export default function QuizFlow() {
   const [direction, setDirection] = useState(1);
   const [answers, setAnswers] = useState<QuizAnswers>(EMPTY_ANSWERS);
   const [kit, setKit] = useState<KitState>({ status: "loading" });
+  /* Bumped by a quick edit so the result remounts on the rebuilt kits. */
+  const [kitVersion, setKitVersion] = useState(0);
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /* The last answer builds the kit straight away (no extra "Build" screen);
      these refs give the delayed advance the latest answers and builder. */
@@ -129,10 +132,7 @@ export default function QuizFlow() {
       setPhase("returning");
       return;
     }
-    const firstOpen = QUIZ_QUESTIONS.findIndex((q) =>
-      q.multi ? saved.owned.length === 0 : !saved[q.key],
-    );
-    setStep(firstOpen === -1 ? QUIZ_QUESTIONS.length - 1 : firstOpen);
+    setStep(firstOpenStep(saved));
   }, []);
 
   useEffect(() => {
@@ -150,45 +150,33 @@ export default function QuizFlow() {
 
   const selectSingle = useCallback(
     (key: Exclude<QuizQuestion["key"], "owned">, id: string) => {
-      if (phaseRef.current !== "quiz" || QUIZ_QUESTIONS[stepRef.current].key !== key)
+      /* The ceiling row lives on the space screen. */
+      const screen = key === "ceiling" ? "space" : key;
+      if (phaseRef.current !== "quiz" || QUIZ_QUESTIONS[stepRef.current].key !== screen)
         return;
       cancelPendingAdvance();
       setAnswers((prev) => {
         const next = { ...prev, [key]: id };
+        /* A new room needs its own ceiling answer. */
+        if (key === "space" && id !== prev.space) next.ceiling = null;
         saveAnswers(next);
         return next;
       });
-      const isLast = stepRef.current === QUIZ_QUESTIONS.length - 1;
-      /* Brief pause so the selected state registers before the slide. */
+      /* Brief pause so the selected state registers before the slide. Answers
+         can arrive pre-filled from a homepage shortcut, so go to whichever
+         screen is still open, not simply the next one. */
       advanceTimer.current = setTimeout(() => {
-        if (isLast) {
+        const open = firstOpenStep(answersRef.current);
+        if (open === -1) {
           buildRef.current(answersRef.current);
           return;
         }
         setDirection(1);
-        setStep((s) => Math.min(s + 1, QUIZ_QUESTIONS.length - 1));
+        setStep(open);
       }, 260);
     },
     [],
   );
-
-  const toggleOwned = useCallback((id: string) => {
-    if (phaseRef.current !== "quiz" || !QUIZ_QUESTIONS[stepRef.current].multi)
-      return;
-    setAnswers((prev) => {
-      let owned: string[];
-      if (id === OWNED_NONE) {
-        owned = prev.owned.includes(OWNED_NONE) ? [] : [OWNED_NONE];
-      } else {
-        owned = prev.owned.includes(id)
-          ? prev.owned.filter((o) => o !== id)
-          : [...prev.owned.filter((o) => o !== OWNED_NONE), id];
-      }
-      const next = { ...prev, owned };
-      saveAnswers(next);
-      return next;
-    });
-  }, []);
 
   const goBack = useCallback(() => {
     cancelPendingAdvance();
@@ -219,12 +207,29 @@ export default function QuizFlow() {
     buildRef.current = startBuild;
   }, [startBuild]);
 
-  const submit = useCallback(() => {
-    if (phaseRef.current !== "quiz") return;
-    cancelPendingAdvance();
-    saveAnswers(answers);
-    startBuild(answers);
-  }, [answers, startBuild]);
+  /* A quick edit on the results page rebuilds in place, without the building
+     screen. The ref drops a slow reply once a newer edit has been made. */
+  const editSeq = useRef(0);
+  const [edit, setEdit] = useState<"idle" | "saving" | "failed">("idle");
+  const editAnswers = useCallback((patch: Partial<QuizAnswers>) => {
+    const next = { ...answersRef.current, ...patch };
+    answersRef.current = next;
+    setAnswers(next);
+    saveAnswers(next);
+    setEdit("saving");
+    const seq = ++editSeq.current;
+    requestKit(next)
+      .then((data) => {
+        if (seq !== editSeq.current) return;
+        saveKit(data);
+        setKit({ status: "done", data });
+        setKitVersion((v) => v + 1);
+        setEdit("idle");
+      })
+      .catch(() => {
+        if (seq === editSeq.current) setEdit("failed");
+      });
+  }, []);
 
   /* Wipe everything and start the quiz over from question one. */
   const startNew = useCallback(() => {
@@ -252,8 +257,7 @@ export default function QuizFlow() {
 
   const retake = startNew;
 
-  /* Keyboard: 1–9 picks an option, Backspace goes back, Enter submits the
-     final multi-select. */
+  /* Keyboard: 1–9 picks an option, Backspace goes back. */
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (phase !== "quiz" || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -263,29 +267,14 @@ export default function QuizFlow() {
         return;
       }
       const q = QUIZ_QUESTIONS[step];
-      if (e.key === "Enter" && q.multi && answers.owned.length > 0) {
-        submit();
-        return;
-      }
       const n = Number(e.key);
       if (Number.isInteger(n) && n >= 1 && n <= q.options.length) {
-        const opt = q.options[n - 1];
-        if (q.multi) toggleOwned(opt.id);
-        else
-          selectSingle(q.key as Exclude<QuizQuestion["key"], "owned">, opt.id);
+        selectSingle(q.key as Exclude<QuizQuestion["key"], "owned">, q.options[n - 1].id);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [
-    phase,
-    step,
-    answers.owned.length,
-    goBack,
-    submit,
-    toggleOwned,
-    selectSingle,
-  ]);
+  }, [phase, step, goBack, selectSingle]);
 
   const progress = phase === "quiz" ? (step + 1) / QUIZ_QUESTIONS.length : 1;
 
@@ -307,12 +296,7 @@ export default function QuizFlow() {
           )}
         >
           {/* Progress header */}
-          <div
-            className={cn(
-              "transition-opacity duration-300",
-              phase === "quiz" ? "opacity-100" : "opacity-0",
-            )}
-          >
+          <div className={cn(phase !== "quiz" && "hidden")}>
             <div className="flex h-9 items-center justify-between">
               <button
                 type="button"
@@ -366,34 +350,32 @@ export default function QuizFlow() {
                   </h1>
                   <p className="mt-3 text-white/60">{question.subtitle}</p>
 
-                  {question.multi ? (
-                    <OwnedScreen
-                      owned={answers.owned}
-                      onToggle={toggleOwned}
-                      onSubmit={submit}
+                  <div className="mt-9 grid gap-3 sm:grid-cols-2">
+                    {question.options.map((opt, i) => (
+                      <OptionCard
+                        key={opt.id}
+                        index={i}
+                        label={opt.label}
+                        hint={opt.hint}
+                        icon={OPTION_ICONS[opt.id]}
+                        selected={answers[question.key] === opt.id}
+                        onSelect={() =>
+                          selectSingle(
+                            question.key as Exclude<
+                              QuizQuestion["key"],
+                              "owned"
+                            >,
+                            opt.id,
+                          )
+                        }
+                      />
+                    ))}
+                  </div>
+                  {question.key === "space" && needsCeiling(answers.space) && (
+                    <CeilingRow
+                      value={answers.ceiling}
+                      onSelect={(id) => selectSingle("ceiling", id)}
                     />
-                  ) : (
-                    <div className="mt-9 grid gap-3 sm:grid-cols-2">
-                      {question.options.map((opt, i) => (
-                        <OptionCard
-                          key={opt.id}
-                          index={i}
-                          label={opt.label}
-                          hint={opt.hint}
-                          icon={OPTION_ICONS[opt.id]}
-                          selected={answers[question.key] === opt.id}
-                          onSelect={() =>
-                            selectSingle(
-                              question.key as Exclude<
-                                QuizQuestion["key"],
-                                "owned"
-                              >,
-                              opt.id,
-                            )
-                          }
-                        />
-                      ))}
-                    </div>
                   )}
                 </>
               ) : phase === "returning" ? (
@@ -407,6 +389,10 @@ export default function QuizFlow() {
               ) : (
                 <ReadyPanel
                   kit={kit}
+                  kitVersion={kitVersion}
+                  answers={answers}
+                  edit={edit}
+                  onEdit={editAnswers}
                   onRetake={retake}
                   onRetry={() => startBuild(answers)}
                 />
@@ -474,71 +460,50 @@ function OptionCard({
   );
 }
 
-/* --- Final question: multi-select chips + submit ----------------------- */
+/* --- Ceiling height, shown under the room options ---------------------- */
 
-function OwnedScreen({
-  owned,
-  onToggle,
-  onSubmit,
+function CeilingRow({
+  value,
+  onSelect,
 }: {
-  owned: string[];
-  onToggle: (id: string) => void;
-  onSubmit: () => void;
+  value: string | null;
+  onSelect: (id: string) => void;
 }) {
-  const question = QUESTIONS[QUESTIONS.length - 1];
-  const canSubmit = owned.length > 0;
-
+  const q = questionFor("ceiling");
   return (
-    <>
-      <div className="mt-9 flex flex-wrap gap-2.5">
-        {question.options.map((opt) => {
-          const selected = owned.includes(opt.id);
-          return (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => onToggle(opt.id)}
-              aria-pressed={selected}
-              className={cn(
-                "flex items-center gap-2 rounded-full border px-5 py-2.5 font-medium transition-all duration-200",
-                selected
-                  ? "border-accent bg-accent/20 text-white"
-                  : "border-white/15 bg-white/5 text-white/75 hover:border-accent/50 hover:text-white",
-              )}
-            >
-              {selected && <Check className="h-4 w-4 text-accent" />}
-              {opt.label}
-            </button>
-          );
-        })}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      className="mt-8"
+    >
+      <h2 className="font-body font-bold">{q.title}</h2>
+      <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
+        {q.options.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => onSelect(opt.id)}
+            aria-pressed={value === opt.id}
+            className={cn(
+              "min-h-12 rounded-xl border px-2 py-3 font-body text-sm font-bold transition-colors duration-200",
+              value === opt.id
+                ? "border-accent bg-accent/15 text-white"
+                : "border-white/12 bg-white/5 text-white/85 hover:border-accent/50 hover:bg-white/10",
+            )}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
-      <button
-        type="button"
-        onClick={onSubmit}
-        disabled={!canSubmit}
-        className={cn(
-          "group mt-10 w-fit rounded-xl bg-accent px-8 py-4 font-body text-lg font-bold text-white shadow-lg shadow-accent/30 transition-all duration-300 ease-out",
-          canSubmit
-            ? "hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-xl hover:shadow-accent/50 active:translate-y-0 active:scale-[0.98]"
-            : "cursor-not-allowed opacity-40",
-        )}
-      >
-        Build my kit
-        <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
-          →
-        </span>
-      </button>
-      <p className="mt-4 text-xs text-white/40">
-        Pick at least one — &ldquo;Nothing yet&rdquo; counts.
-      </p>
-    </>
+    </motion.div>
   );
 }
 
 /* --- "Building your kit..." loading screen ----------------------------- */
 
 const BUILD_LINES = [
-  "Scanning 250+ products across 30+ categories…",
+  "Checking our product list…",
   "Optimizing for your budget and space…",
   "Checking every muscle group is covered…",
   "Assembling Best Value · Best Match · Best Quality…",
@@ -662,15 +627,33 @@ function ReturningPanel({
 
 function ReadyPanel({
   kit,
+  kitVersion,
+  answers,
+  edit,
+  onEdit,
   onRetake,
   onRetry,
 }: {
   kit: KitState;
+  kitVersion: number;
+  answers: QuizAnswers;
+  edit: "idle" | "saving" | "failed";
+  onEdit: (patch: Partial<QuizAnswers>) => void;
   onRetake: () => void;
   onRetry: () => void;
 }) {
   if (kit.status === "done") {
-    return <KitResult data={kit.data} onRetake={onRetake} />;
+    return (
+      <KitResult
+        key={kitVersion}
+        data={kit.data}
+        answers={answers}
+        edit={edit}
+        startEditsOpen={kitVersion > 0}
+        onEdit={onEdit}
+        onRetake={onRetake}
+      />
+    );
   }
 
   /* Error (or the brief instant before phase flips) — offer a retry and the

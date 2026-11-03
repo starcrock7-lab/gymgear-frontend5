@@ -106,9 +106,8 @@ export default function SiteFooter() {
             GymGear<span className="text-accent">Compare</span>™
           </p>
           <p className="mt-1 max-w-md text-xs leading-relaxed">
-            As an Amazon Associate, we earn from qualifying purchases. Some
-            links are affiliate links — we may earn a commission at no extra
-            cost to you. Verdicts stay independent.
+            Buy links go straight to the store. Stores may pay us a commission
+            on some links, at no extra cost to you. It never changes a score.
           </p>
         </div>
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium">

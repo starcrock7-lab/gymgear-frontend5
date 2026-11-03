@@ -170,8 +170,8 @@ export default function MethodologyPage() {
           </p>
 
           <p className="mt-10 text-sm text-ink-3">
-            Affiliate disclosure: some links earn us a commission at no extra
-            cost to you. It never changes a score — the rubric runs on the data,
+            Affiliate disclosure: stores may pay us a commission on some links,
+            at no extra cost to you. It never changes a score — the rubric runs on the data,
             not on who pays.
           </p>
         </div>

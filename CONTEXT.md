@@ -20,6 +20,8 @@ Comparison tool stays as secondary path for people who already know what they wa
 - Stays updated — weekly refresh pipeline already built (search.js, not yet active)
 
 ### The quiz (5 questions, one screen each)
+> **2026-11-02:** ceiling is asked on the space screen for rooms and garages; experience (default beginner) and owned gear are quick edits on the results page; setup size is derived from budget. Buy links go straight to the store, with no affiliate tracking yet. Plan: https://claude.ai/artifact/U3bhFq1nB3Vi3QEdzQS7jy
+>
 > **2026-10-06:** the live quiz now asks only goal, budget and space (`ASKED` in `src/lib/quiz.ts`); experience, ceiling, setup size and owned gear are defaulted by `withDefaults()` before `/api/kit`, and `audit:kits` sweeps the empty (null) answers too. The home-or-gym chooser (`/start`) redirects to `/quiz`; For Gyms is unlinked but its routes still exist.
 1. **Goal** — Build strength / Lose weight / Get fit / Home gym setup
 2. **Budget** — Under $300 / $300–$800 / $800–$2,000 / $2,000+

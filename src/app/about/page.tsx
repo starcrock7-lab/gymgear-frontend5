@@ -25,7 +25,7 @@ const VALUES = [
   {
     icon: ShieldCheck,
     h: "Independent, always",
-    body: "No brand can pay to rank higher. Affiliate commissions keep the site free; they never move a score.",
+    body: "No brand can pay to rank higher, and an affiliate commission never moves a score.",
   },
 ];
 

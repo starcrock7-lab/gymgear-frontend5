@@ -186,10 +186,12 @@ export default async function CategoryPage({
                     </Link>
                     <p className="text-xs text-ink-3">{p.brand}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-ink-2">
-                      <span className="flex items-center gap-0.5">
-                        <Star className="h-3 w-3 fill-accent text-accent" />
-                        {p.rating}
-                      </span>
+                      {p.rating != null && (
+                        <span className="flex items-center gap-0.5">
+                          <Star className="h-3 w-3 fill-accent text-accent" />
+                          {p.rating}
+                        </span>
+                      )}
                       {p.awards?.[0] && (
                         <span className="flex items-center gap-0.5 font-bold text-accent">
                           <Trophy className="h-3 w-3" />

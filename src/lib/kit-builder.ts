@@ -12,7 +12,7 @@
 import type { KitProduct, KitType } from "@/lib/kit";
 import {
   coverageFromTrains, coverageGaps, FIXED_PAIR_DUMBBELLS, HEAVY_FIXED_PAIR_DUMBBELLS, isPlateLoaded,
-  needsFor, ownedTrains, PATTERNS, replacesRack, SMALL_PLATE_PAIRS, SPECIALTY_BARS, trainsOf, type Pattern,
+  LIGHT_PIECES, needsFor, ownedTrains, PATTERNS, replacesRack, SMALL_PLATE_PAIRS, SPECIALTY_BARS, trainsOf, type Pattern,
 } from "@/lib/coverage";
 import { footprintOf } from "@/lib/floor-plan";
 
@@ -373,7 +373,9 @@ export function buildKit(
   const cheapestIn = (cat: string) => {
     /* Eligible only: reserving the price of a curl bar or a 10 lb pair left too
        little for the bar and plates the kit would really buy. */
-    const all = catalog.filter((q) => q.cat === cat && eligible(q));
+    const eligibleHere = catalog.filter((q) => q.cat === cat && eligible(q));
+    const full = eligibleHere.filter((q) => !LIGHT_PIECES.has(q.id));
+    const all = full.length ? full : eligibleHere;
     const good = all.filter((q) => q.quality >= 7);
     return (good.length ? good : all).reduce(
       (m, q) => (!m || q.price < m.price ? q : m),
@@ -774,7 +776,7 @@ export function hydrateKits(
   lowCeil: boolean,
   goal: string,
 ): HydratedKit[] {
-  return rawKits
+  return labelByPrice(rawKits
     .map((k) => {
       let products = k.productIds
         .map((id) => byId.get(id))
@@ -851,7 +853,17 @@ export function hydrateKits(
       }
       return { type: k.type, name: k.name, description: "", products, totalPrice: total };
     })
-    .filter((k) => k.products.length > 0);
+    .filter((k) => k.products.length > 0));
+}
+
+/* The labels go by final price: each tier is its own search, so "Best Value"
+   came out dearer than "Best Match" in 1 of 12 answer sets, once $796 against
+   $259. A buyer reads the label as a price promise. (Lockstep: server.js.) */
+function labelByPrice(kits: HydratedKit[]): HydratedKit[] {
+  const slots = kits.map(({ type, name }) => ({ type, name }));
+  return [...kits]
+    .sort((a, b) => a.totalPrice - b.totalPrice)
+    .map((k, i) => ({ ...k, ...slots[i] }));
 }
 
 /* One entry point for "given a catalog and quiz answers, what are the three

@@ -84,6 +84,9 @@ for (const goal of GOALS)
             const kits = selectKits(catalog, a);
             const tag = `${goal}/${budget}/${experience}/${equipmentCount}/${space}/${ceiling}/own:${owned.join("+")}`;
             if (!kits.length) { structural.push(`${tag}: produced NO kits`); continue; }
+            /* A label is a price promise: Best Value is never the dearer plan. */
+            if (kits.some((k, i) => i > 0 && k.totalPrice < kits[i - 1].totalPrice))
+              structural.push(`${tag}: tiers out of price order`);
             for (const k of kits) {
               const cats = k.products.map((p) => p.category);
               const has = (c) => cats.includes(c);

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const stats = [
-  { n: "250+", l: "Products listed" },
+  { n: "220+", l: "Products listed" },
   { n: "30+", l: "Categories" },
   { n: "High", l: "Buyer intent" },
   { n: "3", l: "Ad formats" },

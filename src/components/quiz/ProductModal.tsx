@@ -25,8 +25,7 @@ export default function ProductModal({
   const [imgOk, setImgOk] = useState(true);
   const price = p.salePrice ?? p.price;
   const specs = Object.entries(p.specs ?? {});
-  // Label the buy button by where it actually goes (affiliate → Amazon).
-  const dest = /amazon\./.test(buyUrl(p)) ? "Amazon" : p.retailer;
+  const dest = p.retailer;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();

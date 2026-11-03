@@ -90,7 +90,22 @@ const PRODUCT_TRAINS: Record<string, Partial<Record<Pattern, 1 | 2>>> = {
   "rep-equalizer": { "pull-h": 1 },
   "bells-ez-curl-bar": { "pull-h": 1 },
   "bells-rackable-ez-curl-bar": { "pull-h": 1 },
+  /* One light kettlebell (6 or 10 kg, per its listing) is limited work, not a
+     full squat or hinge. Its swings still count as conditioning. */
+  "titan-6-kg-cast-iron-kettlebell": { "push-v": 1, "pull-h": 1, squat: 1, hinge: 1, core: 1, conditioning: 2 },
+  "titan-10-kg-cast-iron-kettlebell": { "push-v": 1, "pull-h": 1, squat: 1, hinge: 1, core: 1, conditioning: 2 },
+  /* A single 5-15 lb band can't assist a pull-up. */
+  "rep-pull-up-band": { "push-h": 1, "push-v": 1, "pull-h": 1, squat: 1, hinge: 1, core: 1 },
+  "rep-short-resistance-bands": { "push-h": 1, "push-v": 1, "pull-h": 1, squat: 1, hinge: 1, core: 1 },
 };
+
+/* The light pieces above. Cheap, but never the piece a working kit is costed
+   on: the builder's cheapest-working-kit search looks at one piece per category
+   and would otherwise never see the slightly dearer one that does the job. */
+export const LIGHT_PIECES = new Set([
+  "titan-6-kg-cast-iron-kettlebell", "titan-10-kg-cast-iron-kettlebell",
+  "rep-pull-up-band", "rep-short-resistance-bands",
+]);
 
 /* Bars that cannot anchor a barbell setup — excluded from the kit's barbell
    slot entirely (they stay in the catalog as the accessory bars they are).

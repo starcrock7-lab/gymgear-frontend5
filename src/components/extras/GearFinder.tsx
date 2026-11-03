@@ -195,9 +195,13 @@ function FinderCard({
           <p className="text-xs text-ink-3">{p.brand}</p>
         </button>
         <div className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-2">
-          <Star className="h-3 w-3 fill-accent text-accent" />
-          {p.rating}
-          <span className="text-ink-3">·</span>
+          {p.rating != null && (
+            <>
+              <Star className="h-3 w-3 fill-accent text-accent" />
+              {p.rating}
+              <span className="text-ink-3">·</span>
+            </>
+          )}
           <span className="font-bold text-ink">{formatPrice(priceOf(p))}</span>
           {productDeal(p) && (
             <>

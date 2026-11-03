@@ -81,10 +81,14 @@ if (!deals.length) {
   process.exit(0);
 }
 
-const sys = `You write one deal pitch per product for a home gym gear site. Return strict JSON {"pitches":[{"id":string,"text":string}]} with an entry for every id provided. Each text is exactly two full sentences totaling 18 to 32 words. Sentence one names a concrete benefit of that specific product, what it is for or why lifters rate it. Sentence two gives honest urgency using the exact percent provided, such as sale prices can end without notice. Never restate only the name and percent, never invent any other number, price, or end date. Plain everyday words, never a dash or hyphen character. Match this example in depth and tone but never copy its phrasing, vary every pitch: "The PR 5000 is the rack most home lifters build their whole gym around. At 14% off it rarely gets cheaper, and sale prices can end without notice."`;
+const sys = `You write one deal pitch per product for a home gym gear site. Return strict JSON {"pitches":[{"id":string,"text":string}]} with an entry for every id provided. Each text is exactly two full sentences totaling 14 to 32 words. Sentence one names a concrete benefit of that specific product, what it is for or why lifters rate it. Sentence two states the exact percent provided as a plain fact and nothing else. No urgency, no sales talk, and no words like steal, hurry, rarely, or great deal. Never restate only the name and percent, never invent any other number, price, or end date. Plain everyday words, never a dash or hyphen character. Match this example in depth and tone but never copy its phrasing, vary every pitch: "The PR 5000 is a rack many home lifters build their whole gym around. It is 14% off right now."`;
 const user = deals
   .map((d) => `${d.id} = ${d.brand} ${d.name} (${d.category}), ${d.pct}% off`)
   .join("\n");
+
+/* The prompt asks for no sales pressure; this drops a pitch that has it anyway,
+   and the frontend's templated copy takes its place. */
+const PRESSURE = /without notice|steal|rarely|hurry|act fast|don.t miss|great (deal|value|price)|limited time/i;
 
 let pitches = {};
 try {
@@ -111,7 +115,7 @@ try {
     const clean = text.replace(/[-—–]/g, " ").replace(/\s+/g, " ").trim().slice(0, 220);
     /* Quality gate: a pitch shorter than ~14 words is a bare "X is Y% off"
        restatement — worse than the frontend template, so drop it. */
-    if (clean.split(" ").length >= 14) pitches[id] = clean;
+    if (clean.split(" ").length >= 14 && !PRESSURE.test(clean)) pitches[id] = clean;
   }
   console.log(`Groq wrote ${Object.keys(pitches).length}/${deals.length} pitches`);
 } catch (e) {

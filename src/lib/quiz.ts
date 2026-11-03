@@ -129,11 +129,19 @@ export function optionLabel(key: QuizQuestion["key"], id: string): string {
   return q?.options.find((o) => o.id === id)?.label ?? id;
 }
 
-/* The quiz only asks what changes the kit most. The other answers keep their
-   ids (the builder, audits and saved sessions still read them) and get
-   neutral defaults in withDefaults() instead of a screen each. */
+/* The quiz only asks what changes the kit most. Experience and owned gear are
+   quick edits on the results page; the other answers keep their ids (the
+   builder, audits and saved sessions still read them) and get defaults in
+   withDefaults() instead of a screen each. */
 export const ASKED: QuizQuestion["key"][] = ["goal", "budget", "space"];
 export const QUIZ_QUESTIONS = QUESTIONS.filter((q) => ASKED.includes(q.key));
+export const questionFor = (key: QuizQuestion["key"]) =>
+  QUESTIONS.find((q) => q.key === key) as QuizQuestion;
+
+/* Ceiling height is asked on the space screen, only where a tall rack is a
+   real option: a corner of a flat rules one out and outdoors has no ceiling. */
+export const needsCeiling = (space: string | null) =>
+  space === "small-room" || space === "garage";
 
 const PIECES_FOR_BUDGET: Record<string, string> = {
   "under-300": "key-pieces",
@@ -146,13 +154,21 @@ export function withDefaults(a: QuizAnswers): QuizAnswers {
   return {
     ...a,
     equipmentCount: a.equipmentCount ?? (a.budget ? PIECES_FOR_BUDGET[a.budget] ?? null : null),
+    experience: a.experience ?? "beginner",
     owned: a.owned.length ? a.owned : [OWNED_NONE],
   };
 }
 
+/* The first screen still waiting on an answer, or -1 when the quiz is done. */
+export function firstOpenStep(a: QuizAnswers): number {
+  return QUIZ_QUESTIONS.findIndex((q) =>
+    q.key === "space" ? !a.space || (needsCeiling(a.space) && !a.ceiling) : !a[q.key],
+  );
+}
+
 /* Every asked question answered — the quiz is finished and ready to build. */
 export function isComplete(a: QuizAnswers): boolean {
-  return ASKED.every((k) => Boolean(a[k]));
+  return firstOpenStep(a) === -1;
 }
 
 /* --- Persistence (sessionStorage) ------------------------------------- */

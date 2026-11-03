@@ -91,10 +91,9 @@ export default function PrivacyPage() {
 
         <Section title="Affiliate Links & Advertising">
           <p>
-            GymGear Compare participates in affiliate programmes including the
-            Amazon Associates Programme. When you click a &quot;Buy&quot; button
-            and make a purchase, we may earn a small commission at no extra cost
-            to you.
+            Our &quot;Buy&quot; buttons open the store&rsquo;s own product page.
+            Where a store runs an affiliate programme with us, we may earn a
+            small commission on a purchase, at no extra cost to you.
           </p>
           <p>
             Affiliate relationships never influence our rankings or comparison
@@ -105,9 +104,8 @@ export default function PrivacyPage() {
 
         <Section title="Cookies & Third-Party Services">
           <p>
-            We use Google Analytics (anonymous usage stats), Google AdSense
-            (advertising), Formspree (contact form), Amazon Associates
-            (affiliate programme), and Render/Vercel (hosting). Each has its own
+            We use Vercel Web Analytics (anonymous usage stats), Formspree
+            (contact form), and Render/Vercel (hosting). Each has its own
             privacy policy. You can disable cookies in your browser settings at
             any time.
           </p>

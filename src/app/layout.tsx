@@ -18,9 +18,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 const SITE_URL = "https://gymgearcompare.com";
-const TITLE = "GymGear Compare — Your Perfect Home Gym, Built by AI";
+const TITLE = "GymGear Compare: Home Gym Plans for Your Budget and Space";
 const DESCRIPTION =
-  "Answer a few quick questions and get three personalized home gym kits — Best Value, Best Match, Best Quality — with real prices.";
+  "Answer three questions and get a home gym plan that fits your budget and room, from real products at current prices.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

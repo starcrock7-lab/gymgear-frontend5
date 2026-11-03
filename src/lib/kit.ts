@@ -33,9 +33,6 @@ export type KitProduct = {
   gymgearScore?: number;
   scoreBreakdown?: ScoreFacet[];
   awards?: string[];
-  /* FBT — one-line "why add this" copy for the frequently-bought-together
-     panel (Groq, grounded in the kit; deterministic fallback). */
-  whyAdd?: string;
 };
 
 export type ScoreFacet = {
@@ -76,8 +73,9 @@ export type Kit = {
 
 export type KitResponse = {
   kits: Kit[];
-  /* Complementary accessories for the kit ("frequently bought together"). */
-  accessories?: KitProduct[];
+  /* The plan for the next budget up, for "Add later". Empty at the top budget;
+     optional because a kit cached before this field won't carry it. */
+  nextStage?: KitProduct[];
   generatedBy: "groq" | "fallback";
   generatedAt: string;
 };
@@ -119,17 +117,10 @@ export function kitTotal(products: KitProduct[]): number {
   return products.reduce((s, p) => s + (p.salePrice ?? p.price), 0);
 }
 
-/* Amazon Associates tag — every buy link earns commission through it. */
-export const AMAZON_TAG = "gymgearcompar-20";
-
-/* The buy link for a product. Prefer the backend-supplied affiliate link;
-   otherwise build an Amazon affiliate search from the name + brand. We never
-   fall back to the product's direct brand URL — those are frequently dead
-   pages (404), whereas an Amazon search always resolves. */
+/* The buy link for a product: its own page. A row whose link does not reach
+   the product is shelved by the backend rather than sent somewhere else. */
 export function buyUrl(p: KitProduct): string {
-  if (p.affiliateUrl) return p.affiliateUrl;
-  const q = encodeURIComponent(`${p.brand} ${p.name}`.trim());
-  return `https://www.amazon.com/s?k=${q}&tag=${AMAZON_TAG}`;
+  return p.affiliateUrl || p.url;
 }
 
 export function formatPrice(n: number): string {

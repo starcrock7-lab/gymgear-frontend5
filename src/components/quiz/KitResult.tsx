@@ -13,8 +13,8 @@ import {
   PackagePlus,
   Trash2,
   ArrowUpRight,
-  Plus,
   BadgePercent,
+  SlidersHorizontal,
 } from "lucide-react";
 import {
   findDeals,
@@ -42,7 +42,7 @@ import dynamic from "next/dynamic";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { toFloorItems, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
 import { autoPlace, emptyGrid } from "@/lib/auto-layout";
-import { loadAnswers } from "@/lib/quiz";
+import { OWNED_NONE, optionLabel, questionFor, type QuizAnswers } from "@/lib/quiz";
 
 /* three.js only loads once a kit is on screen. */
 const Planner3D = dynamic(() => import("@/components/planner/Planner3D"), {
@@ -66,17 +66,30 @@ const ROOM_FOR_SPACE: Record<string, { w: number; d: number }> = {
 const EASE = [0.16, 1, 0.3, 1] as const;
 const priceOf = (p: KitProduct) => p.salePrice ?? p.price;
 
+/* The top of the answered budget. "$2,000+" has no top to measure against. */
+const BUDGET_TOP: Record<string, number> = {
+  "under-300": 300,
+  "300-800": 800,
+  "800-2000": 2000,
+};
+
 type SwapTarget = { kitType: Kit["type"]; product: KitProduct };
 
-/* Three generated kits. One kit is always "selected" and lights up — on
-   desktop all three show side by side and clicking one selects it; below lg
-   a tab switcher shows one at a time. Best Match is selected by default and
-   always carries the Recommended badge. Any product can be swapped. */
+/* One recommended plan, with the other tiers a tap away: what to buy now, then
+   whether it fits, then what to add later. Any product can be swapped. */
 export default function KitResult({
   data,
+  answers,
+  edit,
+  startEditsOpen,
+  onEdit,
   onRetake,
 }: {
   data: KitResponse;
+  answers: QuizAnswers;
+  edit: "idle" | "saving" | "failed";
+  startEditsOpen: boolean;
+  onEdit: (patch: Partial<QuizAnswers>) => void;
   onRetake: () => void;
 }) {
   const order: Kit["type"][] = ["value", "match", "quality"];
@@ -92,19 +105,24 @@ export default function KitResult({
   const [detail, setDetail] = useState<KitProduct | null>(null);
   const [flashId, setFlashId] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
+  /* Buy links tapped this visit, so the phone bar can move on to the next. */
+  const [opened, setOpened] = useState<string[]>([]);
   const selectedKit = kits.find((k) => k.type === selected) ?? kits[0];
   /* A small budget can leave two tiers with the same gear. Show it once, under
      Best Match when that is one of them. */
   const gearOf = (k: Kit) => k.products.map((p) => p.id).join();
   const tiers = kits.filter((k, i) => !kits.some((o, j) =>
     j !== i && gearOf(o) === gearOf(k) && (o.type === "match" || (k.type !== "match" && j < i))));
-  const accessories = data.accessories ?? [];
+  const budgetTop = BUDGET_TOP[answers.budget ?? ""];
+  const nextToBuy = selectedKit.products.find((p) => !opened.includes(p.id));
+  const markOpened = (id: string) =>
+    setOpened((prev) => (prev.includes(id) ? prev : [...prev, id]));
 
   /* Share the selected kit — native share sheet where available, otherwise
      copy a link to the clipboard. */
   async function shareKit() {
     const k = selectedKit;
-    const text = `My AI-built home gym: ${k.name} — ${k.products.length} pieces, ${formatPrice(k.totalPrice)}. Build yours free:`;
+    const text = `My home gym plan: ${k.products.length} pieces, ${formatPrice(k.totalPrice)}. Build yours free:`;
     const url =
       typeof window !== "undefined"
         ? `${window.location.origin}/quiz`
@@ -141,23 +159,6 @@ export default function KitResult({
     setSwap(null);
   }
 
-  /* Add the ticked "frequently bought together" accessories to the selected
-     kit in one action (Amazon-style bundle), skipping any already in it. */
-  function addAccessories(accs: KitProduct[]) {
-    if (!accs.length) return;
-    setKits((prev) =>
-      prev.map((k) => {
-        if (k.type !== selected) return k;
-        const have = new Set(k.products.map((p) => p.id));
-        const fresh = accs.filter((a) => !have.has(a.id));
-        if (!fresh.length) return k;
-        const products = [...k.products, ...fresh];
-        return { ...k, products, totalPrice: kitTotal(products) };
-      }),
-    );
-    setFlashId(accs[accs.length - 1].id);
-  }
-
   /* Remove a line item from the selected cart (Amazon-style delete). */
   function removeProduct(id: string) {
     setKits((prev) =>
@@ -176,7 +177,7 @@ export default function KitResult({
     return () => clearTimeout(t);
   }, [flashId]);
 
-  /* Persist swaps + added accessories so returning to the page keeps them. */
+  /* Persist swaps and removals so returning to the page keeps them. */
   useEffect(() => {
     saveKit({ ...data, kits });
   }, [kits, data]);
@@ -195,18 +196,23 @@ export default function KitResult({
   }, [floorItems]);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col pb-20 lg:pb-0">
       <div className="text-center">
         <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Your home gym
+          Your home gym plan
         </h1>
-        <p className="mt-3 text-white/55">
-          Pick a kit, turn it around, swap anything you like.
+        <p className="mt-3 text-lg font-bold text-white">
+          {formatPrice(selectedKit.totalPrice)}
+          {budgetTop && (
+            <span className="font-normal text-white/60"> of your {formatPrice(budgetTop)} budget</span>
+          )}
         </p>
       </div>
 
+      <QuickEdits answers={answers} edit={edit} onEdit={onEdit} startOpen={startEditsOpen} />
+
       {/* Tier selector — the kit's starting point (Value / Match / Quality) */}
-      <div className="mt-10 flex flex-col items-center">
+      <div className="mt-6 flex flex-col items-center">
         <div className="inline-flex max-w-full justify-center gap-1 rounded-2xl border border-white/12 bg-white/5 p-1">
           {tiers.map((k) => {
             const meta = KIT_TIER_META[k.type];
@@ -236,11 +242,12 @@ export default function KitResult({
         </div>
       </div>
 
-      {/* The kit in 3D beside the cart: the 3D view stays put on desktop while
-          the cart scrolls; on phones it sits above the cart. */}
+      {/* The fit check and 3D view beside the cart: they stay put on desktop
+          while the cart scrolls; on phones they follow the cart, so what to buy
+          comes first and the 3D view can't trap the scroll on the way there. */}
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <div className="min-w-0 lg:sticky lg:top-24">
-          <KitStage products={selectedKit.products} />
+        <div className="order-2 min-w-0 lg:sticky lg:top-24 lg:order-1">
+          <KitStage products={selectedKit.products} answers={answers} />
           {floorItems.length > 0 && (
             <Link
               href="/planner"
@@ -259,11 +266,13 @@ export default function KitResult({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.28, ease: EASE }}
-            className="min-w-0"
+            className="order-1 min-w-0 lg:order-2"
           >
             <KitCard
               kit={selectedKit}
               flashId={flashId}
+              opened={opened}
+              onBuy={markOpened}
               onSwap={(product) => setSwap({ kitType: selectedKit.type, product })}
               onRemove={removeProduct}
               onInfo={setDetail}
@@ -272,13 +281,7 @@ export default function KitResult({
         </AnimatePresence>
       </div>
 
-      {accessories.length > 0 && (
-        <FbtPanel
-          accessories={accessories}
-          kit={selectedKit}
-          onAdd={addAccessories}
-        />
-      )}
+      <AddLater kit={selectedKit} next={data.nextStage ?? []} onInfo={setDetail} />
 
       <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
         <button
@@ -322,28 +325,201 @@ export default function KitResult({
       {detail && (
         <ProductModal product={detail} onClose={() => setDetail(null)} />
       )}
+
+      {/* Phone bar: the running total and the next piece to buy. */}
+      {selectedKit.products.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-white/12 bg-navy px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 lg:hidden">
+          <div className="min-w-0">
+            <p className="font-display text-lg font-extrabold leading-tight text-white">
+              {formatPrice(selectedKit.totalPrice)}
+            </p>
+            <p className="truncate text-xs text-white/60">
+              {nextToBuy ? `Next: ${nextToBuy.name}` : "All pieces opened"}
+            </p>
+          </div>
+          {nextToBuy && (
+            <a
+              href={buyUrl(nextToBuy)}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              onClick={() => markOpened(nextToBuy.id)}
+              className="flex h-11 shrink-0 items-center gap-1 rounded-lg bg-accent px-4 text-sm font-bold text-white"
+            >
+              Buy
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
+/* Experience and owned gear, changed here instead of on two more quiz screens.
+   Each tap rebuilds the plan. */
+function QuickEdits({
+  answers,
+  edit,
+  startOpen,
+  onEdit,
+}: {
+  answers: QuizAnswers;
+  edit: "idle" | "saving" | "failed";
+  /* A rebuild remounts the result; stay open so several edits take one open. */
+  startOpen: boolean;
+  onEdit: (patch: Partial<QuizAnswers>) => void;
+}) {
+  const experience = answers.experience ?? "beginner";
+  const owned = answers.owned.filter((id) => id !== OWNED_NONE);
+  const summary = [
+    optionLabel("experience", experience),
+    owned.length ? `Own: ${owned.map((id) => optionLabel("owned", id)).join(", ")}` : "No gear yet",
+  ].join(" · ");
+  const chip = (on: boolean) =>
+    "min-h-11 rounded-lg border px-3 text-sm font-bold transition-colors " +
+    (on
+      ? "border-accent bg-accent/15 text-white"
+      : "border-white/12 bg-white/5 text-white/70 hover:border-accent/50 hover:text-white");
+
+  return (
+    <details open={startOpen} className="mx-auto mt-6 w-full max-w-xl rounded-xl border border-white/12 bg-navy-deep/60">
+      <summary className="flex min-h-11 cursor-pointer items-center gap-2 px-4 py-2.5 text-sm text-white/70">
+        <SlidersHorizontal className="h-4 w-4 shrink-0 text-accent" />
+        <span className="min-w-0 flex-1 truncate">{summary}</span>
+        <span className="shrink-0 font-bold text-white">Edit</span>
+      </summary>
+      <div className="space-y-4 border-t border-white/10 px-4 py-4">
+        <div>
+          <p className="text-sm font-bold text-white">{questionFor("experience").title}</p>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            {questionFor("experience").options.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                aria-pressed={experience === o.id}
+                onClick={() => onEdit({ experience: o.id })}
+                className={chip(experience === o.id)}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-sm font-bold text-white">{questionFor("owned").title}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {questionFor("owned").options.filter((o) => o.id !== OWNED_NONE).map((o) => {
+              const on = owned.includes(o.id);
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() =>
+                    onEdit({ owned: on ? owned.filter((id) => id !== o.id) : [...owned, o.id] })
+                  }
+                  className={chip(on)}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <p role="status" className="text-xs text-white/60">
+          {edit === "saving" && "Updating your plan…"}
+          {edit === "failed" && "We couldn't update your plan. Tap an option to try again."}
+        </p>
+      </div>
+    </details>
+  );
+}
+
 /* The selected kit, auto-placed in a room the size of the buyer's space and
-   shown with the planner's real-size 3D models. Rebuilds on every swap. */
-function KitStage({ products }: { products: KitProduct[] }) {
-  const [space, setSpace] = useState<string | null>(null);
-  useEffect(() => {
-    // sessionStorage is client-only; read it after mount so SSR markup matches
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSpace(loadAnswers()?.space ?? null);
-  }, []);
-  const room = ROOM_FOR_SPACE[space ?? ""] ?? { w: 12, d: 12 };
-  const placed = useMemo(() => {
+   shown with the planner's real-size 3D models. Rebuilds on every swap. The fit
+   check above it only states what was measured or filtered for. */
+function KitStage({ products, answers }: { products: KitProduct[]; answers: QuizAnswers }) {
+  const room = ROOM_FOR_SPACE[answers.space ?? ""] ?? { w: 12, d: 12 };
+  const { placed, unplacedCount } = useMemo(() => {
     const items = toFloorItems(products);
-    if (!items.length) return [];
+    if (!items.length) return { placed: [], unplacedCount: 0 };
     const wIn = room.w * 12, dIn = room.d * 12;
-    return autoPlace(items, wIn, dIn, emptyGrid(wIn, dIn)).placed;
+    return autoPlace(items, wIn, dIn, emptyGrid(wIn, dIn));
   }, [products, room.w, room.d]);
   if (!placed.length) return null;
-  return <Planner3D placed={placed} roomW={room.w} roomD={room.d} grid={null} walls={false} />;
+  const spaceName = optionLabel("space", answers.space ?? "").toLowerCase();
+  return (
+    <>
+      <h2 className="font-display text-lg font-extrabold text-white">Will it fit?</h2>
+      <ul className="mb-3 mt-2 space-y-1.5 text-sm text-white/75">
+        <li className="flex gap-2">
+          <Check className={"mt-0.5 h-4 w-4 shrink-0 " + (unplacedCount ? "text-white/30" : "text-win")} />
+          {unplacedCount
+            ? `${unplacedCount} ${unplacedCount === 1 ? "piece doesn't" : "pieces don't"} fit at once in our ${room.w} × ${room.d} ft ${spaceName} layout. Plan on storing or folding gear.`
+            : `Fits our ${room.w} × ${room.d} ft ${spaceName} layout, using approximate footprints.`}
+        </li>
+        {answers.ceiling && (
+          <li className="flex gap-2">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-win" />
+            {answers.ceiling === "under-8ft"
+              ? "We left out tall racks and machines for your low ceiling. Check each height at the store."
+              : "Racks often stand 86–91 in. Check each height against your ceiling at the store."}
+          </li>
+        )}
+      </ul>
+      <Planner3D placed={placed} roomW={room.w} roomD={room.d} grid={null} walls={false} />
+    </>
+  );
+}
+
+/* The next stage: what the plan one budget up has that this kit doesn't, and
+   what those pieces let the buyer train that they can't yet. Measured from the
+   products, so swaps and removals above change it. */
+function AddLater({
+  kit,
+  next,
+  onInfo,
+}: {
+  kit: Kit;
+  next: KitProduct[];
+  onInfo: (p: KitProduct) => void;
+}) {
+  const have = new Set(kit.products.map((p) => p.category));
+  const add = next.filter((p) => !have.has(p.category));
+  const owned = kit.ownedCats ?? [];
+  if (!add.length) return null;
+  const before = muscleCoverage(kit.products, owned);
+  const unlocked = muscleCoverage([...kit.products, ...add], owned)
+    .filter((g) => g.level > (before.find((b) => b.key === g.key)?.level ?? 0))
+    .map((g) => g.label);
+
+  return (
+    <section className="mt-12">
+      <h2 className="font-display text-2xl font-extrabold tracking-tight text-white">Add later</h2>
+      <p className="mt-1 text-sm text-white/65">
+        {`About ${formatPrice(Math.round(kitTotal(add)))} more at today’s prices.${
+          unlocked.length > 0 ? ` Trains more: ${unlocked.join(", ").toLowerCase()}.` : ""
+        }`}
+      </p>
+      <ul className="mt-4 divide-y divide-white/8 rounded-xl border border-white/12 bg-navy-deep/60">
+        {add.map((p) => (
+          <li key={p.id}>
+            <button
+              type="button"
+              onClick={() => onInfo(p)}
+              className="flex min-h-12 w-full items-center justify-between gap-3 px-4 py-2.5 text-left"
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-bold text-white">{p.name}</span>
+                <span className="block text-xs text-white/55">{categoryLabel(p.category)}</span>
+              </span>
+              <span className="shrink-0 font-display font-extrabold text-white">{formatPrice(priceOf(p))}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
 }
 
 /* What this kit can actually train, live. Recomputed from the products on
@@ -421,12 +597,16 @@ function CoveragePanel({ products, ownedCats }: { products: KitProduct[]; ownedC
 function KitCard({
   kit,
   flashId,
+  opened,
+  onBuy,
   onSwap,
   onRemove,
   onInfo,
 }: {
   kit: Kit;
   flashId: string | null;
+  opened: string[];
+  onBuy: (id: string) => void;
   onSwap: (product: KitProduct) => void;
   onRemove: (id: string) => void;
   onInfo: (product: KitProduct) => void;
@@ -446,9 +626,9 @@ function KitCard({
               <PackagePlus className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <p className="font-display text-lg font-extrabold leading-tight text-white">
-                Your kit
-              </p>
+              <h2 className="font-display text-lg font-extrabold leading-tight text-white">
+                Buy now
+              </h2>
               <p className="truncate text-xs text-white/45">
                 {items.length} {items.length === 1 ? "item" : "items"} ·{" "}
                 {kit.name}
@@ -464,11 +644,6 @@ function KitCard({
             </p>
           </div>
         </div>
-        {kit.description && (
-          <p className="mt-2 text-xs leading-relaxed text-white/45">
-            {kit.description}
-          </p>
-        )}
       </div>
 
       {/* Muscle coverage — the answer to "is this actually a gym?", measured
@@ -499,6 +674,8 @@ function KitCard({
               key={p.id}
               product={p}
               flash={flashId === p.id}
+              opened={opened.includes(p.id)}
+              onBuy={() => onBuy(p.id)}
               onSwap={() => onSwap(p)}
               onRemove={() => onRemove(p.id)}
               onInfo={() => onInfo(p)}
@@ -515,9 +692,10 @@ function KitCard({
               You save {formatPrice(savings)} vs. list price
             </p>
           )}
-          <p className="text-[0.65rem] leading-snug text-white/35">
-            Every Buy link goes straight to the store. We may earn a
-            commission, at no cost to you.
+          <p className="mt-1 text-xs leading-snug text-white/60">
+            Totals leave out shipping and tax, which can be large on heavy gear.
+            Each Buy link opens the store, where you can see delivery and
+            returns.
           </p>
         </div>
       )}
@@ -563,12 +741,16 @@ function DealsStrip({ products }: { products: KitProduct[] }) {
 function CartRow({
   product: p,
   flash,
+  opened,
+  onBuy,
   onSwap,
   onRemove,
   onInfo,
 }: {
   product: KitProduct;
   flash: boolean;
+  opened: boolean;
+  onBuy: () => void;
   onSwap: () => void;
   onRemove: () => void;
   onInfo: () => void;
@@ -615,20 +797,25 @@ function CartRow({
             <Info className="h-3 w-3 shrink-0 text-white/30 transition-colors group-hover:text-accent" />
           </p>
           <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[0.7rem] text-white/45">
-            <span className="flex items-center gap-0.5">
-              <Star className="h-2.5 w-2.5 fill-accent text-accent" />
-              {p.rating}
-            </span>
+            {p.rating != null && (
+              <>
+                <span className="flex items-center gap-0.5">
+                  <Star className="h-2.5 w-2.5 fill-accent text-accent" />
+                  {p.rating}
+                  {p.reviewCount != null && ` (${p.reviewCount.toLocaleString("en-US")})`}
+                </span>
+                <span className="text-white/20">·</span>
+              </>
+            )}
             {p.bestChoice && (
               <>
-                <span className="text-white/20">·</span>
                 <span className="flex items-center gap-0.5 text-win">
                   <Check className="h-2.5 w-2.5" />
                   Top
                 </span>
+                <span className="text-white/20">·</span>
               </>
             )}
-            <span className="text-white/20">·</span>
             <span className="text-white/50">{categoryLabel(p.category)}</span>
           </div>
           {/* Plain-English reason this pick is good */}
@@ -681,147 +868,18 @@ function CartRow({
             href={buyUrl(p)}
             target="_blank"
             rel="noopener noreferrer sponsored"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onBuy();
+            }}
             className="flex h-8 items-center gap-1 rounded-lg bg-accent px-3 text-xs font-bold text-white transition-colors hover:bg-accent-hover"
           >
+            {opened && <Check className="h-3 w-3" />}
             Buy
             <ArrowUpRight className="h-3 w-3" />
           </a>
         </div>
       </div>
     </motion.div>
-  );
-}
-
-/* --- Frequently bought together ----------------------------------------- */
-
-function FbtPanel({
-  accessories,
-  kit,
-  onAdd,
-}: {
-  accessories: KitProduct[];
-  kit: Kit;
-  onAdd: (accs: KitProduct[]) => void;
-}) {
-  const inKit = new Set(kit.products.map((p) => p.id));
-
-  return (
-    <section className="mt-16">
-      <p className="flex items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.25em] text-accent">
-        <PackagePlus className="h-3.5 w-3.5" />
-        Frequently bought together
-      </p>
-      <h2 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-white">
-        Complete your setup
-      </h2>
-      <p className="mt-1 text-sm text-white/50">
-        Hand-picked for your {KIT_TIER_META[kit.type].label}. Here&rsquo;s why
-        each one earns its place — add the ones you want.
-      </p>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {accessories.map((a) => (
-          <AccessoryCard
-            key={a.id}
-            product={a}
-            inKit={inKit.has(a.id)}
-            onAdd={() => onAdd([a])}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function AccessoryCard({
-  product: a,
-  inKit,
-  onAdd,
-}: {
-  product: KitProduct;
-  inKit: boolean;
-  onAdd: () => void;
-}) {
-  const [imgOk, setImgOk] = useState(true);
-  const price = priceOf(a);
-
-  return (
-    <div
-      className={
-        "flex flex-col rounded-2xl border bg-white/[0.04] p-4 backdrop-blur-sm transition-colors duration-300 " +
-        (inKit ? "border-win/40" : "border-white/12 hover:border-accent/40")
-      }
-    >
-      <div className="flex flex-1 flex-col">
-        <div className="flex items-start gap-3">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white">
-            {imgOk && a.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={a.image}
-                alt={a.name}
-                loading="lazy"
-                onError={() => setImgOk(false)}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="font-display text-xl font-bold text-navy">
-                {a.brand.charAt(0)}
-              </span>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-body text-sm font-bold text-white">{a.name}</p>
-            <p className="text-[0.7rem] text-white/45">{a.brand}</p>
-            <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-white/55">
-              <Star className="h-2.5 w-2.5 fill-accent text-accent" />
-              {a.rating}
-              <span className="text-white/20">·</span>
-              <span className="font-bold text-white/80">
-                {formatPrice(price)}
-              </span>
-              {a.salePrice && (
-                <span className="text-white/30 line-through">
-                  {formatPrice(a.price)}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* The AI "why people add it" reason, grounded in the kit. */}
-        {a.whyAdd && (
-          <p className="mt-3 text-[0.78rem] leading-relaxed text-white/65">
-            <span className="font-bold text-accent">Why add it:</span>{" "}
-            {a.whyAdd}
-          </p>
-        )}
-      </div>
-
-      <button
-        type="button"
-        onClick={onAdd}
-        disabled={inKit}
-        className={
-          "mt-4 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-bold transition-colors " +
-          (inKit
-            ? "cursor-default bg-win/15 text-win"
-            : "bg-accent text-white hover:bg-accent-hover")
-        }
-      >
-        {inKit ? (
-          <>
-            <Check className="h-3.5 w-3.5" />
-            In your kit
-          </>
-        ) : (
-          <>
-            <Plus className="h-3.5 w-3.5" />
-            Add to kit
-          </>
-        )}
-      </button>
-    </div>
   );
 }

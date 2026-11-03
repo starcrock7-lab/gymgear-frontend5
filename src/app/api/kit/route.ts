@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { getCategoryProducts } from "@/lib/catalog";
 import type { QuizAnswers } from "@/lib/quiz";
-import { coverageGaps, coverageOf, coverageSummary, muscleCoverage } from "@/lib/coverage";
+import { coverageGaps, coverageOf, coverageSummary, LIGHT_PIECES, muscleCoverage } from "@/lib/coverage";
 import {
   KIT_CATEGORIES, OWNED_TO_CAT, selectKits,
   type Catalog, type CatalogProduct, type HydratedKit,
+
 } from "@/lib/kit-builder";
 
 /* The quiz's "Building your kit..." screen is the site's one conversion
@@ -22,14 +23,21 @@ import {
    keep on Vercel, and the templated copy below is the same text the backend
    falls back to. */
 
-/* Accessory categories for "frequently bought together", in research-backed
-   priority order (flooring, then grip/support, then recovery/bag, then
-   supplements). fatburners deliberately excluded — never cross-sold. */
-const ACCESSORY_PRIORITY = [
-  "yogamats", "chalk", "belts", "sleeves", "straps", "wraps", "foamrollers",
-  "jumpropes", "gymbags", "protein", "creatine", "preworkout", "recovery",
-  "vitamins",
-];
+/* The stage after this one: what the next budget up would add, given the gear
+   this kit already bought. Most of a barbell setup costs more than $800, so a
+   small budget needs to see what it grows into. From $800 up the kit is already
+   a full gym, and the next budget only suggests $3,000+ single machines. */
+const NEXT_BUDGET: Record<string, string> = {
+  "under-300": "300-800", "300-800": "800-2000",
+};
+const NEXT_PIECES: Record<string, string> = {
+  "300-800": "small-setup", "800-2000": "full-home-gym",
+};
+/* A stage is what opens up new training, not a mat or a small light piece. */
+const NOT_A_STAGE = new Set(["yogamats", "foamrollers", "jumpropes"]);
+const CAT_TO_OWNED = Object.fromEntries(
+  Object.entries(OWNED_TO_CAT).map(([id, cat]) => [cat, id]),
+);
 
 /* Templated copy — identical to the backend's no-Groq fallback, never blank. */
 const GOAL_WORD: Record<string, string> = {
@@ -50,55 +58,10 @@ function defaultCopy(kit: HydratedKit, goal: string, ownedCats: Set<string>): { 
   return { name: kit.name, description: `${blurb} ${coverageSummary(kit.products, ownedCats)}` };
 }
 
-/* Top complementary accessories for the kit — relevant (pairsWith ∩ kit
-   categories), not already in the kit or owned, best-rated per category. */
-function accessoryPool(kits: HydratedKit[], catalog: Catalog, ownedCats: Set<string>, max = 8): CatalogProduct[] {
-  const kitCats = new Set<string>();
-  for (const k of kits) for (const p of k.products) kitCats.add(p.category);
-  if (!kitCats.size) return [];
-  const pool: CatalogProduct[] = [];
-  for (const cat of ACCESSORY_PRIORITY) {
-    if (pool.length >= max) break;
-    if (kitCats.has(cat) || ownedCats.has(cat)) continue;
-    const list = catalog[cat];
-    if (!list || !list.length) continue;
-    const pw = list[0].pairsWith || [];
-    if (!pw.some((c) => kitCats.has(c))) continue;
-    /* quality/2 maps our 0-10 onto the 0-5 rating scale, so an unrated
-       accessory sorts on merit instead of NaN-ing the comparator. */
-    const rk = (p: CatalogProduct) => (p.rating != null ? p.rating : p.quality / 2);
-    const best = [...list].sort((a, b) => rk(b) - rk(a) || b.quality - a.quality)[0];
-    if (best) pool.push(best);
-  }
-  return pool;
-}
-
-/* "Why add this" per accessory category — the backend's deterministic copy,
-   dash-free house style. */
-const WHY_FALLBACK: Record<string, string> = {
-  yogamats: "Your setup is built for standing lifts with nothing for floor core, mobility, or stretching. The mat fills that gap, and you will use it every session.",
-  chalk: "Heavy pulls and presses slip at the grip long before the muscle gives out. A little chalk keeps the bar locked in and adds clean reps to every working set.",
-  belts: "As your squat and deadlift climb, your lower back becomes the limit. A belt braces your core so you can load heavier with confidence and keep progressing.",
-  sleeves: "Heavy squats and leg work wear on the knees over time. Sleeves add warmth, support, and rebound out of the bottom so you train harder and recover faster.",
-  straps: "Your back and legs will outwork your grip on rows and pulls. Straps remove grip as the weak link so you can drive the target muscle all the way to failure.",
-  wraps: "Heavy pressing loads the wrists hard. Wraps keep the joint stacked and stable so you can push your bench and overhead work without holding back.",
-  foamrollers: "Hard sessions leave tight, sore muscles that drag into the next one. A few minutes on the roller restores range of motion and keeps you training pain free.",
-  jumpropes: "Your kit has no fast conditioning option. A rope packs high intensity cardio into almost no space and pairs cleanly with your strength work.",
-  gymbags: "Plates, belt, sleeves, and chalk add up quickly. A dedicated bag keeps your gear organized and ready so nothing slows your session down.",
-  protein: "Building muscle needs more protein than most meals deliver. One scoop after training hits your daily target and turns the work into real results.",
-  creatine: "Creatine is the most proven supplement for strength and size. A few grams a day buys extra reps, faster recovery, and lean mass for pocket change.",
-  preworkout: "Some days the drive just is not there. A single scoop sharpens focus and energy so even the flat days turn into productive sessions.",
-  recovery: "Your training is only as good as how well you recover from it. This keeps soreness down and gets you back under the bar sooner.",
-  vitamins: "Consistent training raises what your body needs to perform. Covering the basics keeps your energy, recovery, and immunity steady so you never miss a session.",
-};
-const defaultWhy = (p: CatalogProduct) =>
-  WHY_FALLBACK[p.category] ||
-  "A smart, low cost addition that rounds out your setup and earns its place fast.";
-
-/* Every category the builder or the accessory pool can draw from. Each
-   getCategoryProducts call is an ISR-cached fetch (deduped by Next), so a
-   warm cache answers this without touching the backend at all. */
-const ALL_CATS = [...new Set([...KIT_CATEGORIES, ...ACCESSORY_PRIORITY])];
+/* Every category the builder can draw from. Each getCategoryProducts call is
+   an ISR-cached fetch (deduped by Next), so a warm cache answers this without
+   touching the backend at all. */
+const ALL_CATS = [...KIT_CATEGORIES];
 
 /* Fetch in small waves rather than one 25-wide burst — on a cold cache every
    category is a live request, and bursts have dropped connections (observed
@@ -168,13 +131,25 @@ export async function POST(req: Request) {
     ownedCats: [...ownedCats],
   }));
 
-  const accessories = accessoryPool(kits, catalog, ownedCats)
-    .slice(0, 4)
-    .map((p) => ({ ...p, whyAdd: defaultWhy(p) }));
+  const nextBudget = NEXT_BUDGET[a.budget];
+  const bought = kits.find((k) => k.type === "match")?.products ?? [];
+  const ownedNext = [...new Set([
+    ...(a.owned || []).filter((id) => id !== "nothing"),
+    ...bought.map((p) => CAT_TO_OWNED[p.category]).filter(Boolean),
+  ])];
+  const nextKits = nextBudget
+    ? selectKits(catalog, {
+        ...a, goal: a.goal, budget: nextBudget,
+        equipmentCount: NEXT_PIECES[nextBudget],
+        owned: ownedNext.length ? ownedNext : ["nothing"],
+      })
+    : [];
+  const nextStage = (nextKits.find((k) => k.type === "match")?.products ?? [])
+    .filter((p) => !NOT_A_STAGE.has(p.category) && !LIGHT_PIECES.has(p.id));
 
   return NextResponse.json({
     kits,
-    accessories,
+    nextStage,
     generatedBy: "fallback",
     generatedAt: new Date().toISOString(),
   });
