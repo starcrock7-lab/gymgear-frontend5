@@ -16,7 +16,7 @@ import ProductPhoto from "@/components/ProductPhoto";
 import { DumbbellMark } from "@/components/ui/dumbbell-mark";
 import { gearArt } from "@/lib/gear-art";
 
-export const revalidate = 3600;
+export const revalidate = 900;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {

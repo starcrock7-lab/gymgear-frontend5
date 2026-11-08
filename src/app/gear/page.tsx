@@ -5,7 +5,7 @@ import GearBrowser from "@/components/gear/GearBrowser";
 import { getAllProducts, getCategories } from "@/lib/catalog";
 import { findDeals } from "@/lib/deals";
 
-export const revalidate = 3600;
+export const revalidate = 900;
 
 export const metadata: Metadata = {
   title: "Find your gear",

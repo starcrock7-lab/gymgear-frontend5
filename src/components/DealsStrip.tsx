@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Flame } from "lucide-react";
 import { formatPrice } from "@/lib/kit";
-import { dealsSavings, endsInLabel, type Deal } from "@/lib/deals";
+import { checkedLabel, endsInLabel, storeSaleLabel, type Deal } from "@/lib/deals";
 import ProductPhoto from "@/components/ProductPhoto";
 
 /* Column count that the number of deals fills, so no card sits alone. */
@@ -44,7 +44,7 @@ export default function DealsStrip({
           </h2>
           <div className={`mt-4 grid gap-3 ${COLS[shown.length] ?? "sm:grid-cols-2 lg:grid-cols-3"}`}>
             {shown.map((d) => {
-              const ends = endsInLabel(d);
+              const ends = endsInLabel(d) ?? storeSaleLabel(d.product);
               return (
                 <Link
                   key={d.product.id}
@@ -82,7 +82,8 @@ export default function DealsStrip({
           </div>
           {note && (
             <p className="mt-4 text-sm text-white/60">
-              Prices come straight from the retailer and are re-checked daily.
+              Prices come straight from the retailer.{" "}
+              {checkedLabel(shown[0].product) ?? ""}
             </p>
           )}
         </div>

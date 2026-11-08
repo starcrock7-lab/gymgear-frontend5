@@ -10,12 +10,12 @@ import {
   NOINDEX_CATEGORIES,
 } from "@/lib/catalog";
 import { buyUrl, formatPrice, categoryLabel } from "@/lib/kit";
-import { productDeal, rankWithDeals } from "@/lib/deals";
+import { checkedLabel, productDeal, rankWithDeals, storeSaleLabel } from "@/lib/deals";
 import { aboutProduct, facetWord, factsOf, scoreWord } from "@/lib/product-about";
 import ProductPhoto from "@/components/ProductPhoto";
 import { DumbbellMark } from "@/components/ui/dumbbell-mark";
 
-export const revalidate = 3600;
+export const revalidate = 900;
 export const dynamicParams = true;
 
 /* Pre-render every product at build time → real HTML the crawler can read. */
@@ -195,6 +195,12 @@ export default async function ProductPage({
                     </span>
                   )}
                 </div>
+                {(storeSaleLabel(p) || checkedLabel(p)) && (
+                  <p className="mt-2 text-sm text-white/70">
+                    {deal && storeSaleLabel(p) && <span className="font-bold text-accent">{storeSaleLabel(p)}. </span>}
+                    {checkedLabel(p)}
+                  </p>
+                )}
                 <a
                   href={buyUrl(p)}
                   target="_blank"

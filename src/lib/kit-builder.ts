@@ -672,6 +672,9 @@ export function buildKit(
       if (kit.reduce((t, p) => t + p.area, 0) > areaStretch) continue;
       if (kit.some((p) => p.cat === "racks") && kit.some((p) => p.rackLike)) continue;
       if (kit.some((p) => NEEDS_BENCH.has(p.cat)) && !ownedCats.has("benches") && !kit.some((p) => p.cat === "benches")) continue;
+      /* hydrateKits strips a bench with no weight to use it with, which would
+         leave this "cheapest working kit" a piece short. */
+      if (kit.some((p) => p.cat === "benches") && !kit.some((p) => BENCH_USABLE_WITH.has(p.cat)) && ![...ownedCats].some((c) => BENCH_USABLE_WITH.has(c))) continue;
       if (kit.some((p) => partnersOf(p, kit).some((n) => !ownedCats.has(n) && !kit.some((q) => q.cat === n)))) continue;
       if (!meetsNeeds(kit)) continue;
       plan = kit;

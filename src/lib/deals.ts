@@ -129,6 +129,23 @@ export function endsInLabel(d: Deal): string | null {
   return "ends within the hour";
 }
 
+/* A store's own banner dates its store-wide sale, so it is worded as the
+   store's sale: a banner can't say which items it covers. */
+export function storeSaleLabel(p: KitProduct): string | null {
+  if (!p.storeSaleEnds) return null;
+  const end = Date.parse(`${p.storeSaleEnds}T23:59:59Z`);
+  if (!Number.isFinite(end) || end < Date.now()) return null;
+  return `Store sale ends ${new Date(end).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}`;
+}
+
+/* How long ago the store's price was read. */
+export function checkedLabel(p: KitProduct): string | null {
+  const at = p.priceCheckedAt ? Date.parse(p.priceCheckedAt) : NaN;
+  if (!Number.isFinite(at)) return null;
+  const hours = Math.floor((Date.now() - at) / 3.6e6);
+  return `Price checked ${hours < 1 ? "in the last hour" : `${hours} ${hours === 1 ? "hour" : "hours"} ago`}`;
+}
+
 /* Every live deal in a set of products, biggest saving first. */
 export function findDeals(products: KitProduct[]): Deal[] {
   return products

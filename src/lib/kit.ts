@@ -29,6 +29,10 @@ export type KitProduct = {
   discount?: number;
   /** Deals v2 — hand-curated sale end (ISO); absent = end date unknown. */
   saleEndsAt?: string;
+  /* When the store's price was last read, and the end of its store-wide sale
+     if its own banner states one (backend live-deals.js). */
+  priceCheckedAt?: string;
+  storeSaleEnds?: string;
   category: string;
   /* F4 — GymGear Score rubric (data/spec-derived, see /methodology). */
   gymgearScore?: number;

@@ -19,7 +19,7 @@ const SITE_ORIGIN =
 
 /* Revalidate the catalog hourly — products/prices change rarely, and this
    keeps every generated page fresh without a redeploy. */
-export const CATALOG_REVALIDATE = 3600;
+export const CATALOG_REVALIDATE = 900;
 
 /* The category LIST decides what the site offers at all — nav, the browse
    grid, the sitemap, and which category pages exist. It is one small request,
