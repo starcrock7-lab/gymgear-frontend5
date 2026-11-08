@@ -98,6 +98,10 @@ export type PriceCheck = {
   typical: number;
   /* Pieces in the kit, compared or not, so the page can say "N of M". */
   pieces: number;
+  /* The whole plan, with pieces we can't compare at their own price on both
+     sides, so the crossed-out figure and the plan total cover the same gear. */
+  planYours: number;
+  planTypical: number;
 };
 
 const median = (xs: number[]) => {
@@ -147,10 +151,15 @@ export function priceCheck(
       yourScore: p.gymgearScore ?? null,
     }));
   if (!lines.length) return null;
+  const yours = cents(lines.reduce((s, l) => s + l.yours, 0));
+  const typical = cents(lines.reduce((s, l) => s + l.typical, 0));
+  const planYours = cents(products.reduce((s, p) => s + priceOf(p), 0));
   return {
     lines,
-    yours: cents(lines.reduce((s, l) => s + l.yours, 0)),
-    typical: cents(lines.reduce((s, l) => s + l.typical, 0)),
+    yours,
+    typical,
     pieces: products.length,
+    planYours,
+    planTypical: cents(planYours + typical - yours),
   };
 }

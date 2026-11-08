@@ -466,6 +466,80 @@ body {
   outline: none;
 }
 
+/* Results page price panel: a light travelling round the border. One rotating
+   layer behind a solid panel, transform only. */
+.price-ring {
+  --ring: var(--accent);
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  padding: 2px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.price-ring--win {
+  --ring: #43e884;
+}
+.price-ring::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(160%, 760px);
+  aspect-ratio: 1;
+  background: conic-gradient(transparent 0 58%, var(--ring) 82%, #fff 90%, var(--accent) 97%, transparent);
+  transform: translate(-50%, -50%);
+  animation: price-ring-spin 4.5s linear infinite;
+}
+@keyframes price-ring-spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+/* The award tag's sheen, for the saving under the price. */
+.price-pill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 34%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  transform: translateX(-190%) skewX(-18deg);
+  animation: gg-tag-sheen 3.6s ease-in-out infinite;
+}
+
+/* The next piece to buy: a pulse on its button, opacity only. */
+.buy-next::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 26px rgba(240, 83, 30, 0.85);
+  animation: buy-next 2s ease-in-out infinite;
+}
+@keyframes buy-next {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .price-ring::before,
+  .price-pill::after,
+  .buy-next::before {
+    animation: none;
+  }
+  .price-pill::after {
+    opacity: 0;
+  }
+}
+
 /* The homepage search bar's rotating example. */
 .search-hint {
   animation: search-hint-in 320ms ease-out;

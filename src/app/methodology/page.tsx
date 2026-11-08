@@ -188,6 +188,14 @@ export default function MethodologyPage() {
             store, and it shows whichever way it comes out, including when a
             plan costs more than typical.
           </p>
+          <p className="mt-3 leading-relaxed text-ink-2">
+            The crossed-out price on your plan is this typical price, labelled
+            as such, with any piece we can&rsquo;t compare counted at its own
+            price. It is a comparison across products, not a former price of
+            your gear. When a live sale is the larger saving, the crossed-out
+            price is the store&rsquo;s list price instead. The two savings are
+            never added together.
+          </p>
 
           <p className="mt-10 text-sm text-ink-3">
             Affiliate disclosure: stores may pay us a commission on some links,

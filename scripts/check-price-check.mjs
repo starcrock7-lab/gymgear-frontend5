@@ -75,6 +75,10 @@ for (const goal of ["build-strength", "lose-weight", "get-fit", "home-gym-setup"
             }
             const sum = (f) => Math.round(pc.lines.reduce((s, l) => s + l[f], 0) * 100) / 100;
             if (Math.abs(sum("yours") - pc.yours) > 0.01 || Math.abs(sum("typical") - pc.typical) > 0.01) fail(`${tag}: totals are not the sum of the lines`);
+            /* The results page prints these two as the crossed-out price and
+               the new one: the plan total, and the same gap as the lines. */
+            if (Math.abs(pc.planYours - k.totalPrice) > 0.01) fail(`${tag}: plan total ${pc.planYours} differs from the kit's ${k.totalPrice}`);
+            if (Math.abs(pc.planTypical - pc.planYours - (pc.typical - pc.yours)) > 0.02) fail(`${tag}: crossed-out price does not match the lines`);
             /* A pick a like-for-like product beats on price and score: the
                builder's last pass removes these. If a room or owned-gear rule
                ever makes the beater off limits, narrow this to eligible

@@ -30,6 +30,11 @@ Sources: [16 CFR 233.2](https://www.law.cornell.edu/cfr/text/16/233.2), [Google 
 10. **No dates we don't have.** Products carry no per-row price-check date, so the page doesn't print one. Add a date only after the price job stores one per row (phase 3).
 11. **Sales and typical stay separate.** Live-sale savings (compare-at minus sale) and the typical comparison are never added together into one "total savings" number. That would count one discount twice.
 12. **No gym-membership comparison** until it rests on a sourced, dated figure, cited on the page.
+13. **A crossed-out price says what it is, right above the number.** Either "Typical price for the same gear" or "List price". The typical one is a comparison across products, never presented as a former price of this gear (`/methodology#price-check` and the Details panel both say so). Pieces we can't compare count at their own price on both sides, so the new price is always the real plan total (`planTypical`, `planYours`; `check:price` checks both). When the plan isn't cheaper and nothing is on sale, nothing is crossed out.
+
+## Results page panel (2026-11-08)
+
+`PriceCheck.tsx` is the first thing on the results page: the crossed-out price, the plan total running down to its exact value, and the saving in a glowing pill. The bigger of the two true savings leads: typical price ("$145 less than typical") or live sale ("You save $60"). The other is listed underneath, and they are never added together (rule 11). The Details panel keeps every line, range and score.
 
 ## How it works now (phase 1, done)
 

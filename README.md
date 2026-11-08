@@ -111,6 +111,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-08 · results page redesign: crossed-out price, plan total running down to it, glowing saving; muscle-group panel removed; roomier Buy now rows with a pulse on the next piece; `check:price` checks the crossed-out figure · this commit
 - 2026-11-07 · price check phase 2: builder never keeps a piece a same-class product beats on price and score (both copies); Best Match now under typical in 430 of 576 kits (was 258), `check:price` fails on beaten picks; `score:kits` retries 429s; personalization reach excludes beaten products · this commit
 - 2026-11-07 · price check: results page shows the plan's price against the typical (median) price of comparable products we list, either way, with a per-piece breakdown; methodology section; `npm run check:price` gate; rules and phases in docs/plans/price-check.md · this commit
 - 2026-11-07 · kit builder: no range-priced listings or foam rollers in kits, spare budget upgrades pieces (and adds coverage outside tight rooms), real footprints for single kettlebells, bands and ropes; new `score:kits` (from-priced totals 978 to 0, room misfits 301 to 204, half-budget plans 180 to 124 of 3,024 kits / 1,008 sets) · this commit
