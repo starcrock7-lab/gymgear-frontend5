@@ -107,6 +107,12 @@ export const LIGHT_PIECES = new Set([
   "rep-pull-up-band", "rep-short-resistance-bands",
 ]);
 
+/* Listings sold across a weight range at one shown price: the price is for
+   whichever size the store lists first, often the lightest ($54 buys a 9 lb
+   kettlebell). A kit total built on one is lower than what a usable weight
+   costs, so kits leave them out. Search and category pages still list them. */
+export const PRICED_BY_SIZE = new Set(["rogue-kb", "rep-kb", "rogue-hex", "rep-hex"]);
+
 /* Bars that cannot anchor a barbell setup — excluded from the kit's barbell
    slot entirely (they stay in the catalog as the accessory bars they are).
    The catalog carries three EZ curl bars and this set listed only one, so a

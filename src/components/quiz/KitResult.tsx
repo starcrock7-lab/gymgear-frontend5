@@ -458,7 +458,7 @@ function KitStage({ products, answers }: { products: KitProduct[]; answers: Quiz
             ? `${unplacedCount} ${unplacedCount === 1 ? "piece doesn't" : "pieces don't"} fit at once in our ${room.w} × ${room.d} ft ${spaceName} layout. Plan on storing or folding gear.`
             : `Fits our ${room.w} × ${room.d} ft ${spaceName} layout, using approximate footprints.`}
         </li>
-        {answers.ceiling && (
+        {answers.ceiling && (answers.ceiling === "under-8ft" || products.some((p) => p.category === "racks" || p.category === "machines")) && (
           <li className="flex gap-2">
             <Check className="mt-0.5 h-4 w-4 shrink-0 text-win" />
             {answers.ceiling === "under-8ft"

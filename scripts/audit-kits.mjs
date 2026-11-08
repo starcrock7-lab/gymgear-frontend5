@@ -18,7 +18,7 @@
    Exits non-zero on any failure, so it works as a gate. */
 import {
   coverageGaps, HEAVY_FIXED_PAIR_DUMBBELLS, isPlateLoaded, muscleCoverage, PATTERN_LABEL,
-  replacesRack, SMALL_PLATE_PAIRS,
+  PRICED_BY_SIZE, replacesRack, SMALL_PLATE_PAIRS,
 } from "../src/lib/coverage.ts";
 import { selectKits, BUDGET_CAP } from "../src/lib/kit-builder.ts";
 
@@ -97,6 +97,12 @@ for (const goal of GOALS)
                 /* Plates also load a plate-loaded machine, no barbell needed. */
                 if (has(c) && !(c === "plates" && k.products.some(isPlateLoaded)))
                   for (const nd of needs) if (!has(nd) && !ownedCats.has(nd)) bad.push(`${c} without ${nd}`);
+              /* A kit total has to be what the buyer pays for what we list, and
+                 every slot has to train something. */
+              for (const p of k.products) {
+                if (PRICED_BY_SIZE.has(p.id)) bad.push(`${p.id} is priced by the size you pick`);
+                if (p.category === "foamrollers") bad.push(`${p.id} trains nothing`);
+              }
               /* The buyer's budget is a promise, on every tier. */
               if (k.totalPrice > BUDGET_CAP[budget] + 0.005) bad.push(`$${k.totalPrice} over the $${BUDGET_CAP[budget]} budget`);
               if (new Set(cats).size !== cats.length) bad.push("duplicate category");

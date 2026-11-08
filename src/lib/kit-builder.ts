@@ -12,7 +12,7 @@
 import type { KitProduct, KitType } from "@/lib/kit";
 import {
   coverageFromTrains, coverageGaps, FIXED_PAIR_DUMBBELLS, HEAVY_FIXED_PAIR_DUMBBELLS, isPlateLoaded,
-  LIGHT_PIECES, needsFor, ownedTrains, PATTERNS, replacesRack, SMALL_PLATE_PAIRS, SPECIALTY_BARS, trainsOf, type Pattern,
+  LIGHT_PIECES, PRICED_BY_SIZE, needsFor, ownedTrains, PATTERNS, replacesRack, SMALL_PLATE_PAIRS, SPECIALTY_BARS, trainsOf, type Coverage, type Pattern,
 } from "@/lib/coverage";
 import { footprintOf } from "@/lib/floor-plan";
 
@@ -325,6 +325,11 @@ export function buildKit(
     !SPECIALTY_BARS.has(p.id) &&
     /* One 10 lb pair is not the kit's plates. */
     !SMALL_PLATE_PAIRS.has(p.id) &&
+    /* A kit total has to be what the buyer pays for what we list. */
+    !PRICED_BY_SIZE.has(p.id) &&
+    /* A foam roller or massage ball trains nothing, so it never takes one of
+       the kit's slots: a $99 "strength kit" once spent $20 of it on a ball. */
+    p.cat !== "foamrollers" &&
     !(p.cat === "machines" && !p.rackLike && !hasBase()) &&
     /* The room bans plates, so a plate-loaded machine could never be loaded. */
     !(p.plateLoaded && banned.has("plates")) &&
@@ -672,27 +677,61 @@ export function buildKit(
       planCost = cost;
     }
     (plan ?? []).forEach(take);
-    if (strategy !== "value") {
-      for (let i = 0; i < picks.length; i++) {
-        const cur = picks[i];
-        const up = catalog
-          .filter((p) =>
-            p.cat === cur.cat && p.id !== cur.id && score(p) > score(cur) && eligible(p) &&
-            p.plateLoaded === cur.plateLoaded && p.rackLike === cur.rackLike &&
-            spent - cur.price + p.price <= cap && areaUsed - cur.area + p.area <= areaStretch &&
-            meetsNeeds(picks.map((q, j) => (j === i ? p : q))))
-          .sort((a, b) => score(b) - score(a))[0];
-        if (up) {
-          spent += up.price - cur.price;
-          areaUsed += up.area - cur.area;
-          picks[i] = up;
-        }
-      }
-    }
     const seated = ownedCats.has("benches") || picks.some((p) => p.cat === "benches");
     for (const p of catalog.filter((q) => !HARD_PAIRS[q.cat] && !q.plateLoaded && q.cat !== "benches" && (seated || !NEEDS_BENCH.has(q.cat))).sort((a, b) => score(b) - score(a))) {
       if (picks.length >= target) break;
       if (allowed(p) && fitsIn(p, cap) && areaFits(p, areaStretch)) take(p);
+    }
+  }
+
+  /* Money left after the planned number of pieces may buy up to two more, but
+     only pieces that let the buyer train something they couldn't before. A
+     $300 fat-loss plan once stopped at $107 because three pieces was the count.
+     Not in an apartment corner or small room: there the floor runs out first,
+     so spare money goes to better pieces below instead. */
+  const levels = (c: Coverage) => PATTERNS.reduce((s, k) => s + c[k], 0);
+  if (strategy !== "value" && !tight) {
+    while (picks.length < target + 2) {
+      const before = levels(coverNow());
+      const seatedNow = ownedCats.has("benches") || picks.some((q) => q.cat === "benches");
+      const gainOf = (p: Lite) =>
+        levels(coverageFromTrains([...[...picks, p].map((q) => ({ category: q.cat, trains: q.trains })), ...owned])) - before;
+      const add = catalog
+        .filter((p) => allowed(p) && standsAlone(p) && (seatedNow || !NEEDS_BENCH.has(p.cat)) &&
+          fitsIn(p, cap) && areaFits(p, areaCap) && gainOf(p) > 0)
+        .sort((a, b) => gainOf(b) - gainOf(a) || score(b) - score(a))[0];
+      if (!add) break;
+      take(add);
+    }
+  }
+
+  /* Spend what's left on better pieces, not more of them. The recommended plan
+     once used $99 of a $300 budget and padded it with a massage ball. Each
+     piece may move to a better one of the same kind, as this tier judges
+     better, if the kit stays in budget, in the room, and able to train
+     everything it could before. Value is left alone: cheapest is its job. */
+  if (strategy !== "value") {
+    for (let i = 0; i < picks.length; i++) {
+      const cur = picks[i];
+      const before = coverNow();
+      const up = catalog
+        .filter((p) => {
+          if (p.cat !== cur.cat || p.id === cur.id || score(p) <= score(cur) || !eligible(p)) return false;
+          if (p.plateLoaded !== cur.plateLoaded || p.rackLike !== cur.rackLike) return false;
+          if (spent - cur.price + p.price > cap) return false;
+          if (areaUsed - cur.area + p.area > Math.max(areaCap, areaUsed)) return false;
+          const after = coverageFromTrains([
+            ...picks.map((q, j) => (j === i ? p : q)).map((q) => ({ category: q.cat, trains: q.trains })),
+            ...owned,
+          ]);
+          return PATTERNS.every((k) => after[k] >= before[k]);
+        })
+        .sort((a, b) => score(b) - score(a))[0];
+      if (up) {
+        spent += up.price - cur.price;
+        areaUsed += up.area - cur.area;
+        picks[i] = up;
+      }
     }
   }
 

@@ -611,10 +611,11 @@ const BUILDERS: Record<string, Builder> = {
     });
   },
   kettlebell(g, w, d, h, m) {
-    /* graduated row, light to heavy */
-    const n = 4;
+    /* graduated row, light to heavy: as many bells as the footprint holds, so
+       a single kettlebell's footprint shows one bell */
+    const n = Math.max(1, Math.min(4, Math.floor((w - 2) / 10)));
     for (let i = 0; i < n; i++) {
-      const r = 3.2 + (i / (n - 1)) * 2.4;
+      const r = n === 1 ? 4.4 : 3.2 + (i / (n - 1)) * 2.4;
       const x = -w / 2 + 5 + (i + 0.5) * ((w - 10) / n);
       cylAt(g, m.dark, r * 0.92, 1.2, x, 0.6, 0, "y", 14); // flat base
       sphereAt(g, m.accent, r, x, r * 0.92, 0, 0.86); // bell

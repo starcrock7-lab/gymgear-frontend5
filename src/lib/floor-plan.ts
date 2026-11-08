@@ -116,6 +116,17 @@ export const FOOTPRINTS: Record<string, { w: number; d: number }> = {
   "titan-90-lb-straight-stainless-steel-hex-dum": { w: 24, d: 14 },
   "titan-110-lb-straight-stainless-steel-hex-du": { w: 24, d: 14 },
   "titan-115-lb-straight-stainless-steel-hex-du": { w: 24, d: 14 },
+  /* One kettlebell, not the graduated row the category default describes. */
+  "titan-6-kg-cast-iron-kettlebell": { w: 12, d: 12 },
+  "titan-10-kg-cast-iron-kettlebell": { w: 12, d: 12 },
+  "titan-22-kg-competition-kettlebell": { w: 12, d: 12 },
+  "titan-90-lb-cast-iron-kettlebell": { w: 14, d: 14 },
+  /* Bands and a suspension trainer hang on a hook or door, not a stand. */
+  "rogue-bands": { w: 12, d: 8 },
+  "fit-simplify-bands": { w: 12, d: 8 },
+  "rep-pull-up-band": { w: 12, d: 8 },
+  "rep-short-resistance-bands": { w: 12, d: 8 },
+  "trx-pro4": { w: 12, d: 8 },
 };
 
 /* Everything that physically sits on the gym floor gets placed on the map.
@@ -151,7 +162,7 @@ export const CATEGORY_DEFAULT: Record<string, { w: number; d: number }> = {
   bands: { w: 24, d: 16 }, // band stand
   yogamats: { w: 68, d: 24 }, // rolled out
   foamrollers: { w: 36, d: 8 },
-  jumpropes: { w: 14, d: 14 }, // coiled
+  jumpropes: { w: 8, d: 8 }, // coiled on a hook
   flooring: { w: 96, d: 48 }, // a tiled platform area
   [STORAGE_CAT]: { w: 48, d: 18 }, // shelving unit
 };
