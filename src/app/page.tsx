@@ -65,7 +65,7 @@ export default function Home() {
     <>
       <SiteNav />
 
-      <section className="relative flex min-h-[calc(100svh-4rem)] flex-col overflow-hidden bg-navy text-white">
+      <section className="relative flex min-h-[calc(100svh-4.5rem)] flex-col overflow-hidden bg-navy text-white">
         <DumbbellWall />
 
         <motion.div

@@ -24,7 +24,7 @@ export default function NotFound() {
             href="/quiz"
             className="rounded-xl bg-accent px-5 py-2.5 font-body text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-accent-hover"
           >
-            Build My Kit →
+            Plan my gym
           </Link>
           <Link
             href="/"
