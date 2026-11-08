@@ -43,12 +43,11 @@ export const COMPARE_CLASSES: Record<string, { label: string; ids: string[] }> =
     ids: ["rep-arcadia", "bells-ft", "bells-functional-trainer-cable-tower"],
   },
   rower: { label: "rowing machines", ids: ["concept2-rower", "sunny-rower", "waterrower-oak"] },
+  /* Mats whose listing states 4 to 6 mm. Only two 8 mm mats exist, too few for
+     a class, and the Gaiam listing states no thickness, so those stay out. */
   "yoga-mat": {
-    label: "full-size yoga mats",
-    ids: [
-      "manduka-pro", "jade-harmony", "gaiam-premium", "alo-warrior", "jadeyoga-jade-extra-yoga-mat",
-      "jadeyoga-jade-cork-yoga-mat", "jadeyoga-fusion-mat", "jadeyoga-xw-fusion",
-    ],
+    label: "4 to 6 mm yoga mats",
+    ids: ["manduka-pro", "jade-harmony", "alo-warrior", "jadeyoga-jade-extra-yoga-mat", "jadeyoga-jade-cork-yoga-mat"],
   },
 };
 

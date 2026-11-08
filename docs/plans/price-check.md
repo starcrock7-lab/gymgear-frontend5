@@ -38,7 +38,7 @@ Sources: [16 CFR 233.2](https://www.law.cornell.edu/cfr/text/16/233.2), [Google 
 
 ## How it works now (phase 1, done)
 
-- **Compare classes:** `COMPARE_CLASSES` in `src/lib/price-check.ts` is a hand-made list of product ids in 10 classes: power racks, squat stands, folding half racks, 20 kg barbells, 160 lb bumper sets, flat benches, adjustable benches, weight-stack functional trainers, rowers, and full-size yoga mats.
+- **Compare classes:** `COMPARE_CLASSES` in `src/lib/price-check.ts` is a hand-made list of product ids in 10 classes: power racks, squat stands, folding half racks, 20 kg barbells, 160 lb bumper sets, flat benches, adjustable benches, weight-stack functional trainers, rowers, and 4 to 6 mm yoga mats. Mats were first one class, which set a $25 mat against $250 ones and made up most of some plans' saving. Now only mats whose listing states 4 to 6 mm are compared. Two 8 mm mats are too few for a class, and the Gaiam listing states no thickness, so those are not compared.
 - **Server side:** `classStats(catalog)` computes each class's median, low, high, count and median score. `/api/kit` sends this as `priceClasses`, keyed by product id.
 - **Results page:** `PriceCheck.tsx` re-runs `priceCheck(products, priceClasses)` on the kit as it stands, so swaps and removals stay correct. It shows one line, for example "$135 more than the typical price for the same gear · Compared on 2 of 5 pieces". A Details panel lists each piece: your price, the typical price, the range, the number of products compared, and the score against typical.
 - **Methodology page:** `/methodology#price-check` explains the method in plain words.
