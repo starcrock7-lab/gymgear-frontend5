@@ -31,9 +31,9 @@ export default function SiteNav() {
   const path = usePathname();
   const isHome = path === "/";
   const onQuiz = path.startsWith("/quiz");
-  /* The homepage already has a search bar and goal buttons, and the quiz is
-     the plan, so the nav doesn't repeat them there. */
-  const showSearch = !isHome;
+  /* The homepage and Gear page have their own search bar, and the quiz is the
+     plan, so the nav doesn't repeat them there. */
+  const showSearch = !isHome && path !== "/gear";
   const showPlan = !isHome && !onQuiz;
   const planLabel = hasPlan ? "My plan" : "Plan my gym";
   const activeHref = NAV_LINKS.find(

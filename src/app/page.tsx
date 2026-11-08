@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { Dumbbell, Flame, HeartPulse, Home as HomeIcon, Search, type LucideIcon } from "lucide-react";
 import SiteNav, { OPEN_SEARCH } from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import DumbbellWall from "@/components/ui/dumbbell-wall";
+import SearchHint from "@/components/SearchHint";
 import { clearKit } from "@/lib/kit";
 import { EMPTY_ANSWERS, questionFor, saveAnswers } from "@/lib/quiz";
 
@@ -31,25 +31,6 @@ const GOAL_ICONS: Record<string, LucideIcon> = {
   "get-fit": HeartPulse,
   "home-gym-setup": HomeIcon,
 };
-
-/* Real things we list, so the bar shows what it can find before it's tapped. */
-const HINTS = ["squat racks", "adjustable dumbbells", "weight benches", "treadmills", "Rogue", "bumper plates"];
-
-/* Its own component, so changing the word re-renders only this span and not
-   the whole page. */
-function SearchHint() {
-  const [hint, setHint] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setInterval(() => setHint((h) => (h + 1) % HINTS.length), 2600);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <span key={hint} className="search-hint font-medium text-white">
-      {HINTS[hint]}
-    </span>
-  );
-}
 
 export default function Home() {
   const router = useRouter();

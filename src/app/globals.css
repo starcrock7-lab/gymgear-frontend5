@@ -466,6 +466,95 @@ body {
   outline: none;
 }
 
+/* Gear page tiles: the art floats over a soft shadow that tightens as it
+   rises, and lights up on hover. Transform and opacity only. Each tile starts
+   visible and only rises in, so nothing depends on the animation running. */
+.gear-tile {
+  animation: gear-in 420ms cubic-bezier(0.16, 1, 0.3, 1) var(--in, 0ms) backwards;
+}
+@keyframes gear-in {
+  from {
+    transform: translateY(12px);
+  }
+}
+.gear-art {
+  animation: gear-float 6s ease-in-out var(--d, 0s) infinite;
+}
+@keyframes gear-float {
+  0%,
+  100% {
+    transform: translateY(3%);
+  }
+  50% {
+    transform: translateY(-4%);
+  }
+}
+.gear-lift {
+  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.gear-tile:hover .gear-lift,
+.gear-tile:active .gear-lift,
+.gear-tile:focus-visible .gear-lift {
+  transform: translateY(-5%) scale(1.08);
+}
+.gear-halo,
+.gear-halo-hot {
+  background: radial-gradient(closest-side, rgba(240, 83, 30, 0.36), transparent);
+}
+.gear-halo {
+  animation: gear-halo 6s ease-in-out var(--d, 0s) infinite;
+}
+@keyframes gear-halo {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.gear-halo-hot {
+  background: radial-gradient(closest-side, rgba(255, 122, 60, 0.75), transparent);
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+.gear-tile:hover .gear-halo-hot,
+.gear-tile:active .gear-halo-hot,
+.gear-tile:focus-visible .gear-halo-hot {
+  opacity: 1;
+}
+.gear-floor {
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.6), transparent);
+  transform: translateX(-50%);
+  animation: gear-floor 6s ease-in-out var(--d, 0s) infinite;
+}
+@keyframes gear-floor {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scale(0.78);
+    opacity: 0.6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gear-tile,
+  .gear-art,
+  .gear-halo,
+  .gear-floor {
+    animation: none;
+  }
+  .gear-halo {
+    opacity: 0.7;
+  }
+  .gear-lift,
+  .gear-halo-hot {
+    transition: none;
+  }
+}
+
 /* Results page price panel: a light travelling round the border. One rotating
    layer behind a solid panel, transform only. */
 .price-ring {
