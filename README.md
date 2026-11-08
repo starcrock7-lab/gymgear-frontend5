@@ -111,6 +111,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-07 · price check: results page shows the plan's price against the typical (median) price of comparable products we list, either way, with a per-piece breakdown; methodology section; `npm run check:price` gate; rules and phases in docs/plans/price-check.md · this commit
 - 2026-11-07 · kit builder: no range-priced listings or foam rollers in kits, spare budget upgrades pieces (and adds coverage outside tight rooms), real footprints for single kettlebells, bands and ropes; new `score:kits` (from-priced totals 978 to 0, room misfits 301 to 204, half-budget plans 180 to 124 of 3,024 kits / 1,008 sets) · this commit
 - 2026-11-03 · homepage: only the goal buttons and search bar, with a hover glow; search panel shows recent searches, category tiles, plan starters and top scores, completes words, tolerates typos (`lib/search.ts`, `npm run check:search`) · this commit
 - 2026-11-02 · homepage lag: dumbbell wall is now one tile on two layers moved by transform (main thread 98% busy to 34% on a throttled phone, DOM nodes 2,722 to 178); nav blur and the footer's pointer-tracked light removed; dumbbell hover glow gone · this commit

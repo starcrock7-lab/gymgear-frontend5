@@ -30,6 +30,7 @@ Stack: **Next 16.2.9 (App Router, `src/`), React 19.2.4, Tailwind v4, framer-mot
   - `npm run audit:kits` — builds all 46,080 kits the quiz can produce, fails on any over budget, untrainable or structurally broken one
   - `npm run score:kits` — not a gate: counts buyer problems (room misfits, unused budget, identical tiers) over every quiz-reachable answer set; record it before and after a selection change
   - `npm run check:lockstep -- <backendUrl>` — proves this builder and `server.js` still agree
+  - `npm run check:price` — the "typical price for the same gear" comparison on the results page; its 12 no-fabrication rules live in [docs/plans/price-check.md](docs/plans/price-check.md). Read them before touching `lib/price-check.ts`, `PriceCheck.tsx` or any price wording
   Full rules and the traps behind them: `gymgear-kits` skill.
 - **Compare:** `/compare` (`CompareTool.tsx`) — pick 2–4 in a category → spec matrix + best-value verdict.
 - **Catalog:** local Next API routes `src/app/api/catalog/*` + `src/lib/catalog.ts`.

@@ -2,6 +2,7 @@
    port of the backend builder; keep in sync with server.js hydrateKits. The
    catalog owns all product data; the frontend only renders it. */
 import type { Coverage, MuscleStatus, Pattern } from "@/lib/coverage";
+import type { ClassStat } from "@/lib/price-check";
 
 export type KitProduct = {
   id: string;
@@ -76,6 +77,9 @@ export type KitResponse = {
   /* The plan for the next budget up, for "Add later". Empty at the top budget;
      optional because a kit cached before this field won't carry it. */
   nextStage?: KitProduct[];
+  /* Typical prices of comparable products, by product id (lib/price-check).
+     Optional: a kit cached before the price check won't carry it. */
+  priceClasses?: Record<string, ClassStat>;
   generatedBy: "groq" | "fallback";
   generatedAt: string;
 };

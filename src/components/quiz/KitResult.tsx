@@ -37,6 +37,7 @@ import {
 import { muscleCoverage } from "@/lib/coverage";
 import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
+import PriceCheck from "@/components/quiz/PriceCheck";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowRight, Loader2 } from "lucide-react";
@@ -209,6 +210,7 @@ export default function KitResult({
         </p>
       </div>
 
+      <PriceCheck products={selectedKit.products} stats={data.priceClasses} />
       <QuickEdits answers={answers} edit={edit} onEdit={onEdit} startOpen={startEditsOpen} />
 
       {/* Tier selector — the kit's starting point (Value / Match / Quality) */}

@@ -7,6 +7,7 @@ import {
   type Catalog, type CatalogProduct, type HydratedKit,
 
 } from "@/lib/kit-builder";
+import { classStats } from "@/lib/price-check";
 
 /* The quiz's "Building your kit..." screen is the site's one conversion
    moment, and the Render free tier sleeps after 15 minutes — a direct POST
@@ -150,6 +151,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     kits,
     nextStage,
+    priceClasses: classStats(catalog),
     generatedBy: "fallback",
     generatedAt: new Date().toISOString(),
   });

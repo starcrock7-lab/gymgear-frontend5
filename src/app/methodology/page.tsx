@@ -169,6 +169,26 @@ export default function MethodologyPage() {
             leaves a muscle group untrainable.
           </p>
 
+          <h2 id="price-check" className="mt-14 scroll-mt-24 font-display text-2xl font-extrabold tracking-tight text-ink">
+            How we compare prices
+          </h2>
+          <p className="mt-3 leading-relaxed text-ink-2">
+            Your plan shows its price next to the typical price for the same
+            gear. For each piece, we take the products on our list that do the
+            same job at a similar grade, for example 20 kg barbells or 160 lb
+            bumper plate sets, and use the middle price among them. Sale prices
+            count when a sale is live. Your plan&rsquo;s piece is one of the
+            products in that group.
+          </p>
+          <p className="mt-3 leading-relaxed text-ink-2">
+            A piece is only compared when at least three such products are on
+            our list today. Products sold in many sizes at one listed price,
+            sold-out products and anything we can&rsquo;t place in a group
+            are left out. The comparison covers the products we list, not every
+            store, and it shows whichever way it comes out, including when a
+            plan costs more than typical.
+          </p>
+
           <p className="mt-10 text-sm text-ink-3">
             Affiliate disclosure: stores may pay us a commission on some links,
             at no extra cost to you. It never changes a score — the rubric runs on the data,

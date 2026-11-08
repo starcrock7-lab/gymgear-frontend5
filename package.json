@@ -12,6 +12,7 @@
     "audit:kits": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/audit-kits.mjs",
     "audit:layout": "node --import ./scripts/register-ts.mjs scripts/audit-layout.mjs",
     "score:kits": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/score-kits.mjs",
+    "check:price": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/check-price-check.mjs",
     "check:search": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/check-search.mjs",
     "check:lockstep": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/check-lockstep.mjs",
     "audit:personalization": "node --env-file-if-exists=.env.local --import ./scripts/register-ts.mjs scripts/audit-personalization.mjs"
