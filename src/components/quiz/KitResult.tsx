@@ -458,7 +458,7 @@ function KitStage({ products, answers }: { products: KitProduct[]; answers: Quiz
           </li>
         )}
       </ul>
-      <Planner3D placed={placed} roomW={room.w} roomD={room.d} grid={null} walls={false} />
+      <Planner3D placed={placed} roomW={room.w} roomD={room.d} grid={null} walls={false} setting={answers.space} />
     </>
   );
 }

@@ -10,11 +10,11 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import type { PlacedItem } from "@/lib/floor-plan";
 import type { WallGrid } from "@/lib/auto-layout";
 import { equipmentTypeOf } from "@/components/planner/equipment-icon";
 import { buildEquipmentModel, heightOf } from "@/lib/equipment-3d";
+import { buildEnvScene, buildRoom, isRoomSetting } from "@/lib/room-settings";
 
 const WALL_H = 96; // inches — sims-style see-through walls
 const ft = (inches: number) => Math.round((inches / 12) * 10) / 10;
@@ -28,6 +28,7 @@ export default function Planner3D({
   onSelect,
   cardSlot,
   walls = true,
+  setting,
 }: {
   placed: PlacedItem[];
   roomW: number; // feet
@@ -43,6 +44,8 @@ export default function Planner3D({
   /* See-through walls help when planning a real room; the kit preview
      leaves them out so they never sit in front of the gear. */
   walls?: boolean;
+  /* The room drawn around the gear, from the "how much space" answer. */
+  setting?: string | null;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const cardAnchorRef = useRef<HTMLDivElement | null>(null);
@@ -63,35 +66,45 @@ export default function Planner3D({
     const rwIn = roomW * 12;
     const rdIn = roomD * 12;
 
-    /* Light showroom scene — dark graphite equipment + family accents pop
-       against it (the old dark-on-dark navy scene swallowed the models). */
+    /* A detected floor plan keeps its own glass walls, so its room stays bare. */
+    const place = !grid?.detected && isRoomSetting(setting) ? setting : "studio";
+    const room = buildRoom(place, rwIn, rdIn, 8);
+    const { look } = room;
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xe9edf3);
-    scene.fog = new THREE.Fog(0xe9edf3, Math.max(rwIn, rdIn) * 2, Math.max(rwIn, rdIn) * 6);
+    scene.background = new THREE.Color(look.bg);
+    if (look.fog) scene.fog = new THREE.Fog(look.bg, Math.max(rwIn, rdIn) * 2.2, Math.max(rwIn, rdIn) * 6);
+    scene.add(room.group);
 
     const camera = new THREE.PerspectiveCamera(50, 1, 10, Math.max(rwIn, rdIn) * 10);
-    camera.position.set(rwIn * 0.55, Math.max(rwIn, rdIn) * 0.75, rdIn * 1.15);
+    camera.position.set(rwIn * 0.62, Math.max(rwIn, rdIn) * 0.6, rdIn * 1.08);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.97;
+    renderer.toneMappingExposure = look.exposure;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     wrap.appendChild(renderer.domElement);
 
     /* Image-based lighting. Without an environment map every metalness > 0
-       surface — chrome bars, steel frames, plate hubs — has nothing to
-       reflect and resolves to flat grey, which is what made the models read
-       as untextured CAD. The generated room costs no network request. */
+       surface has nothing to reflect and resolves to flat grey. This one is a
+       rough copy of the room's own light, so chrome picks up the garage's strip
+       lights or the patio's sky. */
     const pmrem = new THREE.PMREMGenerator(renderer);
-    const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+    const envScene = buildEnvScene(place);
+    const envRT = pmrem.fromScene(envScene, 0.04);
     scene.environment = envRT.texture;
-    scene.environmentIntensity = 0.7;
+    scene.environmentIntensity = look.env;
     pmrem.dispose();
+    envScene.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.geometry) return;
+      mesh.geometry.dispose();
+      ([] as THREE.Material[]).concat(mesh.material).forEach((mat) => mat.dispose());
+    });
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 0, 0);
+    controls.target.set(0, 26, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.maxPolarAngle = Math.PI * 0.49; // never go under the floor
@@ -102,10 +115,10 @@ export default function Planner3D({
     /* Ambient now comes mostly from the environment map, so the hemisphere
        is a gentle top-up rather than the main source — otherwise the two
        stack and wash the models flat again. */
-    const hemi = new THREE.HemisphereLight(0xffffff, 0xb9c2d1, 0.5);
+    const hemi = new THREE.HemisphereLight(look.hemi.sky, look.hemi.ground, look.hemi.intensity);
     scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xfff6ec, 1.9);
-    sun.position.set(rwIn * 0.6, Math.max(rwIn, rdIn), rdIn * 0.4);
+    const sun = new THREE.DirectionalLight(look.sun.color, look.sun.intensity);
+    sun.position.set(...look.sun.dir).multiplyScalar(Math.max(rwIn, rdIn) * 1.1);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     /* Scene units are inches, so the default bias is far too small and the
@@ -131,50 +144,6 @@ export default function Planner3D({
     scene.add(spot);
     scene.add(spot.target);
 
-    /* Ground + room floor (clean, no grid — the shadows carry the depth) */
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0xc6cdd9, roughness: 1 });
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(rwIn * 6, rdIn * 6), groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.5;
-    ground.receiveShadow = true;
-    scene.add(ground);
-    /* Room floor is the brightest surface — the equipment's stage. Speckled
-       rubber-tile texture drawn once to a canvas: a flat colour reads as
-       paper, and at close-up range the speckle is what sells "gym floor". */
-    const floorTex = (() => {
-      const c = document.createElement("canvas");
-      c.width = c.height = 256;
-      const x = c.getContext("2d");
-      if (!x) return null;
-      x.fillStyle = "#f4f7fb";
-      x.fillRect(0, 0, 256, 256);
-      for (let i = 0; i < 2800; i++) {
-        const g = 150 + Math.random() * 70;
-        x.fillStyle = `rgba(${g | 0},${g | 0},${(g + 8) | 0},${0.05 + Math.random() * 0.17})`;
-        const s = Math.random() * 2.2 + 0.4;
-        x.fillRect(Math.random() * 256, Math.random() * 256, s, s);
-      }
-      x.strokeStyle = "rgba(118,130,150,0.30)"; // tile seam
-      x.lineWidth = 2;
-      x.strokeRect(1, 1, 254, 254);
-      const t = new THREE.CanvasTexture(c);
-      t.wrapS = t.wrapT = THREE.RepeatWrapping;
-      t.colorSpace = THREE.SRGBColorSpace;
-      t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      t.repeat.set(Math.max(2, Math.round(rwIn / 24)), Math.max(2, Math.round(rdIn / 24)));
-      return t;
-    })();
-    const floorMat = new THREE.MeshStandardMaterial({
-      color: 0xd7dee9, // a touch deeper than the walls so the gear reads against it
-      roughness: 0.88,
-      metalness: 0.02,
-      map: floorTex,
-    });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(rwIn, rdIn), floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
     /* Walls. Detected grid → instanced boxes on the wall SHELL (blocked
        cells touching open floor), so interior walls show and door gaps
        stay open. No detection → the four room borders. Semi-transparent,
@@ -186,8 +155,8 @@ export default function Planner3D({
       opacity: 0.28,
       depthWrite: false, // keep equipment behind glass walls fully visible
     });
-    if (!walls) {
-      /* no walls: the gear stands on the room floor alone */
+    if (!walls || place !== "studio") {
+      /* no glass walls: bare floor, or a themed room with its own */
     } else if (grid && grid.detected) {
       const { cols, rows, cell, blocked } = grid;
       const shell: [number, number][] = [];
@@ -228,12 +197,24 @@ export default function Planner3D({
     }
 
     /* Equipment — real footprints, real heights, one distinct model per type. */
+    const contactTex = (() => {
+      const c = document.createElement("canvas");
+      c.width = c.height = 128;
+      const x = c.getContext("2d")!;
+      const g = x.createRadialGradient(64, 64, 18, 64, 64, 64);
+      g.addColorStop(0, "rgba(0,0,0,0.5)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      x.fillStyle = g;
+      x.fillRect(0, 0, 128, 128);
+      return new THREE.CanvasTexture(c);
+    })();
+    const contactMat = new THREE.MeshBasicMaterial({ map: contactTex, transparent: true, depthWrite: false });
     const pieces = new THREE.Group();
     const byUid = new Map<string, THREE.Group>();
     for (const p of placed) {
       const type = equipmentTypeOf(p.id, p.category);
       const h = heightOf(p.id, type);
-      const model = buildEquipmentModel(type, p.category, p.w, p.d, h);
+      const model = buildEquipmentModel(type, p.category, p.w, p.d, h, p.id);
       const rw = p.rot ? p.d : p.w;
       const rd = p.rot ? p.w : p.d;
       model.rotation.y = p.rot ? -Math.PI / 2 : 0;
@@ -241,8 +222,25 @@ export default function Planner3D({
       model.userData = { uid: p.uid, label: `${p.name} · ${ft(p.w)} × ${ft(p.d)} ft, ${ft(h)} ft tall` };
       pieces.add(model);
       byUid.set(p.uid, model);
+      /* Soft dark pool where the piece meets the floor, which is what stops
+         gear from looking pasted on. */
+      const pool = new THREE.Mesh(new THREE.PlaneGeometry(rw * 1.3, rd * 1.3), contactMat);
+      pool.rotation.x = -Math.PI / 2;
+      pool.position.set(model.position.x, 0.08, model.position.z);
+      room.group.add(pool);
     }
     scene.add(pieces);
+    /* Open framed on the gear, not the empty room around it. Portrait phones
+       see less width, so they stand further back. */
+    if (placed.length) {
+      const box = new THREE.Box3().setFromObject(pieces);
+      const mid = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const fit = Math.max(1, 1.3 / (wrap.clientWidth / wrap.clientHeight));
+      const dist = Math.min((Math.max(size.x, size.y, size.z) * 1.1 + 40) * fit, Math.max(rwIn, rdIn) * 2);
+      controls.target.set(mid.x, Math.min(34, size.y * 0.42), mid.z);
+      camera.position.copy(controls.target).add(new THREE.Vector3(0.5, 0.46, 0.74).normalize().multiplyScalar(dist));
+    }
 
     /* Hover glow = the piece's own family colour; SELECTED glow = brand
        orange, same as the home-page cards. Materials are unique per piece
@@ -252,7 +250,7 @@ export default function Planner3D({
     function setGlow(g: THREE.Group, mode: "off" | "hover" | "selected") {
       g.traverse((o) => {
         const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
-        if (!mat || !mat.emissive) return;
+        if (!mat || !mat.emissive || mat.userData.keepEmissive) return;
         if (mode === "selected") {
           mat.emissive.copy(ACCENT);
           mat.emissiveIntensity = 0.09; // orange tint; the spotlight carries the reveal
@@ -276,18 +274,25 @@ export default function Planner3D({
       const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
       if (mat && !mat.userData.base) mat.userData.base = mat.color.getHex();
     });
+    /* The room dims as one with the lights; the contact pools are already dark. */
+    const roomMats = new Set<THREE.MeshStandardMaterial>();
+    room.group.traverse((o) => {
+      const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+      if (mat?.color && mat !== (contactMat as unknown)) {
+        mat.userData.base = mat.color.getHex();
+        roomMats.add(mat);
+      }
+    });
+    const DARK = new THREE.Color(0x11151d);
     const MOOD = {
-      bg: [new THREE.Color(0xe9edf3), new THREE.Color(0x11151d)] as const,
-      floor: [new THREE.Color(0xd7dee9), new THREE.Color(0x272e3c)] as const,
-      ground: [new THREE.Color(0xc6cdd9), new THREE.Color(0x171c26)] as const,
-      hemi: [0.5, 0.22] as const,
-      sun: [1.9, 1.15] as const,
+      bg: [new THREE.Color(look.bg), DARK] as const,
+      hemi: [look.hemi.intensity, look.hemi.intensity * 0.45] as const,
+      sun: [look.sun.intensity, look.sun.intensity * 0.6] as const,
       /* The environment map has to dim with everything else, or the room
          stays lit and the close-up spotlight has nothing to reveal. */
-      env: [0.7, 0.22] as const,
+      env: [look.env, look.env * 0.3] as const,
     };
-    let mood = 0; // 0 = light showroom · 1 = dark spotlight on the selection
-    const tmpA = new THREE.Color();
+    let mood = 0; // 0 = lit room · 1 = dark spotlight on the selection
 
     /* Cinematic close-up: a time-eased dolly (ease-in-out) from wherever the
        camera is to a hero angle on the piece. Manual orbit cancels it. */
@@ -382,6 +387,7 @@ export default function Planner3D({
     let raf = 0;
     const corner = new THREE.Vector3();
     const selBox = new THREE.Box3();
+    const wallEye = new THREE.Vector3();
     const tick = () => {
       /* eased cinematic dolly */
       if (fly) {
@@ -397,9 +403,8 @@ export default function Planner3D({
       if (Math.abs(mood - target) > 0.002 || target === 1) {
         mood += (target - mood) * 0.07;
         (scene.background as THREE.Color).lerpColors(MOOD.bg[0], MOOD.bg[1], mood);
-        (scene.fog as THREE.Fog).color.lerpColors(MOOD.bg[0], MOOD.bg[1], mood);
-        floorMat.color.lerpColors(MOOD.floor[0], MOOD.floor[1], mood);
-        groundMat.color.lerpColors(MOOD.ground[0], MOOD.ground[1], mood);
+        if (scene.fog) scene.fog.color.lerpColors(MOOD.bg[0], MOOD.bg[1], mood);
+        for (const mat of roomMats) mat.color.setHex(mat.userData.base as number).lerp(DARK, mood * 0.8);
         hemi.intensity = MOOD.hemi[0] + (MOOD.hemi[1] - MOOD.hemi[0]) * mood;
         sun.intensity = MOOD.sun[0] + (MOOD.sun[1] - MOOD.sun[0]) * mood;
         scene.environmentIntensity = MOOD.env[0] + (MOOD.env[1] - MOOD.env[0]) * mood;
@@ -410,12 +415,14 @@ export default function Planner3D({
             const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
             if (!mat?.userData.base) return;
             mat.color.setHex(mat.userData.base as number);
-            if (dim > 0) mat.color.lerp(MOOD.bg[1], dim);
+            if (dim > 0) mat.color.lerp(DARK, dim);
           });
         }
       }
 
       controls.update();
+      /* Dollhouse walls: one seen from behind steps aside. */
+      for (const w of room.walls) w.group.visible = wallEye.copy(camera.position).sub(w.point).dot(w.normal) > 0;
       renderer.render(scene, camera);
 
       /* anchor the product card just right of the selected piece on screen */
@@ -463,11 +470,12 @@ export default function Planner3D({
         else if (mat) mat.dispose();
       });
       envRT.dispose();
-      floorTex?.dispose();
+      room.textures.forEach((t) => t.dispose());
+      contactTex.dispose();
       renderer.dispose();
       wrap.removeChild(renderer.domElement);
     };
-  }, [placed, roomW, roomD, grid, walls]);
+  }, [placed, roomW, roomD, grid, walls, setting]);
 
   /* Selection changed (click here or in the 2D view): update glows and glide
      to the piece — without rebuilding the scene. */
@@ -497,10 +505,10 @@ export default function Planner3D({
           {cardSlot}
         </div>
       ) : null}
-      <span className="pointer-events-none absolute bottom-2.5 left-3.5 z-10 select-none font-display text-sm font-extrabold tracking-tight text-[#0d1b35]/75">
+      <span className="pointer-events-none absolute bottom-2.5 left-3.5 z-10 select-none font-display text-sm font-extrabold tracking-tight text-white/80 [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">
         Gym<span className="text-accent">Gear</span>
       </span>
-      <p className="pointer-events-none absolute bottom-2 right-3 z-10 hidden text-[0.6rem] sm:block font-bold uppercase tracking-wider text-[#3b4763]/70">
+      <p className="pointer-events-none absolute bottom-2 right-3 z-10 hidden text-[0.6rem] sm:block font-bold uppercase tracking-wider text-white/75 [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">
         Drag to orbit · scroll to zoom · hover a piece
       </p>
     </div>

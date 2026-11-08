@@ -2,7 +2,7 @@
    modules directly (Node 24 strips the types itself; it just can't resolve
    Next's "@/" alias or extensionless imports). Used by audit-kits.mjs so kit
    quality can be measured without booting Next or a dev server. */
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -35,4 +35,14 @@ export function resolve(specifier, context, next) {
     return { url: pathToFileURL(found).href, importAttributes, shortCircuit: true };
   }
   return next(specifier, context);
+}
+
+/* Node strips types but can't read JSX, so .tsx goes through the compiler. */
+export async function load(url, context, next) {
+  if (!url.endsWith(".tsx")) return next(url, context);
+  const { default: ts } = await import("typescript");
+  const { outputText } = ts.transpileModule(readFileSync(fileURLToPath(url), "utf8"), {
+    compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  });
+  return { format: "module", source: outputText, shortCircuit: true };
 }
