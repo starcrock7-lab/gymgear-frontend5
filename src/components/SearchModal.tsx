@@ -29,9 +29,9 @@ async function loadIndex(): Promise<Index> {
 /* Common starting points: each fills in what it already knows, and the quiz
    only asks for what's left. */
 const PLANS: { label: string; answers: Partial<QuizAnswers> }[] = [
-  { label: "Apartment gym under $300", answers: { space: "apartment-corner", budget: "under-300" } },
-  { label: "Garage gym under $800", answers: { space: "garage", budget: "300-800" } },
-  { label: "Garage gym under $2,000", answers: { space: "garage", budget: "800-2000" } },
+  { label: "Affordable apartment gym", answers: { space: "apartment-corner", budget: "under-300" } },
+  { label: "Moderate garage gym", answers: { space: "garage", budget: "300-800" } },
+  { label: "Premium garage gym", answers: { space: "garage", budget: "800-2000" } },
   { label: "Gym for a low ceiling", answers: { space: "garage", ceiling: "under-8ft" } },
 ];
 

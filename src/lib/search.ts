@@ -59,6 +59,7 @@ const SAME_AS: Record<string, string[]> = {
   "gym flooring": ["floor", "mat"],
   "weight plates": ["plate"],
   "cable machine": ["cable"],
+  "olympic barbell": ["barbell"],
 };
 
 const tidy = (s: string) => s.toLowerCase().replace(/[^a-z0-9$ ]+/g, " ").replace(/\s+/g, " ").trim();

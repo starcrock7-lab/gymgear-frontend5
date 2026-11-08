@@ -69,10 +69,10 @@ export const QUESTIONS: QuizQuestion[] = [
     title: "What's your budget?",
     subtitle: "Total spend for everything in the kit.",
     options: [
-      { id: "under-300", label: "Under $300", hint: "Smart essentials" },
-      { id: "300-800", label: "$300 – $800", hint: "Solid foundation" },
-      { id: "800-2000", label: "$800 – $2,000", hint: "Serious setup" },
-      { id: "2000-plus", label: "$2,000+", hint: "No compromises" },
+      { id: "under-300", label: "Affordable", hint: "Under $300" },
+      { id: "300-800", label: "Moderate", hint: "$300 to $800" },
+      { id: "800-2000", label: "Premium", hint: "$800 to $2,000" },
+      { id: "2000-plus", label: "Elite", hint: "$2,000 and up" },
     ],
   },
   {

@@ -111,6 +111,8 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-08 · budget answers renamed Affordable, Moderate, Premium, Elite with the dollar range underneath; "olympic barbell" suggestion no longer goes empty · see git log
+
 - 2026-11-08 · sale panel and product page show when the price was last read and a store's own sale end date; pages refresh every 15 minutes · this commit
 - 2026-11-08 · product page simplified: score as a gauge with one word, plain ratings, a short description built from listing facts (`check:copy`), only filled-in specs · this commit
 - 2026-11-08 · category pages: raised product cards with big photos and rank, sale, score and award tags on the photo; #1 gets the full width; sale panel rebuilt around large cards with what you save · this commit
