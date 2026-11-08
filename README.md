@@ -111,6 +111,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-08 · rearrangeable room: drag gear in 3D on the results page and /planner (`RoomEditor`), pieces stop at walls and each other, turn, take out, top view, room size and look; racks no longer draw a barbell they don't include, so every model fits its footprint and `check:models` allows no overhang; /planner replaced by the simple room, floor-plan upload stays on /gym · this commit
 - 2026-11-08 · 3D view: all 30 gear models rebuilt with real parts and surfaces, merged per piece; a room for each space answer (apartment, spare room, garage, patio) with walls that step aside; `check:models` gate; yoga mat compare class narrowed to 4 to 6 mm · this commit
 - 2026-11-08 · results page redesign: crossed-out price, plan total running down to it, glowing saving; muscle-group panel removed; roomier Buy now rows with a pulse on the next piece; `check:price` checks the crossed-out figure · this commit
 - 2026-11-07 · price check phase 2: builder never keeps a piece a same-class product beats on price and score (both copies); Best Match now under typical in 430 of 576 kits (was 258), `check:price` fails on beaten picks; `score:kits` retries 429s; personalization reach excludes beaten products · this commit

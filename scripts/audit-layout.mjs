@@ -7,7 +7,7 @@
  *
  *   npm run audit:layout
  */
-import { autoPlace, emptyGrid } from "../src/lib/auto-layout.ts";
+import { arrangeRoom, autoPlace, emptyGrid, isFree } from "../src/lib/auto-layout.ts";
 import { clearanceOf, footprintOf } from "../src/lib/floor-plan.ts";
 
 /* A full kit: one piece from every placeable category. */
@@ -74,6 +74,11 @@ for (const room of ROOMS) {
   if (placed.length < room.min) problems.push(`placed ${placed.length}, need >= ${room.min}`);
   if (overlaps) problems.push(`${overlaps} halo overlap(s) — the floor renders red`);
   if (outside) problems.push(`${outside} piece(s) outside the room`);
+  /* What the 3D room uses: every piece clear of the walls and of each other. */
+  const arranged = arrangeRoom(items, room.w / 12, room.d / 12).placed;
+  const stuck = arranged.filter((p) => !isFree(p, arranged.filter((q) => q !== p), room.w, room.d)).length;
+  if (arranged.length < placed.length) problems.push(`easing off the walls lost ${placed.length - arranged.length} piece(s)`);
+  if (stuck) problems.push(`${stuck} piece(s) touching a wall or another piece`);
 
   const dropped = items
     .filter((i) => !placed.some((p) => p.id === i.id))

@@ -28,21 +28,10 @@ import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
 import PriceCheck from "@/components/quiz/PriceCheck";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { toFloorItems, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
-import { autoPlace, emptyGrid } from "@/lib/auto-layout";
+import RoomEditor from "@/components/planner/RoomEditor";
 import { OWNED_NONE, optionLabel, questionFor, type QuizAnswers } from "@/lib/quiz";
-
-/* three.js only loads once a kit is on screen. */
-const Planner3D = dynamic(() => import("@/components/planner/Planner3D"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-[420px] w-full items-center justify-center rounded-2xl border border-line bg-navy sm:h-[520px]">
-      <Loader2 className="h-8 w-8 animate-spin text-accent" />
-    </div>
-  ),
-});
 
 /* A room the size of the answer to "how much space", in feet, so the kit is
    shown at true scale in a space like the buyer's own. */
@@ -238,13 +227,13 @@ export default function KitResult({
           comes first and the 3D view can't trap the scroll on the way there. */}
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <div className="order-2 min-w-0 lg:sticky lg:top-24 lg:order-1">
-          <KitStage products={selectedKit.products} answers={answers} />
+          <KitStage products={selectedKit.products} items={floorItems} answers={answers} />
           {floorItems.length > 0 && (
             <Link
               href="/planner"
               className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-bold text-white/60 transition-colors hover:text-accent"
             >
-              Place it in your own room
+              Use your own room size
               <ArrowRight className="h-4 w-4" />
             </Link>
           )}
@@ -426,39 +415,23 @@ function QuickEdits({
   );
 }
 
-/* The selected kit, auto-placed in a room the size of the buyer's space and
-   shown with the planner's real-size 3D models. Rebuilds on every swap. The fit
-   check above it only states what was measured or filtered for. */
-function KitStage({ products, answers }: { products: KitProduct[]; answers: QuizAnswers }) {
+/* The selected kit in a room the size of the buyer's space. Drag to rearrange;
+   the height line only states what was filtered for. */
+function KitStage({ products, items, answers }: { products: KitProduct[]; items: FloorItem[]; answers: QuizAnswers }) {
   const room = ROOM_FOR_SPACE[answers.space ?? ""] ?? { w: 12, d: 12 };
-  const { placed, unplacedCount } = useMemo(() => {
-    const items = toFloorItems(products);
-    if (!items.length) return { placed: [], unplacedCount: 0 };
-    const wIn = room.w * 12, dIn = room.d * 12;
-    return autoPlace(items, wIn, dIn, emptyGrid(wIn, dIn));
-  }, [products, room.w, room.d]);
-  if (!placed.length) return null;
-  const spaceName = optionLabel("space", answers.space ?? "").toLowerCase();
+  if (!items.length) return null;
+  const showHeight = answers.ceiling && (answers.ceiling === "under-8ft" || products.some((p) => p.category === "racks" || p.category === "machines"));
   return (
     <>
       <h2 className="font-display text-lg font-extrabold text-white">Will it fit?</h2>
-      <ul className="mb-3 mt-2 space-y-1.5 text-sm text-white/75">
-        <li className="flex gap-2">
-          <Check className={"mt-0.5 h-4 w-4 shrink-0 " + (unplacedCount ? "text-white/30" : "text-win")} />
-          {unplacedCount
-            ? `${unplacedCount} ${unplacedCount === 1 ? "piece doesn't" : "pieces don't"} fit at once in our ${room.w} × ${room.d} ft ${spaceName} layout. Plan on storing or folding gear.`
-            : `Fits our ${room.w} × ${room.d} ft ${spaceName} layout, using approximate footprints.`}
-        </li>
-        {answers.ceiling && (answers.ceiling === "under-8ft" || products.some((p) => p.category === "racks" || p.category === "machines")) && (
-          <li className="flex gap-2">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-win" />
-            {answers.ceiling === "under-8ft"
-              ? "We left out tall racks and machines for your low ceiling. Check each height at the store."
-              : "Racks often stand 86–91 in. Check each height against your ceiling at the store."}
-          </li>
-        )}
-      </ul>
-      <Planner3D placed={placed} roomW={room.w} roomD={room.d} grid={null} walls={false} setting={answers.space} />
+      <p className="mb-3 mt-1 text-sm text-white/75">
+        {showHeight
+          ? answers.ceiling === "under-8ft"
+            ? "We left out tall racks and machines for your low ceiling. Check each height at the store."
+            : "Racks often stand 86\u201391 in. Check each height against your ceiling at the store."
+          : "Drag any piece to move it."}
+      </p>
+      <RoomEditor items={items} start={{ w: room.w, d: room.d, setting: answers.space ?? "studio" }} />
     </>
   );
 }

@@ -512,81 +512,74 @@ const BUILDERS: Record<string, Builder> = {
   powerRack(g, w, d, h, m) {
     const p = 3;
     const px = w / 2 - p / 2 - 1.3;
-    const pz = d / 2 - p / 2 - 1.3;
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) upright(g, m, sx * px, sz * pz, h, p);
-    for (const sz of [-1, 1]) {
-      boxAt(g, m.frame, 2 * px - p, p, p, 0, h - p / 2, sz * pz);
-      for (const sx of [-1, 1]) for (const k of [-0.7, 0.7]) bolt(g, m, sx * (px - p), h - p / 2 + k, sz * (pz + p / 2 + 0.05));
+    const rz = -(d / 2 - p / 2 - 1.3);
+    const fz = d / 2 - p / 2 - 5; // set back so the J-cups stay inside the footprint
+    const span = fz - rz;
+    for (const sx of [-1, 1]) for (const z of [rz, fz]) upright(g, m, sx * px, z, h, p);
+    for (const z of [rz, fz]) {
+      boxAt(g, m.frame, 2 * px - p, p, p, 0, h - p / 2, z);
+      for (const sx of [-1, 1]) for (const k of [-0.7, 0.7]) bolt(g, m, sx * (px - p), h - p / 2 + k, z + p / 2 + 0.05);
     }
     for (const sx of [-1, 1]) {
-      boxAt(g, m.frame, p, p, 2 * pz - p, sx * px, h - p / 2, 0);
-      boxAt(g, m.frame, p, 2, 2 * pz - p, sx * px, 1.6, 0); // floor rail
+      boxAt(g, m.frame, p, p, span - p, sx * px, h - p / 2, (rz + fz) / 2);
+      boxAt(g, m.frame, p, 2, span - p, sx * px, 1.6, (rz + fz) / 2); // floor rail
     }
-    boxAt(g, m.frame, 2 * px - p, 2, p, 0, 1.6, -pz);
-    cylAt(g, m.knurl, 0.64, 2 * px - p, 0, h - p - 3.4, pz, "x", 22); // pull-up bar
-    for (const sx of [-1, 1]) boxAt(g, m.steel, 0.4, 3.6, 2.4, sx * (px - p / 2 - 0.2), h - p - 2.2, pz);
+    boxAt(g, m.frame, 2 * px - p, 2, p, 0, 1.6, rz);
+    cylAt(g, m.knurl, 0.64, 2 * px - p, 0, h - p - 3.4, fz, "x", 22); // pull-up bar
+    for (const sx of [-1, 1]) boxAt(g, m.steel, 0.4, 3.6, 2.4, sx * (px - p / 2 - 0.2), h - p - 2.2, fz);
     const jY = h * 0.56;
     for (const sx of [-1, 1]) {
-      jCup(g, m, sx * px, jY, pz + p / 2);
-      boxAt(g, m.steel, 2.5, 2, 2 * pz + p + 2, sx * (px - p / 2 - 1.6), jY - 15, 0); // spotter arm
-      boxAt(g, m.accent, 2.1, 0.25, 2 * pz + p, sx * (px - p / 2 - 1.6), jY - 13.9, 0);
-      for (const [i, hy] of [h * 0.2, h * 0.38].entries()) {
-        cylAt(g, m.steel, 1, 8, sx * px, hy, -pz - p / 2 - 4, "z", 22);
-        plate(g, m, i ? 7.6 : 8.86, 2.6, sx * px, hy, -pz - p / 2 - 5.2, "z");
-      }
+      jCup(g, m, sx * px, jY, fz + p / 2);
+      boxAt(g, m.steel, 2.5, 2, span + p, sx * (px - p / 2 - 1.6), jY - 15, (rz + fz) / 2); // spotter arm
+      boxAt(g, m.accent, 2.1, 0.25, span, sx * (px - p / 2 - 1.6), jY - 13.9, (rz + fz) / 2);
     }
-    loadedBar(g, m, w / 2 + 11, jY, pz + p / 2 + 2);
   },
   halfRack(g, w, d, h, m) {
     const p = 3;
     const px = w / 2 - p / 2 - 1.3;
     const rz = -(d / 2 - p / 2 - 1.3);
-    const fz = d / 2 - p / 2 - 1.3;
+    const fz = d / 2 - p / 2 - 5;
     const shortH = h * 0.56;
     for (const sx of [-1, 1]) {
       upright(g, m, sx * px, rz, h, p);
       upright(g, m, sx * px, fz, shortH, p);
       boxAt(g, m.frame, p, 2, fz - rz, sx * px, 1.6, (rz + fz) / 2);
       tube(g, m.frame, 1, V(sx * px, h * 0.72, rz + 1), V(sx * px, shortH - 1, fz - 1));
-      jCup(g, m, sx * px, shortH + 2.5, fz + p / 2);
-      cylAt(g, m.steel, 1, 8, sx * px, h * 0.3, rz - p / 2 - 4, "z", 22);
-      plate(g, m, 8.86, 2.6, sx * px, h * 0.3, rz - p / 2 - 5.2, "z");
+      jCup(g, m, sx * px, shortH - 6, fz + p / 2);
     }
     boxAt(g, m.frame, 2 * px - p, p, p, 0, h - p / 2, rz);
     boxAt(g, m.frame, 2 * px - p, 2, p, 0, 1.6, rz);
     cylAt(g, m.knurl, 0.64, 2 * px - p, 0, h - p - 3, rz + p, "x", 22);
-    loadedBar(g, m, w / 2 + 11, shortH + 2.5, fz + p / 2 + 2);
   },
   squatStand(g, w, d, h, m) {
     const p = 3;
     const x = w / 2 - 6;
-    const barY = h * 0.72;
+    const cupY = h * 0.72;
     for (const sx of [-1, 1]) {
       upright(g, m, sx * x, 0, h, p, false);
       boxAt(g, m.frame, p + 1, 2, d * 0.86, sx * x, 1.2, 0);
       for (const sz of [-1, 1]) boxAt(g, m.rubber, p + 1.2, 0.5, 3, sx * x, 0.25, sz * d * 0.4);
       tube(g, m.frame, 0.9, V(sx * x, 1.8, d * 0.34), V(sx * x, 16, p / 2));
       tube(g, m.frame, 0.9, V(sx * x, 1.8, -d * 0.34), V(sx * x, 16, -p / 2));
-      jCup(g, m, sx * x, barY, p / 2);
+      jCup(g, m, sx * x, cupY, p / 2);
     }
     boxAt(g, m.frame, 2 * x, p, p, 0, 5, 0);
-    loadedBar(g, m, w / 2 + 11, barY, p / 2 + 2);
   },
   wallRack(g, w, d, h, m) {
     const zBack = -(d / 2 - 1.1);
+    const zPost = d / 2 - 6.5;
     const x = w / 2 - 4;
     for (const sx of [-1, 1]) {
       boxAt(g, m.steel, 4, h, 1, sx * x, h / 2, zBack - 0.4);
       for (let y = 8; y < h; y += 26) bolt(g, m, sx * x, y, zBack + 0.15);
-      upright(g, m, sx * x, d / 2 - 3, h * 0.92, 3, false);
-      tube(g, m.frame, 1, V(sx * x, h - 6, zBack), V(sx * x, h * 0.86, d / 2 - 3));
-      tube(g, m.frame, 1, V(sx * x, 8, zBack), V(sx * x, 6, d / 2 - 3));
+      upright(g, m, sx * x, zPost, h * 0.92, 3, false);
+      tube(g, m.frame, 1, V(sx * x, h - 6, zBack), V(sx * x, h * 0.86, zPost));
+      tube(g, m.frame, 1, V(sx * x, 8, zBack), V(sx * x, 6, zPost));
       cylAt(g, m.steel, 0.9, 4, sx * x, h - 6, zBack + 1, "x", 16);
-      jCup(g, m, sx * x, h * 0.58, d / 2 - 1.5);
+      jCup(g, m, sx * x, h * 0.58, zPost + 1.5);
     }
     boxAt(g, m.frame, w, 3, 1.4, 0, h - 2, zBack);
-    cylAt(g, m.knurl, 0.64, 2 * x - 3, 0, h - 7, d / 2 - 3, "x", 22);
-    loadedBar(g, m, w / 2 + 11, h * 0.58, d / 2 + 0.5);
+    cylAt(g, m.knurl, 0.64, 2 * x - 3, 0, h - 7, zPost, "x", 22);
   },
   functionalTrainer(g, w, d, h, m) {
     const tw = Math.min(14, w / 4);
@@ -594,7 +587,7 @@ const BUILDERS: Record<string, Builder> = {
     for (const sx of [-1, 1]) {
       for (const sz of [-1, 1]) boxAt(g, m.frame, 3, h, 2.4, sx * tx + sz * (tw / 2 - 1.5), h / 2, -d * 0.24);
       for (const sz of [-1, 1]) boxAt(g, m.frame, tw, 2.6, 2.4, sx * tx, sz > 0 ? h - 1.3 : 1.3, -d * 0.24);
-      boxAt(g, m.frame, tw + 2, 1.6, d * 0.9, sx * tx, 0.8, 0);
+      boxAt(g, m.frame, tw, 1.6, d * 0.9, sx * tx, 0.8, 0);
       weightStack(g, m, tw * 0.56, sx * tx, -d * 0.24, h * 0.5);
       const carrX = sx * (tx - tw * 0.5 - 1.4);
       boxAt(g, m.frame, 3, h - 4, 3, carrX, h / 2, d * 0.16); // adjuster column
@@ -733,7 +726,7 @@ const BUILDERS: Record<string, Builder> = {
     const tread = boxAt(g, m.rubber, w * 0.46, d * 0.38, 0.5, 0, h * 0.665, -d * 0.19);
     tread.rotation.x = -Math.PI / 4.5;
     padAt(g, m, w * 0.36, 3.2, d * 0.26, 0, 11, d * 0.3);
-    padAt(g, m, w * 0.36, 3.2, d * 0.32, 0, 11 + d * 0.13, d * 0.43, 0, Math.PI / 2 - 0.5);
+    padAt(g, m, w * 0.36, 3.2, d * 0.32, 0, 11 + d * 0.13, d * 0.39, 0, Math.PI / 2 - 0.5);
     tube(g, m.frame, 1.2, V(0, 3, d * 0.3), V(0, 9, d * 0.3));
   },
   ghd(g, w, d, h, m) {
@@ -922,7 +915,7 @@ const BUILDERS: Record<string, Builder> = {
       cylAt(g, m.rubber, 1.6, 1.3, w * 0.42, 2.2, s * d * 0.3, "z", 26);
       cylAt(g, m.steel, 0.7, 1.5, w * 0.42, 2.2, s * d * 0.3, "z", 16);
     }
-    bent(g, m.steel, 0.5, [V(-w * 0.44, 2.6, -d * 0.22), V(-w * 0.49, 5, -d * 0.16), V(-w * 0.49, 5, d * 0.16), V(-w * 0.44, 2.6, d * 0.22)]);
+    bent(g, m.steel, 0.5, [V(-w * 0.43, 2.6, -d * 0.22), V(-w * 0.46, 5, -d * 0.16), V(-w * 0.46, 5, d * 0.16), V(-w * 0.43, 2.6, d * 0.22)]);
   },
   dumbbellRack(g, w, d, h, m) {
     for (const sx of [-1, 1]) {
@@ -964,7 +957,7 @@ const BUILDERS: Record<string, Builder> = {
     for (const [sx, sz] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) boxAt(g, m.rubber, 3, 0.5, 3, sx * w * 0.38, 0.25, sz * d * 0.38);
     [0.34, 0.58, 0.82].forEach((t, i) => {
       const y = h * t;
-      const r = Math.min(y - 0.5, 8.86 - i * 1.25);
+      const r = Math.min(y - 0.5, h - y - 0.3, 8.86 - i * 1.25);
       for (const sz of [-1, 1]) {
         cylAt(g, m.steel, 1, d * 0.36, 0, y, sz * (d * 0.18 + 1), "z", 20);
         for (let k = 0; k < 2; k++) plate(g, m, r, 2.3, 0, y, sz * (d * 0.1 + 2 + k * 2.5), "z");
@@ -978,7 +971,7 @@ const BUILDERS: Record<string, Builder> = {
       const x = -w / 2 + 5 + (i + 0.5) * ((w - 10) / n);
       latheAt(g, m.dark, [[0, 0], [r * 0.7, 0], [r * 0.84, r * 0.1], [r, r * 0.55], [r * 1.04, r * 0.95], [r * 0.94, r * 1.42], [r * 0.6, r * 1.8], [0, r * 1.92]], x, 0, 0, "y", 44);
       torusAt(g, m.accent, r * 1.03, 0.16, x, r * 0.95, 0, true);
-      const hy = r * 1.75, hw = r * 0.68, top = Math.min(h - 0.7, hy + r * 1.05);
+      const hy = r * 1.75, hw = r * 0.68, top = Math.min(h - Math.max(0.5, r * 0.15) - 0.6, hy + r * 1.05);
       bent(g, m.dark, Math.max(0.5, r * 0.15), [V(x - hw * 0.72, hy - 0.2, 0), V(x - hw * 1.02, hy + (top - hy) * 0.5, 0), V(x - hw * 0.62, top, 0), V(x + hw * 0.62, top, 0), V(x + hw * 1.02, hy + (top - hy) * 0.5, 0), V(x + hw * 0.72, hy - 0.2, 0)], false, 16);
     }
   },

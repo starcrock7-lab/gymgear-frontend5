@@ -362,6 +362,72 @@ export function wallsDataUrl(grid: WallGrid): string | null {
   return canvas.toDataURL();
 }
 
+/* ── Room rules, shared by auto-arrange and dragging ─────────────────────── */
+
+/* Inches every piece keeps off the walls, which covers baseboards, window
+   sills and door trim. */
+export const WALL_GAP = 4;
+const PIECE_GAP = 1;
+
+export function footprintRect(p: Pick<PlacedItem, "w" | "d" | "rot">) {
+  return { w: p.rot ? p.d : p.w, d: p.rot ? p.w : p.d };
+}
+
+/* Inside the walls and not on top of another piece? Floor tiles are a surface,
+   so gear may stand on them. */
+export function isFree(p: PlacedItem, others: PlacedItem[], roomW: number, roomD: number): boolean {
+  const { w, d } = footprintRect(p);
+  if (p.x < WALL_GAP || p.y < WALL_GAP || p.x + w > roomW - WALL_GAP || p.y + d > roomD - WALL_GAP) return false;
+  if (p.category === "flooring") return true;
+  return others.every((q) => {
+    if (q.category === "flooring") return true;
+    const o = footprintRect(q);
+    return p.x + w + PIECE_GAP <= q.x || q.x + o.w + PIECE_GAP <= p.x || p.y + d + PIECE_GAP <= q.y || q.y + o.d + PIECE_GAP <= p.y;
+  });
+}
+
+/* Slide a piece's position to the nearest point inside the walls. */
+export function clampToRoom(p: PlacedItem, roomW: number, roomD: number): PlacedItem {
+  const { w, d } = footprintRect(p);
+  return {
+    ...p,
+    x: Math.min(Math.max(WALL_GAP, p.x), Math.max(WALL_GAP, roomW - WALL_GAP - w)),
+    y: Math.min(Math.max(WALL_GAP, p.y), Math.max(WALL_GAP, roomD - WALL_GAP - d)),
+  };
+}
+
+/* The free position closest to where a piece wants to be, or null if none. */
+export function freeSpot(p: PlacedItem, others: PlacedItem[], roomW: number, roomD: number): PlacedItem | null {
+  const wanted = clampToRoom(p, roomW, roomD);
+  if (isFree(wanted, others, roomW, roomD)) return wanted;
+  let best: PlacedItem | null = null;
+  let bestD = Infinity;
+  const { w, d } = footprintRect(p);
+  for (let y = WALL_GAP; y <= roomD - WALL_GAP - d; y += 3)
+    for (let x = WALL_GAP; x <= roomW - WALL_GAP - w; x += 3) {
+      const dist = (x - wanted.x) ** 2 + (y - wanted.y) ** 2;
+      if (dist >= bestD) continue;
+      const c = { ...p, x, y };
+      if (isFree(c, others, roomW, roomD)) { best = c; bestD = dist; }
+    }
+  return best;
+}
+
+/* Auto-arrange a whole room, in feet, then ease each piece off the walls. Packing
+   the shrunken room instead cost a 12x14 ft room two pieces: the safety halos
+   between pieces already have the few inches this needs. */
+export function arrangeRoom(items: FloorItem[], roomWFt: number, roomDFt: number): AutoResult {
+  const W = roomWFt * 12;
+  const D = roomDFt * 12;
+  const res = autoPlace(items, W, D, emptyGrid(W, D));
+  const placed: PlacedItem[] = [];
+  for (const p of res.placed) {
+    const spot = freeSpot(p, placed, W, D);
+    if (spot) placed.push(spot);
+  }
+  return { ...res, placed, unplacedCount: res.total - placed.length };
+}
+
 /* ── Placement ──────────────────────────────────────────────────────── */
 
 type Unit = { id: string; name: string; category: string; w: number; d: number };

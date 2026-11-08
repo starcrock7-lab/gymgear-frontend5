@@ -69,6 +69,7 @@ export type BuiltRoom = {
 };
 
 const WALL_H = 96;
+const GARAGE_H = 110; // a garage ceiling, and room for a shelf over the gear
 
 export function lookOf(setting: RoomSetting) {
   return LOOKS[setting];
@@ -273,9 +274,9 @@ function windowPane(g: THREE.Group, x: number, y: number, w: number, h: number, 
 function curtain(g: THREE.Group, x: number, top: number, w: number, h: number, mat: THREE.Material) {
   const geo = new THREE.PlaneGeometry(w, h, Math.round(w * 2), 1);
   const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) pos.setZ(i, Math.sin(pos.getX(i) * 1.5) * 0.8);
+  for (let i = 0; i < pos.count; i++) pos.setZ(i, Math.sin(pos.getX(i) * 1.5) * 0.6);
   geo.computeVertexNormals();
-  add(g, geo, mat, x, top - h / 2, 3.4);
+  add(g, geo, mat, x, top - h / 2, 2.8);
 }
 function artFrame(g: THREE.Group, x: number, y: number, w: number, h: number, paint: number, aniso: number, list: THREE.Texture[]) {
   slab(g, lit(0x2b2a29, 0.5), w, h, 1, x, y, 0.6);
@@ -303,6 +304,7 @@ export function buildRoom(setting: RoomSetting, rw: number, rd: number, aniso: n
   const textures: THREE.Texture[] = [];
   const walls: BuiltRoom["walls"] = [];
   const look = LOOKS[setting];
+  const wallH = setting === "garage" ? GARAGE_H : WALL_H;
 
   /* Floor, tiled at real scale. */
   const f = FLOORS[setting];
@@ -373,7 +375,7 @@ export function buildRoom(setting: RoomSetting, rw: number, rd: number, aniso: n
     /* Painted wall, darker into the ceiling and the corners like a real room. */
     const wallMat = lit(paint, 0.94);
     wallMat.map = wallShade;
-    add(g, new THREE.PlaneGeometry(side.len, WALL_H), wallMat, 0, WALL_H / 2, 0);
+    add(g, new THREE.PlaneGeometry(side.len, wallH), wallMat, 0, wallH / 2, 0);
     slab(g, lit(0xeeece6, 0.55), side.len, 4.5, 0.7, 0, 2.25, 0.35); // baseboard
 
     if (setting === "apartment-corner") {
@@ -382,7 +384,7 @@ export function buildRoom(setting: RoomSetting, rw: number, rd: number, aniso: n
         const c = lit(0xd9d2c0, 1);
         const pw = Math.min(46, side.len * 0.5);
         for (const s of [-1, 1]) curtain(g, -side.len * 0.08 + s * (pw / 2 + 6), 88, 11, 82, c);
-        slab(g, lit(0x2b2a29, 0.4), pw + 28, 0.8, 0.8, -side.len * 0.08, 88.5, 3.4);
+        slab(g, lit(0x2b2a29, 0.4), pw + 28, 0.8, 0.8, -side.len * 0.08, 88.5, 2.8);
       } else if (i === 1) {
         artFrame(g, side.len * 0.14, 62, 18, 24, 0xc76b3f, aniso, textures);
         artFrame(g, -side.len * 0.14, 58, 14, 14, 0x546a78, aniso, textures);
@@ -396,8 +398,6 @@ export function buildRoom(setting: RoomSetting, rw: number, rd: number, aniso: n
       } else if (i === 1) {
         door(g, -side.len * 0.2, 0xdedcd4);
         artFrame(g, side.len * 0.2, 60, 20, 16, 0x3e5c76, aniso, textures);
-      } else {
-        slab(g, lit(0x6c5a48, 0.6), 34, 1.2, 8, 0, 56, 4);
       }
     } else if (setting === "garage") {
       if (i === 0) {
@@ -437,9 +437,10 @@ export function buildRoom(setting: RoomSetting, rw: number, rd: number, aniso: n
         slab(g, steel, 1, 15, 0.5, -bw * 0.06, 62, 1);
         slab(g, red, 1.8, 6, 0.8, -bw * 0.06, 57, 1.2);
         for (const [k, l] of [0.14, 0.2, 0.26].entries()) slab(g, steel, 0.7, 8 + l * 16, 0.4, bw * (0.14 + k * 0.08), 63, 1);
-        slab(g, lit(0x77593a, 0.8), Math.min(72, side.len * 0.7), 1.4, 12, 0, 86, 6);
+        /* Above the tallest rack, so nothing can run into it. */
+        slab(g, lit(0x77593a, 0.8), Math.min(72, side.len * 0.7), 1.4, 12, 0, 98, 6);
         const bin = [0x3f5e80, 0x4b4f55, 0x8a6b3e];
-        for (let k = 0; k < 3; k++) slab(g, lit(bin[k], 0.6), 14, 9, 10, -18 + k * 18, 91.5, 6);
+        for (let k = 0; k < 3; k++) slab(g, lit(bin[k], 0.6), 14, 8, 10, -18 + k * 18, 102.7, 6);
       } else door(g, 0, 0xc9c7bf);
     }
   });

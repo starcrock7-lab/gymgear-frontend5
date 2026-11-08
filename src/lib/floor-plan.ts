@@ -286,6 +286,26 @@ export function loadFloorItems(): FloorItem[] {
   }
 }
 
+/* The rearrangeable room (RoomEditor): which gear and quiz answer it was made
+   for, so a new plan never opens on someone else's layout. */
+const ROOM_KEY = "gymgear.room.v1";
+export type SavedRoom = { sig: string; from: string | null; placed: PlacedItem[]; roomW: number; roomD: number; setting: string };
+export function saveRoom(room: SavedRoom): void {
+  try {
+    sessionStorage.setItem(ROOM_KEY, JSON.stringify(room));
+  } catch {
+    /* storage full or blocked: the room just won't reopen */
+  }
+}
+export function loadRoom(): SavedRoom | null {
+  try {
+    const raw = sessionStorage.getItem(ROOM_KEY);
+    return raw ? (JSON.parse(raw) as SavedRoom) : null;
+  } catch {
+    return null;
+  }
+}
+
 export type SavedLayout = { placed: PlacedItem[]; roomW?: number; roomD?: number; zones?: Zone[] };
 
 export function saveLayout(placed: PlacedItem[], roomW?: number, roomD?: number, zones?: Zone[]): void {

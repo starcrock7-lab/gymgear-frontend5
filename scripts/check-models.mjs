@@ -9,10 +9,9 @@ import { FOOTPRINTS } from "../src/lib/floor-plan.ts";
 
 const MAX_TRIS = 90000;
 const MAX_MESHES = 18;
-/* A loaded bar is meant to reach past the uprights, and racks carry plates on
-   rear horns. Everything else stays inside its footprint. */
-const OVERHANG = { powerRack: [12, 12], halfRack: [12, 12], squatStand: [12, 2], wallRack: [12, 10] };
-const SLACK = 1.5;
+/* A model is never wider than the footprint the layout gives it: that is what
+   keeps gear out of walls and out of each other. */
+const SLACK = 0.5;
 
 const fails = [];
 const seen = new Set();
@@ -24,15 +23,14 @@ function check(name, type, w, d, h, id) {
   for (const m of g.children) tris += m.geometry.attributes.position.count / 3;
   if (tris > heaviest.tris) Object.assign(heaviest, { tris, name });
   const box = new THREE.Box3().setFromObject(g);
-  const [ox, oz] = OVERHANG[type] ?? [0, 0];
   const fail = (m) => fails.push(`${name} (${type}): ${m}`);
   if (tris > MAX_TRIS) fail(`${Math.round(tris)} triangles, limit ${MAX_TRIS}`);
   if (g.children.length > MAX_MESHES) fail(`${g.children.length} meshes after merging, limit ${MAX_MESHES}`);
   if (tris < 200) fail(`only ${Math.round(tris)} triangles, looks like a placeholder`);
   if (box.min.y < -0.2) fail(`sinks ${(-box.min.y).toFixed(1)} in into the floor`);
   if (box.max.y > h + SLACK) fail(`${box.max.y.toFixed(1)} in tall, declared ${h}`);
-  if (box.max.x > w / 2 + ox + SLACK || box.min.x < -w / 2 - ox - SLACK) fail(`x ${box.min.x.toFixed(1)}..${box.max.x.toFixed(1)} past ${w} in wide`);
-  if (box.max.z > d / 2 + oz + SLACK || box.min.z < -d / 2 - oz - SLACK) fail(`z ${box.min.z.toFixed(1)}..${box.max.z.toFixed(1)} past ${d} in deep`);
+  if (box.max.x > w / 2 + SLACK || box.min.x < -w / 2 - SLACK) fail(`x ${box.min.x.toFixed(1)}..${box.max.x.toFixed(1)} past ${w} in wide`);
+  if (box.max.z > d / 2 + SLACK || box.min.z < -d / 2 - SLACK) fail(`z ${box.min.z.toFixed(1)}..${box.max.z.toFixed(1)} past ${d} in deep`);
 }
 
 for (const [id, { w, d }] of Object.entries(FOOTPRINTS)) {

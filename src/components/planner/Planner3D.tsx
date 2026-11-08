@@ -15,6 +15,7 @@ import type { WallGrid } from "@/lib/auto-layout";
 import { equipmentTypeOf } from "@/components/planner/equipment-icon";
 import { buildEquipmentModel, heightOf } from "@/lib/equipment-3d";
 import { buildEnvScene, buildRoom, isRoomSetting } from "@/lib/room-settings";
+import { clampToRoom, footprintRect, isFree } from "@/lib/auto-layout";
 
 const WALL_H = 96; // inches — sims-style see-through walls
 const ft = (inches: number) => Math.round((inches / 12) * 10) / 10;
@@ -29,6 +30,10 @@ export default function Planner3D({
   cardSlot,
   walls = true,
   setting,
+  editable = false,
+  top = false,
+  onMove,
+  heightClass,
 }: {
   placed: PlacedItem[];
   roomW: number; // feet
@@ -46,17 +51,36 @@ export default function Planner3D({
   walls?: boolean;
   /* The room drawn around the gear, from the "how much space" answer. */
   setting?: string | null;
+  /* Drag pieces around the floor. They stop at walls and at each other. */
+  editable?: boolean;
+  /* Look straight down, which makes exact placement easy. */
+  top?: boolean;
+  onMove?: (uid: string, x: number, y: number) => void;
+  heightClass?: string;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const cardAnchorRef = useRef<HTMLDivElement | null>(null);
   const [hover, setHover] = useState("");
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  const onMoveRef = useRef(onMove);
+  onMoveRef.current = onMove;
+  const placedRef = useRef(placed);
+  placedRef.current = placed;
+  const topRef = useRef(top);
+  topRef.current = top;
+  /* Moving a piece must not rebuild the scene, or the view would jump: only
+     adding or removing gear does. */
+  const sceneKey = placed.map((p) => `${p.uid}:${p.id}`).join();
+  const pose = useRef<{ room: string; position: THREE.Vector3; target: THREE.Vector3 } | null>(null);
+  const roomKey = `${roomW}x${roomD}:${setting}`;
   /* Scene handles for the selection effect — set by the build effect. */
   const sceneApi = useRef<{
     byUid: Map<string, THREE.Group>;
     refreshGlow: () => void;
     flyTo: (g: THREE.Group) => void;
+    setPose: (p: PlacedItem) => void;
+    setTop: (on: boolean) => void;
   } | null>(null);
   const selRef = useRef<string | null>(selectedUid);
 
@@ -211,33 +235,49 @@ export default function Planner3D({
     const contactMat = new THREE.MeshBasicMaterial({ map: contactTex, transparent: true, depthWrite: false });
     const pieces = new THREE.Group();
     const byUid = new Map<string, THREE.Group>();
-    for (const p of placed) {
+    const setPose = (p: PlacedItem) => {
+      const model = byUid.get(p.uid);
+      if (!model) return;
+      const { w: rw, d: rd } = footprintRect(p);
+      model.rotation.y = p.rot ? -Math.PI / 2 : 0;
+      model.position.set(p.x + rw / 2 - rwIn / 2, 0, p.y + rd / 2 - rdIn / 2);
+      const pool = model.userData.pool as THREE.Mesh;
+      pool.rotation.z = p.rot ? Math.PI / 2 : 0;
+      pool.position.set(model.position.x, 0.08, model.position.z);
+    };
+    for (const p of placedRef.current) {
       const type = equipmentTypeOf(p.id, p.category);
       const h = heightOf(p.id, type);
       const model = buildEquipmentModel(type, p.category, p.w, p.d, h, p.id);
-      const rw = p.rot ? p.d : p.w;
-      const rd = p.rot ? p.w : p.d;
-      model.rotation.y = p.rot ? -Math.PI / 2 : 0;
-      model.position.set(p.x + rw / 2 - rwIn / 2, 0, p.y + rd / 2 - rdIn / 2);
       model.userData = { uid: p.uid, label: `${p.name} · ${ft(p.w)} × ${ft(p.d)} ft, ${ft(h)} ft tall` };
       pieces.add(model);
       byUid.set(p.uid, model);
       /* Soft dark pool where the piece meets the floor, which is what stops
          gear from looking pasted on. */
-      const pool = new THREE.Mesh(new THREE.PlaneGeometry(rw * 1.3, rd * 1.3), contactMat);
+      const pool = new THREE.Mesh(new THREE.PlaneGeometry(p.w * 1.3, p.d * 1.3), contactMat);
       pool.rotation.x = -Math.PI / 2;
-      pool.position.set(model.position.x, 0.08, model.position.z);
       room.group.add(pool);
+      model.userData.pool = pool;
+      /* An invisible block the size of the piece, so a thin frame is as easy
+         to grab with a thumb as a solid one. */
+      const grab = new THREE.Mesh(new THREE.BoxGeometry(p.w, Math.max(h, 10), p.d), contactMat);
+      grab.position.y = Math.max(h, 10) / 2;
+      grab.visible = false;
+      model.add(grab);
+      setPose(p);
     }
     scene.add(pieces);
     /* Open framed on the gear, not the empty room around it. Portrait phones
        see less width, so they stand further back. */
-    if (placed.length) {
+    if (pose.current?.room === roomKey) {
+      camera.position.copy(pose.current.position);
+      controls.target.copy(pose.current.target);
+    } else if (placedRef.current.length) {
       const box = new THREE.Box3().setFromObject(pieces);
       const mid = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
       const fit = Math.max(1, 1.3 / (wrap.clientWidth / wrap.clientHeight));
-      const dist = Math.min((Math.max(size.x, size.y, size.z) * 1.1 + 40) * fit, Math.max(rwIn, rdIn) * 2);
+      const dist = Math.min((Math.max(size.x * 1.1, size.z * 1.1, size.y * 1.9) + 40) * fit, Math.max(rwIn, rdIn) * 2);
       controls.target.set(mid.x, Math.min(34, size.y * 0.42), mid.z);
       camera.position.copy(controls.target).add(new THREE.Vector3(0.5, 0.46, 0.74).normalize().multiplyScalar(dist));
     }
@@ -324,32 +364,89 @@ export default function Planner3D({
     }
     controls.addEventListener("start", () => { fly = null; });
 
-    sceneApi.current = { byUid, refreshGlow, flyTo };
+    /* Straight down, or back to the angled view. */
+    function setTop(on: boolean) {
+      const span = Math.max(rwIn, rdIn);
+      const aspect = wrap!.clientWidth / wrap!.clientHeight;
+      const t1 = new THREE.Vector3(0, 0, 0);
+      const height = (Math.max(rdIn, rwIn / Math.max(aspect, 0.01)) * 0.5) / Math.tan((camera.fov * Math.PI) / 360) + 30;
+      fly = {
+        p0: camera.position.clone(),
+        p1: on ? new THREE.Vector3(0, Math.min(height, camera.far * 0.8), 0.01) : new THREE.Vector3(0.5, 0.46, 0.74).normalize().multiplyScalar(span * 1.25).setY(span * 0.6),
+        t0: controls.target.clone(),
+        t1: on ? t1 : new THREE.Vector3(0, 26, 0),
+        start: performance.now(),
+        dur: 700,
+      };
+    }
+    sceneApi.current = { byUid, refreshGlow, flyTo, setPose, setTop };
+    if (topRef.current) setTop(true);
     refreshGlow();
-    if (selRef.current && byUid.has(selRef.current)) flyTo(byUid.get(selRef.current)!);
+    if (!editable && selRef.current && byUid.has(selRef.current)) flyTo(byUid.get(selRef.current)!);
 
     /* Raycast helpers — hover (tooltip + glow + cursor) and click (select). */
     const ray = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    function pieceAt(e: PointerEvent): THREE.Group | null {
+    function aim(e: PointerEvent) {
       const r = renderer.domElement.getBoundingClientRect();
       mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(mouse, camera);
+    }
+    function pieceAt(e: PointerEvent): THREE.Group | null {
+      aim(e);
       const hit = ray.intersectObjects(pieces.children, true)[0];
       if (!hit) return null;
       let o: THREE.Object3D | null = hit.object;
       while (o && !o.userData.uid) o = o.parent;
       return (o as THREE.Group) ?? null;
     }
+    /* Dragging: the piece follows the pointer across the floor, 1 in at a
+       time. Blocked one way, it still slides the other, so it runs along a
+       wall or a neighbour instead of sticking. */
+    const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const onFloor = new THREE.Vector3();
+    let drag: { g: THREE.Group; cur: PlacedItem; dx: number; dz: number; sx: number; sy: number; moved: boolean } | null = null;
+    function dragTo(e: PointerEvent) {
+      if (!drag) return;
+      if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 5) return;
+      drag.moved = true;
+      aim(e);
+      if (!ray.ray.intersectPlane(floorPlane, onFloor)) return;
+      const { cur } = drag;
+      const { w, d } = footprintRect(cur);
+      const want = clampToRoom({
+        ...cur,
+        x: Math.round(onFloor.x + drag.dx - w / 2 + rwIn / 2),
+        y: Math.round(onFloor.z + drag.dz - d / 2 + rdIn / 2),
+      }, rwIn, rdIn);
+      const others = placedRef.current.filter((q) => q.uid !== cur.uid);
+      const next = [want, { ...want, y: cur.y }, { ...want, x: cur.x }].find((c) => isFree(c, others, rwIn, rdIn));
+      if (next) {
+        drag.cur = next;
+        setPose(next);
+      }
+      drag.g.position.y = 1.2; // lifted while carried
+    }
+    function endDrag() {
+      if (!drag) return false;
+      const { g, cur, moved } = drag;
+      drag = null;
+      controls.enabled = true;
+      g.position.y = 0;
+      if (moved) onMoveRef.current?.(cur.uid, cur.x, cur.y);
+      else onSelectRef.current?.(g.userData.uid === selRef.current ? null : (g.userData.uid as string));
+      return true;
+    }
     let lastLabel = "";
     function onMove(e: PointerEvent) {
+      if (drag) return dragTo(e);
       const g = pieceAt(e);
       if (g !== hovered) {
         hovered = g;
         refreshGlow();
-        renderer.domElement.style.cursor = g ? "pointer" : "";
+        renderer.domElement.style.cursor = g ? (editable ? "grab" : "pointer") : "";
       }
-      const label = (g?.userData.label as string) ?? "";
+      const label = editable ? "" : ((g?.userData.label as string) ?? "");
       if (label !== lastLabel) {
         lastLabel = label;
         setHover(label);
@@ -357,20 +454,33 @@ export default function Planner3D({
     }
     /* Click vs orbit-drag: only a press that barely moved selects. */
     let downAt: { x: number; y: number } | null = null;
-    const onDown = (e: PointerEvent) => { downAt = { x: e.clientX, y: e.clientY }; };
+    const onDown = (e: PointerEvent) => {
+      downAt = { x: e.clientX, y: e.clientY };
+      if (!editable) return;
+      const g = pieceAt(e);
+      const cur = g && placedRef.current.find((p) => p.uid === g.userData.uid);
+      if (!g || !cur || !ray.ray.intersectPlane(floorPlane, onFloor)) return;
+      /* Runs before OrbitControls, so a press on a piece never turns the view. */
+      controls.enabled = false;
+      fly = null;
+      renderer.domElement.setPointerCapture(e.pointerId);
+      drag = { g, cur, dx: g.position.x - onFloor.x, dz: g.position.z - onFloor.z, sx: e.clientX, sy: e.clientY, moved: false };
+    };
     function onUp(e: PointerEvent) {
+      if (endDrag()) return;
       if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 6) return;
       const g = pieceAt(e);
       if (g) {
         onSelectRef.current?.(g.userData.uid as string);
-        flyTo(g);
+        if (!editable) flyTo(g);
       } else {
         onSelectRef.current?.(null);
       }
     }
     renderer.domElement.addEventListener("pointermove", onMove);
-    renderer.domElement.addEventListener("pointerdown", onDown);
+    renderer.domElement.addEventListener("pointerdown", onDown, { capture: true });
     renderer.domElement.addEventListener("pointerup", onUp);
+    renderer.domElement.addEventListener("pointercancel", endDrag);
 
     /* Size to container, keep in step with it. */
     const resize = () => {
@@ -398,7 +508,7 @@ export default function Planner3D({
       }
 
       /* spotlight mood: darken the room around a selection, restore after */
-      const sel = selRef.current ? byUid.get(selRef.current) ?? null : null;
+      const sel = !editable && selRef.current ? byUid.get(selRef.current) ?? null : null;
       const target = sel ? 1 : 0;
       if (Math.abs(mood - target) > 0.002 || target === 1) {
         mood += (target - mood) * 0.07;
@@ -422,7 +532,7 @@ export default function Planner3D({
 
       controls.update();
       /* Dollhouse walls: one seen from behind steps aside. */
-      for (const w of room.walls) w.group.visible = wallEye.copy(camera.position).sub(w.point).dot(w.normal) > 0;
+      for (const w of room.walls) w.group.visible = !topRef.current && wallEye.copy(camera.position).sub(w.point).dot(w.normal) > 0;
       renderer.render(scene, camera);
 
       /* anchor the product card just right of the selected piece on screen */
@@ -457,10 +567,12 @@ export default function Planner3D({
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      pose.current = { room: roomKey, position: camera.position.clone(), target: controls.target.clone() };
       sceneApi.current = null;
       renderer.domElement.removeEventListener("pointermove", onMove);
-      renderer.domElement.removeEventListener("pointerdown", onDown);
+      renderer.domElement.removeEventListener("pointerdown", onDown, { capture: true });
       renderer.domElement.removeEventListener("pointerup", onUp);
+      renderer.domElement.removeEventListener("pointercancel", endDrag);
       controls.dispose();
       scene.traverse((o) => {
         const mesh = o as THREE.Mesh;
@@ -475,7 +587,17 @@ export default function Planner3D({
       renderer.dispose();
       wrap.removeChild(renderer.domElement);
     };
-  }, [placed, roomW, roomD, grid, walls, setting]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sceneKey, roomW, roomD, grid, walls, setting, editable]);
+
+  /* A piece moved or turned: update it where it stands. */
+  useEffect(() => {
+    for (const p of placed) sceneApi.current?.setPose(p);
+  }, [placed]);
+
+  useEffect(() => {
+    sceneApi.current?.setTop(top);
+  }, [top]);
 
   /* Selection changed (click here or in the 2D view): update glows and glide
      to the piece — without rebuilding the scene. */
@@ -484,16 +606,16 @@ export default function Planner3D({
     const api = sceneApi.current;
     if (!api) return;
     api.refreshGlow();
-    if (selectedUid) {
+    if (selectedUid && !editable) {
       const g = api.byUid.get(selectedUid);
       if (g) api.flyTo(g);
     }
-  }, [selectedUid]);
+  }, [selectedUid, editable]);
 
   return (
     <div
       ref={wrapRef}
-      className="relative h-[420px] w-full touch-none overflow-hidden rounded-2xl border border-line bg-navy sm:h-[520px]"
+      className={`relative w-full touch-none overflow-hidden rounded-2xl border border-line bg-navy ${heightClass ?? "h-[420px] sm:h-[520px]"}`}
     >
       {hover ? (
         <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-lg border border-accent/50 bg-navy/95 px-3 py-1.5 text-xs font-bold text-white shadow-lg">
@@ -509,7 +631,7 @@ export default function Planner3D({
         Gym<span className="text-accent">Gear</span>
       </span>
       <p className="pointer-events-none absolute bottom-2 right-3 z-10 hidden text-[0.6rem] sm:block font-bold uppercase tracking-wider text-white/75 [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">
-        Drag to orbit · scroll to zoom · hover a piece
+        {editable ? "Drag a piece to move it \u00b7 drag the floor to look around" : "Drag to orbit \u00b7 scroll to zoom \u00b7 hover a piece"}
       </p>
     </div>
   );
