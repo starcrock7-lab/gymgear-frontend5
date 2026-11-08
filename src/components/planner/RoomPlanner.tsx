@@ -31,10 +31,10 @@ export default function RoomPlanner() {
           {back.label}
         </Link>
         <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white">Your room</h1>
-        <p className="mt-2 text-white/70">Set the size, then drag each piece where you want it.</p>
+        <p className="mt-2 text-white/70">Tap Edit to move your gear or change the room.</p>
         <div className="mt-6">
           {items === null ? null : items.length ? (
-            <RoomEditor items={items} start={hint ? { ...hint, setting: "studio" } : undefined} controls tall />
+            <RoomEditor items={items} start={hint ? { ...hint, setting: "studio" } : undefined} />
           ) : (
             <p className="rounded-2xl border border-white/12 p-6 text-white/70">
               Build a plan first and your gear will be here.{" "}

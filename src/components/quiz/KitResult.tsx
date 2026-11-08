@@ -27,8 +27,6 @@ import {
 import SwapModal from "@/components/quiz/SwapModal";
 import ProductModal from "@/components/quiz/ProductModal";
 import PriceCheck from "@/components/quiz/PriceCheck";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { toFloorItems, saveFloorItems, saveFloorOrigin, type FloorItem } from "@/lib/floor-plan";
 import RoomEditor from "@/components/planner/RoomEditor";
 import { OWNED_NONE, optionLabel, questionFor, type QuizAnswers } from "@/lib/quiz";
@@ -228,15 +226,6 @@ export default function KitResult({
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <div className="order-2 min-w-0 lg:sticky lg:top-24 lg:order-1">
           <KitStage products={selectedKit.products} items={floorItems} answers={answers} />
-          {floorItems.length > 0 && (
-            <Link
-              href="/planner"
-              className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-bold text-white/60 transition-colors hover:text-accent"
-            >
-              Use your own room size
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          )}
         </div>
         {/* The cart */}
         <AnimatePresence mode="wait">
@@ -415,8 +404,8 @@ function QuickEdits({
   );
 }
 
-/* The selected kit in a room the size of the buyer's space. Drag to rearrange;
-   the height line only states what was filtered for. */
+/* The selected kit in a room the size of the buyer's space. The height line
+   only states what was filtered for. */
 function KitStage({ products, items, answers }: { products: KitProduct[]; items: FloorItem[]; answers: QuizAnswers }) {
   const room = ROOM_FOR_SPACE[answers.space ?? ""] ?? { w: 12, d: 12 };
   if (!items.length) return null;
@@ -424,13 +413,14 @@ function KitStage({ products, items, answers }: { products: KitProduct[]; items:
   return (
     <>
       <h2 className="font-display text-lg font-extrabold text-white">Will it fit?</h2>
-      <p className="mb-3 mt-1 text-sm text-white/75">
-        {showHeight
-          ? answers.ceiling === "under-8ft"
+      {showHeight && (
+        <p className="mt-1 text-sm text-white/75">
+          {answers.ceiling === "under-8ft"
             ? "We left out tall racks and machines for your low ceiling. Check each height at the store."
-            : "Racks often stand 86\u201391 in. Check each height against your ceiling at the store."
-          : "Drag any piece to move it."}
-      </p>
+            : "Racks often stand 86\u201391 in. Check each height against your ceiling at the store."}
+        </p>
+      )}
+      <div className="mt-3" />
       <RoomEditor items={items} start={{ w: room.w, d: room.d, setting: answers.space ?? "studio" }} />
     </>
   );

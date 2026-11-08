@@ -277,7 +277,7 @@ export default function Planner3D({
       const mid = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
       const fit = Math.max(1, 1.3 / (wrap.clientWidth / wrap.clientHeight));
-      const dist = Math.min((Math.max(size.x * 1.1, size.z * 1.1, size.y * 1.9) + 40) * fit, Math.max(rwIn, rdIn) * 2);
+      const dist = Math.min((Math.max(size.x * 1.1, size.z * 1.1, size.y * 1.9) + 50) * fit, Math.max(rwIn, rdIn) * 2.6);
       controls.target.set(mid.x, Math.min(34, size.y * 0.42), mid.z);
       camera.position.copy(controls.target).add(new THREE.Vector3(0.5, 0.46, 0.74).normalize().multiplyScalar(dist));
     }
