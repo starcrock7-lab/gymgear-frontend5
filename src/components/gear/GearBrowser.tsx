@@ -12,6 +12,7 @@ import SearchHint from "@/components/SearchHint";
 import DealsStrip from "@/components/DealsStrip";
 import type { Deal } from "@/lib/deals";
 import type { Category } from "@/lib/kit";
+import { gearArt } from "@/lib/gear-art";
 
 const GROUPS = [
   { key: "equipment", label: "Equipment", cols: "lg:grid-cols-5" },
@@ -20,13 +21,6 @@ const GROUPS = [
   { key: "supplements", label: "Supplements", cols: "lg:grid-cols-6" },
 ];
 
-/* Art in public/gear-art. A category added later shows its photo until it has
-   its own. */
-const ART = new Set([
-  "racks", "machines", "benches", "barbells", "dumbbells", "plates", "cardio", "kettlebells", "bands", "flooring",
-  "preworkout", "protein", "creatine", "recovery", "vitamins", "fatburners",
-  "belts", "straps", "wraps", "sleeves", "chalk", "yogamats", "foamrollers", "gymbags", "jumpropes",
-]);
 /* Roughly what people look for first, instead of the catalog's order. */
 const FIRST = ["racks", "dumbbells", "barbells", "plates", "benches", "cardio", "machines", "kettlebells", "bands", "flooring"];
 const rank = (k: string) => (FIRST.includes(k) ? FIRST.indexOf(k) : FIRST.length);
@@ -45,7 +39,7 @@ function Tile({ c, i }: { c: Category; i: number }) {
         <span className="gear-lift relative h-full w-full">
           {/* eslint-disable-next-line @next/next/no-img-element -- our own fixed-size art */}
           <img
-            src={ART.has(c.key) ? `/gear-art/${c.key}.webp` : c.image}
+            src={gearArt(c.key, c.image)}
             alt=""
             draggable={false}
             loading="lazy"
@@ -151,7 +145,7 @@ export default function GearBrowser({
         </div>
       ))}
 
-      <div hidden={tab !== "deals"} className="mx-auto mt-6 max-w-3xl">
+      <div hidden={tab !== "deals"} className="mt-8">
         <DealsStrip deals={deals} title="Best deals right now" limit={6} />
       </div>
     </div>

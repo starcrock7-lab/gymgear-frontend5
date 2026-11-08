@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Star, ArrowUpRight, ChevronRight, Trophy } from "lucide-react";
+import { Star, ArrowUpRight, ChevronRight } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import {
@@ -9,9 +9,12 @@ import {
   getCategoryProducts,
   NOINDEX_CATEGORIES,
 } from "@/lib/catalog";
-import { buyUrl, formatPrice } from "@/lib/kit";
+import { buyUrl, formatPrice, type KitProduct } from "@/lib/kit";
 import { findDeals, productDeal, rankWithDeals } from "@/lib/deals";
 import DealsStrip from "@/components/DealsStrip";
+import ProductPhoto from "@/components/ProductPhoto";
+import { DumbbellMark } from "@/components/ui/dumbbell-mark";
+import { gearArt } from "@/lib/gear-art";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -68,6 +71,86 @@ export async function generateMetadata({
   };
 }
 
+/* The photo with everything that sets a product apart pinned to it: its place
+   in the ranking, any live discount, its score and its award. */
+function ItemPhoto({ p, rank, className }: { p: KitProduct; rank: number; className: string }) {
+  const deal = productDeal(p);
+  return (
+    <Link href={`/gear/${p.id}`} className={`relative block overflow-hidden rounded-xl bg-white ${className}`}>
+      <span className="block h-full w-full p-4 pb-10 transition-transform duration-500 group-hover:scale-105">
+        <ProductPhoto src={p.image} brand={p.brand} alt={p.name} />
+      </span>
+      <span className="absolute left-2 top-2 flex h-9 min-w-9 items-center justify-center rounded-lg bg-navy px-2 font-display text-sm font-extrabold text-white shadow-md">
+        #{rank}
+      </span>
+      {deal && <span className="gg-corner-deal absolute right-0 top-0 h-9 text-sm">{deal.pct}% off</span>}
+      {typeof p.gymgearScore === "number" && (
+        <span className="gg-tag gg-tag--score absolute bottom-2 left-2 bg-navy px-3 py-1.5 text-sm backdrop-blur-none">
+          <span className="gg-tag__num text-base">{p.gymgearScore}</span>
+          <span className="gg-tag__lbl">Score</span>
+        </span>
+      )}
+      {p.awards?.[0] && (
+        <span className="gg-dumbbell absolute bottom-2 right-2">
+          <DumbbellMark />
+          {p.awards[0]}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+function ItemFacts({ p, large }: { p: KitProduct; large?: boolean }) {
+  const deal = productDeal(p);
+  /* Extra awards first: the first one is already on the photo. */
+  const chips = [...(p.awards ?? []).slice(1), ...(p.aspects ?? [])].slice(0, large ? 4 : 2);
+  return (
+    <>
+      <p className="text-sm text-white/60">{p.brand}</p>
+      <Link href={`/gear/${p.id}`} className={`block font-display font-bold leading-snug text-white hover:text-accent ${large ? "text-2xl sm:text-3xl" : "line-clamp-2 text-lg"}`}>
+        {p.name}
+      </Link>
+      {p.rating != null && (
+        <p className="mt-1.5 flex items-center gap-1 text-sm text-white/75">
+          <Star className="h-4 w-4 fill-accent text-accent" />
+          <span className="font-bold text-white">{p.rating}</span>
+          {p.reviewCount != null && <span>({p.reviewCount.toLocaleString("en-US")})</span>}
+        </p>
+      )}
+      {large && p.expertVerdict && <p className="mt-3 max-w-prose leading-relaxed text-white/75">{p.expertVerdict}</p>}
+      {chips.length > 0 && (
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {chips.map((c) => (
+            <span key={c} className="rounded-full border border-white/15 bg-white/[0.06] px-2.5 py-1 text-xs font-bold text-white/85">
+              {c}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="mt-auto pt-3">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          <span className="font-display text-2xl font-extrabold tabular-nums text-white">{formatPrice(priceOf(p))}</span>
+          {deal && <span className="tabular-nums text-white/55 line-through">{formatPrice(p.price)}</span>}
+          {deal && (
+            <span className="gg-tag gg-tag--award px-2.5 py-1 text-xs normal-case tracking-normal text-navy-deep">
+              Save {formatPrice(Math.round(deal.save))}
+            </span>
+          )}
+        </div>
+        <a
+          href={buyUrl(p)}
+          target="_blank"
+          rel="noopener noreferrer sponsored"
+          className={`mt-3 flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-accent px-5 text-sm font-bold text-white transition-colors hover:bg-accent-hover ${large ? "sm:inline-flex" : ""}`}
+        >
+          Check price
+          <ArrowUpRight className="h-4 w-4" />
+        </a>
+      </div>
+    </>
+  );
+}
+
 export default async function CategoryPage({
   params,
 }: {
@@ -78,182 +161,81 @@ export default async function CategoryPage({
   if (!category || !ranked.length) notFound();
 
   const top = ranked[0];
-  const runnerUp = ranked[1];
+  const art = gearArt(category.key);
 
   return (
     <>
       <SiteNav />
       <main className="min-h-[70vh] bg-off">
-        <nav
-          aria-label="Breadcrumb"
-          className="mx-auto flex max-w-4xl flex-wrap items-center gap-1 px-5 pt-6 text-xs text-ink-3"
-        >
-          <Link href="/" className="hover:text-ink">
-            Home
-          </Link>
-          <ChevronRight className="h-3 w-3" />
-          <span className="text-ink-2">{category.label}</span>
-        </nav>
-
-        <div className="mx-auto max-w-4xl px-5 py-8">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-            Best {category.label}, ranked
-          </h1>
-
-          {/* Lead with the answer (search-intent first) */}
-          <p className="mt-4 text-lg leading-relaxed text-ink-2">
-            Our top {category.label.toLowerCase()} pick is{" "}
-            <Link
-              href={`/gear/${top.id}`}
-              className="font-bold text-ink underline-offset-2 hover:text-accent hover:underline"
-            >
-              {top.name}
-            </Link>{" "}
-            {typeof top.gymgearScore === "number"
-              ? `(GymGear Score ${top.gymgearScore}/100)`
-              : ""}
-            {runnerUp ? (
-              <>
-                , narrowly ahead of the {runnerUp.name}
-                {typeof runnerUp.gymgearScore === "number"
-                  ? ` (${runnerUp.gymgearScore})`
-                  : ""}
-              </>
-            ) : null}
-            . Below is the full ranking of {ranked.length} options, each scored
-            on build quality, owner rating, value, and review confidence —{" "}
-            <Link
-              href="/methodology"
-              className="font-medium text-accent underline-offset-2 hover:underline"
-            >
-              how we score
+        <div className="mx-auto max-w-6xl px-4 pb-14 pt-6">
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm text-white/60">
+            <Link href={`/gear#${category.group}`} className="hover:text-white">
+              Gear
             </Link>
-            .
-            {deals.length > 0 && (
-              <>
-                {" "}
-                {deals.length === 1
-                  ? "One of them is discounted right now"
-                  : `${deals.length} of them are discounted right now`}
-                , and a live deal moves a product up the ranking.
-              </>
-            )}
-          </p>
+            <ChevronRight className="h-3.5 w-3.5" />
+            <span className="text-white/85">{category.label}</span>
+          </nav>
 
-          {/* Deals first — prime position, above the ranking. The ranking
-              itself stays honest about quality; this is where a live discount
-              gets its prominence. */}
+          <header className="mt-3 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+                Best {category.label}, ranked
+              </h1>
+              <p className="mt-3 max-w-2xl text-white/75">
+                {ranked.length} options scored on build quality, owner rating, value and review confidence.
+                {deals.length > 0 && " A live sale moves a product up the ranking."}{" "}
+                <Link href="/methodology" className="font-bold text-accent underline-offset-2 hover:underline">
+                  How we score
+                </Link>
+              </p>
+            </div>
+            {art && (
+              <div className="relative hidden h-36 w-36 shrink-0 sm:block lg:h-44 lg:w-44">
+                <span aria-hidden className="gear-halo absolute inset-[6%] rounded-full" />
+                <span aria-hidden className="gear-floor absolute bottom-[3%] left-1/2 h-[9%] w-[58%] rounded-[50%]" />
+                {/* eslint-disable-next-line @next/next/no-img-element -- our own fixed-size art */}
+                <img src={art} alt="" className="gear-art relative h-full w-full object-contain" />
+              </div>
+            )}
+          </header>
+
+          {/* Deals first: prime position, above the ranking. The ranking itself
+              stays honest about quality; this is where a live discount gets
+              its prominence. */}
           {deals.length > 0 && (
             <div className="mt-8">
               <DealsStrip deals={deals} />
             </div>
           )}
 
-          {/* The ranking */}
-          <div className="mt-8 space-y-3">
-            {ranked.map((p, i) => (
-              <div
-                key={p.id}
-                className="flex flex-col gap-4 rounded-2xl border border-line bg-card p-4 sm:flex-row sm:items-center"
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-4">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-off font-display text-sm font-extrabold text-ink-2">
-                    {i + 1}
-                  </span>
-                  <Link
-                    href={`/gear/${p.id}`}
-                    className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-white"
-                  >
-                    {p.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={p.image}
-                        alt={p.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="font-display text-lg font-bold text-navy/40">
-                        {p.brand.charAt(0)}
-                      </span>
-                    )}
-                  </Link>
-                  <div className="min-w-0">
-                    <Link
-                      href={`/gear/${p.id}`}
-                      className="flex items-center gap-1.5 font-display text-base font-bold text-ink hover:text-accent"
-                    >
-                      <span className="truncate">{p.name}</span>
-                    </Link>
-                    <p className="text-xs text-ink-3">{p.brand}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-ink-2">
-                      {p.rating != null && (
-                        <span className="flex items-center gap-0.5">
-                          <Star className="h-3 w-3 fill-accent text-accent" />
-                          {p.rating}
-                        </span>
-                      )}
-                      {p.awards?.[0] && (
-                        <span className="flex items-center gap-0.5 font-bold text-accent">
-                          <Trophy className="h-3 w-3" />
-                          {p.awards[0]}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+          <h2 className="mt-12 font-display text-2xl font-extrabold tracking-tight text-white">The ranking</h2>
 
-                <div className="flex items-center justify-between gap-4 sm:justify-end">
-                  {typeof p.gymgearScore === "number" && (
-                    <div className="text-center">
-                      <div className="font-display text-xl font-extrabold text-accent">
-                        {p.gymgearScore}
-                      </div>
-                      <div className="text-[0.55rem] uppercase tracking-wide text-ink-3">
-                        Score
-                      </div>
-                    </div>
-                  )}
-                  <div className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {productDeal(p) && (
-                        <span className="rounded-md bg-accent/10 px-1.5 py-0.5 font-display text-[0.65rem] font-extrabold uppercase tracking-wide text-accent">
-                          {productDeal(p)!.pct}% off
-                        </span>
-                      )}
-                      <div className="font-display text-lg font-bold text-ink">
-                        {formatPrice(priceOf(p))}
-                      </div>
-                    </div>
-                    {productDeal(p) && (
-                      <div className="text-xs text-ink-3 line-through">
-                        {formatPrice(p.price)}
-                      </div>
-                    )}
-                    <div className="mt-1 flex items-center justify-end gap-1.5">
-                      <a
-                        href={buyUrl(p)}
-                        target="_blank"
-                        rel="noopener noreferrer sponsored"
-                        className="inline-flex items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-accent-hover"
-                      >
-                        Check price
-                        <ArrowUpRight className="h-3 w-3" />
-                      </a>
-                    </div>
-                  </div>
+          {/* The winner gets the full width; the rest fill the grid below. */}
+          <article className="item-card group mt-4 grid gap-5 rounded-2xl p-2.5 sm:grid-cols-2 sm:items-stretch">
+            <ItemPhoto p={top} rank={1} className="h-64 sm:h-96" />
+            <div className="flex min-w-0 flex-col px-2 pb-2 sm:py-4 sm:pr-4">
+              <ItemFacts p={top} large />
+            </div>
+          </article>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {ranked.slice(1).map((p, i) => (
+              <article key={p.id} className="item-card glow-btn group flex min-w-0 flex-col rounded-2xl p-2.5">
+                <ItemPhoto p={p} rank={i + 2} className="h-56" />
+                <div className="flex flex-1 flex-col px-1.5 pb-1.5 pt-3">
+                  <ItemFacts p={p} />
                 </div>
-              </div>
+              </article>
             ))}
           </div>
 
-          <p className="mt-8 text-xs text-ink-3">
+          <p className="mt-8 text-sm text-white/60">
             Prices and availability change; we check periodically but verify on
             the retailer&rsquo;s site. Some links earn us a commission at no
-            extra cost to you —{" "}
+            extra cost to you.{" "}
             <Link href="/disclosure" className="underline">
-              how we make money
+              How we make money
             </Link>
-            .
           </p>
         </div>
       </main>

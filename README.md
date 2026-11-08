@@ -111,6 +111,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-08 · category pages: raised product cards with big photos and rank, sale, score and award tags on the photo; #1 gets the full width; sale panel rebuilt around large cards with what you save · this commit
 - 2026-11-08 · Gear page simplified: search bar, one group at a time, deals as a tab; 25 category images rendered from our 3D models (`public/gear-art`), floating with a glow · this commit
 - 2026-11-08 · menu bar redesigned as a floating bar: logo, Gear, Compare, search, and "Plan my gym" or "My plan"; Guides moved to the footer only · this commit
 - 2026-11-08 · results page keeps a plain 3D view; an Edit button opens the rearrangeable room in a popup over the page, room size and look included · this commit
