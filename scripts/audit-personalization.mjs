@@ -18,6 +18,7 @@
 
    Exits non-zero when a threshold is breached, so it works as a gate. */
 import { selectKits } from "../src/lib/kit-builder.ts";
+import { beats } from "../src/lib/price-check.ts";
 
 const BASE = (process.env.NEXT_PUBLIC_BACKEND_URL || "https://gymgear-backend5.onrender.com").replace(/\/$/, "");
 const SITE_KEY = process.env.NEXT_PUBLIC_SITE_KEY || "";
@@ -56,7 +57,11 @@ for (const cat of KIT_CATS) {
   if (!res.ok) throw new Error(`${cat} → ${res.status} (is the backend up, and NEXT_PUBLIC_SITE_KEY set?)`);
   catalog[cat] = ((await res.json()).products ?? []).map((p) => ({ ...p, category: cat }));
 }
-const catalogSize = Object.values(catalog).flat().length;
+/* Reach counts only products a kit may pick: one a comparable product beats on
+   price and score is never kept (lib/price-check beats()), by design. */
+const lite = (p) => ({ id: p.id, price: p.salePrice || p.price, gs: p.gymgearScore || 0 });
+const all = Object.values(catalog).flat();
+const catalogSize = all.filter((p) => !all.some((q) => beats(lite(q), lite(p)))).length;
 
 /* Every kit is built at most once; the sweeps below reuse them. */
 const kitCache = new Map();
@@ -132,7 +137,7 @@ if (JSON_OUT) {
     console.log(`${label}  mean ${s.mean.toFixed(2)}   identical ${(s.identical * 100).toFixed(0)}%`);
     for (const p of s.perPair) console.log(`    ${p.mean.toFixed(2)}  ${p.pair}`);
   }
-  console.log(`\nCATALOG REACH  ${seen.size}/${catalogSize} products ever selected (${(reach * 100).toFixed(0)}%)`);
+  console.log(`\nCATALOG REACH  ${seen.size}/${catalogSize} pickable products ever selected (${(reach * 100).toFixed(0)}%; ${all.length - catalogSize} beaten on price and score not counted)`);
   console.log(failures.length ? `\nFAIL — ${failures.length} threshold(s) breached:` : "\nPASS — every answer measurably changes the kit");
   failures.forEach((f) => console.log("  " + f));
 }

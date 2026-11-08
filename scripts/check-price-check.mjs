@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { selectKits, KIT_CATEGORIES } from "../src/lib/kit-builder.ts";
 import { PRICED_BY_SIZE } from "../src/lib/coverage.ts";
-import { COMPARE_CLASSES, MIN_COMPARABLES, classStats, priceCheck } from "../src/lib/price-check.ts";
+import { CLASS_OF, COMPARE_CLASSES, MIN_COMPARABLES, beats, classStats, priceCheck } from "../src/lib/price-check.ts";
 
 const BASE = (process.env.NEXT_PUBLIC_BACKEND_URL || "https://gymgear-backend5.onrender.com").replace(/\/$/, "");
 const headers = { "X-Site-Key": process.env.NEXT_PUBLIC_SITE_KEY || "", Origin: "https://gymgearcompare.com" };
@@ -75,12 +75,15 @@ for (const goal of ["build-strength", "lose-weight", "get-fit", "home-gym-setup"
             }
             const sum = (f) => Math.round(pc.lines.reduce((s, l) => s + l[f], 0) * 100) / 100;
             if (Math.abs(sum("yours") - pc.yours) > 0.01 || Math.abs(sum("typical") - pc.typical) > 0.01) fail(`${tag}: totals are not the sum of the lines`);
-            /* Not a failure yet (plan phase 2): a pick that a comparable product
-               beats on both price and score. */
+            /* A pick a like-for-like product beats on price and score: the
+               builder's last pass removes these. If a room or owned-gear rule
+               ever makes the beater off limits, narrow this to eligible
+               beaters rather than deleting it. */
+            const lite = (m) => ({ id: m.id, price: m.salePrice || m.price, gs: m.gymgearScore || 0 });
             for (const l of pc.lines) {
-              const cls = Object.values(COMPARE_CLASSES).find((c) => c.ids.includes(l.id));
-              const beat = cls.ids.map((id) => byId.get(id)).find((m) => m && (m.salePrice || m.price) < l.yours && (m.gymgearScore ?? 0) > (l.yourScore ?? 0));
-              if (beat) { t.beaten = (t.beaten ?? 0) + 1; (t.beatEg ??= new Set()).add(`${l.id} → ${beat.id}`); }
+              const cur = lite(k.products.find((x) => x.id === l.id));
+              const beat = COMPARE_CLASSES[CLASS_OF.get(l.id)].ids.map((id) => byId.get(id)).find((m) => m && beats(lite(m), cur));
+              if (beat) fail(`${tag}: ${l.id} is beaten on price and score by ${beat.id}`);
             }
             const d = Math.round(pc.typical - pc.yours);
             if (d > 0) t.cheaper++; else if (d < 0) t.dearer++; else t.same++;
@@ -91,9 +94,7 @@ console.log(`price check over ${kits} kits`);
 for (const [type, t] of Object.entries(tally)) {
   const s = t.diff.sort((a, b) => a - b);
   const med = s.length ? s[s.length >> 1] : 0;
-  console.log(`  ${type.padEnd(7)} no comparison ${t.none}/${t.kits} · cheaper ${t.cheaper} · dearer ${t.dearer} · same ${t.same} · median difference $${med}`);
-  if (t.beaten) console.log(`          ${t.beaten} picks beaten on price and score: ${[...t.beatEg].slice(0, 6).join(", ")}`);
-}
+  console.log(`  ${type.padEnd(7)} no comparison ${t.none}/${t.kits} · cheaper ${t.cheaper} · dearer ${t.dearer} · same ${t.same} · median difference $${med}`);}
 for (const w of [...new Set(warn)]) console.log(`  note: ${w}`);
 if (fails.length) {
   console.error(`\nFAIL (${fails.length})`);

@@ -55,6 +55,24 @@ export const COMPARE_CLASSES: Record<string, { label: string; ids: string[] }> =
 /* Fewer than this and "typical" is one or two products' price, not a typical. */
 export const MIN_COMPARABLES = 3;
 
+export const CLASS_OF = new Map(
+  Object.entries(COMPARE_CLASSES).flatMap(([key, c]) => c.ids.map((id) => [id, key] as const)),
+);
+
+/* `alt` beats `cur` when it is in the same class, costs less and has a higher
+   GymGear Score. One rule for every tier: the page shows the Score, and tier
+   labels are re-sorted by price after building, so a per-tier rule let a
+   quality-built kit show as Best Match with a $335 bench scoring 78 beside a
+   $195 one scoring 86. The builder never keeps a beaten pick; check:price
+   fails if one gets through. */
+export function beats(
+  alt: { id: string; price: number; gs: number },
+  cur: { id: string; price: number; gs: number },
+): boolean {
+  const cls = CLASS_OF.get(cur.id);
+  return !!cls && CLASS_OF.get(alt.id) === cls && alt.price < cur.price && alt.gs > cur.gs;
+}
+
 /* One class's prices, keyed in the response by every member's id so the page
    can re-check the kit after a swap without the catalog. */
 export type ClassStat = {

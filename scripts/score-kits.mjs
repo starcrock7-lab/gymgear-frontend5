@@ -15,7 +15,12 @@ const EG = process.argv.includes("--eg");
 
 const catalog = {};
 for (const cat of KIT_CATEGORIES) {
-  const d = await (await fetch(`${BASE}/api/products/${cat}`, { headers })).json();
+  /* A 429 used to leave a category empty and silently score a thinner
+     catalog, which made before/after comparisons disagree. Wait it out. */
+  let r;
+  while ((r = await fetch(`${BASE}/api/products/${cat}`, { headers })).status === 429)
+    await new Promise((s) => setTimeout(s, 15000));
+  const d = await r.json();
   catalog[cat] = (d.products ?? []).map((p) => ({ ...p, category: cat }));
 }
 const total = catalog && Object.values(catalog).flat().length;

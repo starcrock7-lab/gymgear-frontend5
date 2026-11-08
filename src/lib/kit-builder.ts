@@ -15,6 +15,7 @@ import {
   LIGHT_PIECES, PRICED_BY_SIZE, needsFor, ownedTrains, PATTERNS, replacesRack, SMALL_PLATE_PAIRS, SPECIALTY_BARS, trainsOf, type Coverage, type Pattern,
 } from "@/lib/coverage";
 import { footprintOf } from "@/lib/floor-plan";
+import { beats } from "@/lib/price-check";
 
 /* Categories that belong in a home-gym kit, in build-priority order. */
 export const KIT_CATEGORIES = [
@@ -786,6 +787,34 @@ export function buildKit(
         picks[i] = alt;
         break;
       }
+    }
+  }
+
+  /* Never keep a piece a like-for-like product beats on price and score
+     (lib/price-check beats()). The results page compares every piece with its
+     class, and the match tier's budget-fit term used to prefer the dearer one:
+     a $335 bench scoring 78 over a $195 bench scoring 86. Runs last so no
+     later pass can bring a beaten piece back. The best-scoring beater is taken,
+     so nothing can beat it in turn. */
+  for (let i = 0; i < picks.length; i++) {
+    const cur = picks[i];
+    const before = coverNow();
+    const alt = catalog
+      .filter((p) => {
+        if (!beats(p, cur) || !eligible(p)) return false;
+        if (p.plateLoaded !== cur.plateLoaded || p.rackLike !== cur.rackLike) return false;
+        if (areaUsed - cur.area + p.area > Math.max(areaCap, areaUsed)) return false;
+        const after = coverageFromTrains([
+          ...picks.map((q, j) => (j === i ? p : q)).map((q) => ({ category: q.cat, trains: q.trains })),
+          ...owned,
+        ]);
+        return PATTERNS.every((k) => after[k] >= before[k]);
+      })
+      .sort((a, b) => b.gs - a.gs || a.price - b.price)[0];
+    if (alt) {
+      spent += alt.price - cur.price;
+      areaUsed += alt.area - cur.area;
+      picks[i] = alt;
     }
   }
   return picks.map((p) => p.id);

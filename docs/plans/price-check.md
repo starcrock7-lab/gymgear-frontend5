@@ -44,7 +44,8 @@ Sources: [16 CFR 233.2](https://www.law.cornell.edu/cfr/text/16/233.2), [Google 
   - a banned phrase appears on the page or the methodology page;
   - a typical price falls outside its own range;
   - a line's price differs from the kit's;
-  - the totals are not the sum of the lines.
+  - the totals are not the sum of the lines;
+  - a kit keeps a piece that a same-class product beats on price and score (added in phase 2).
 
   Across 1,728 kits it also prints how often each tier comes out cheaper or dearer than typical.
 
@@ -56,23 +57,42 @@ Measured at launch (1,728 kits):
 | Best Match | 258 | 203 | $43 less |
 | Best Quality | 286 | 207 | $43 less |
 
-Honest reading: today the recommended plan is only modestly cheaper than typical. Phase 2 is what makes the selling point strong.
+Honest reading at launch: the recommended plan was only modestly cheaper than typical. Phase 2 below changed that.
 
-## Phase 2: make the builder find the better value (next)
+## Phase 2: the builder finds the better value (done 2026-11-07)
 
-The price check found **208 Best Match picks and 232 Best Quality picks where a comparable product is both cheaper and higher-scoring**. Examples: Monster Utility Bench ($335, score 78) when the Flat Utility Bench is $195 and scores 86; HG 2.0 plates where Echo plates are cheaper and score higher; the Ohio Power Bar where the Ohio Bar is cheaper and scores higher.
+The price check had found **208 Best Match picks and 232 Best Quality picks where a comparable product was both cheaper and higher-scoring**. Examples: the Monster Utility Bench ($335, score 78) when the Utility Bench 2.0 is $174 and scores 86; HG 2.0 plates over Echo; the Ohio Power Bar over the Ohio Bar. The cause was the match score's budget-fit term, which rewards spending up to a category's share of the budget.
 
-1. Add a "dominated pick" rule to the builder, in both copies (`kit-builder.ts` and `server.js`, lockstep): never keep a piece when a product in the same compare class is cheaper, scores higher, passes `eligible()` and keeps coverage and the room fit. Same safety rules as the deal swap (gymgear-kits skill rules 3 and 14).
-2. Check first why each example was picked; some may be deliberate, such as room size or weight capacity. Record the reason or fix it.
-3. Gates: `audit:kits`, `check:lockstep`, `score:kits` (before and after), `check:price`. The beaten-pick count must go to 0, then become a hard failure in `check:price`.
-4. Re-measure the table above and update it here.
+What changed:
+
+- **Last builder pass:** `beats()` in `lib/price-check.ts` is now the final pass of `buildKit`, in both copies (`kit-builder.ts`, and `server.js` with its own copy of `COMPARE_CLASSES`, lockstep). No piece stays when a product in the same class costs less and has a higher GymGear Score.
+  - The replacement must pass `eligible()`, keep plate-loaded and rack-like the same, fit the room, and keep every movement level.
+  - The best-scoring beater is taken, so nothing can beat it in turn.
+- **One rule for all tiers.** A Best Quality exception (keep the better-built piece) was tried and dropped. Labels are re-sorted by price after building, so quality-built kits showed up as "Best Match" with a lower-scoring piece. The page shows the Score, so the Score decides.
+- **Hard failure:** `check:price` now fails on any beaten pick.
+- **Reach audit:** `audit:personalization` no longer counts beaten products when it measures catalog reach. They are never picked by design: 23 products, reach 65/111 = 59%.
+
+Measured after phase 2 (1,728 kits):
+
+| Tier | Cheaper than typical | More than typical | Median difference |
+|---|---|---|---|
+| Best Value | 490 | 30 | $97 less |
+| Best Match | 430 | 33 | $48 less |
+| Best Quality | 452 | 49 | $130 less |
+
+`score:kits` (3,024 kits), before and after phase 2:
+- Average share of the budget used by the recommended plan: 108.6% → 104.8%.
+- Average GymGear Score of the recommended plan: 82.2 → 82.6.
+- Strength kits with no barbell: 2 → 0.
+- Identical tiers: 138 → 140.
+- **Recommended plan missing a muscle group: 124 → 144.** Every added case is strength or full-home-gym at $300-$2,000 and misses only conditioning, which those goals don't require. No kit lost gear: cheaper benches lowered the other plans, so after the price sort the barbell plan is labelled Best Match instead of Best Value. Known, accepted.
 
 ## Phase 3: wider and dated (later)
 
 - **Per-row price date:** have the daily price job store a checked-at date per row. Then show "Prices checked {date}" and drop any class member not checked in the last 14 days.
 - **More classes, as the catalog grows:** adjustable dumbbells, air bikes, ski ergs and single kettlebells by weight. Each needs 3 or more products whose listings state the attribute the class is defined by.
 - **Product pages:** a Google-style range bar on product and compare pages ("Typical for 20 kg barbells we list: $315, range $241 to $339").
-- **Homepage line:** only once phase 2 lands. One sentence computed by a script over every quiz kit, such as the median difference for Best Match. The script writes it to a generated file, the build fails when the file is older than the catalog, and the sentence names its scope ("than the typical price of the same gear on our list").
+- **Homepage line:** phase 2 has landed, so this is next. One sentence computed by a script over every quiz kit, such as the median difference for Best Match. The script writes it to a generated file, the build fails when the file is older than the catalog, and the sentence names its scope ("than the typical price of the same gear on our list").
 
 ## Adding or changing a compare class
 
