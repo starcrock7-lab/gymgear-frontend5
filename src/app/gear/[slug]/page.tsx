@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Star, Check, ArrowUpRight, ChevronRight, Trophy, Scale } from "lucide-react";
+import { Star, ArrowUpRight, ChevronRight, Scale } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import {
@@ -10,6 +10,10 @@ import {
   NOINDEX_CATEGORIES,
 } from "@/lib/catalog";
 import { buyUrl, formatPrice, categoryLabel } from "@/lib/kit";
+import { productDeal, rankWithDeals } from "@/lib/deals";
+import { aboutProduct, facetWord, factsOf, scoreWord } from "@/lib/product-about";
+import ProductPhoto from "@/components/ProductPhoto";
+import { DumbbellMark } from "@/components/ui/dumbbell-mark";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -55,21 +59,44 @@ export async function generateMetadata({
 const priceOf = (p: { salePrice?: number; price: number }) =>
   p.salePrice ?? p.price;
 
-/* A short, data-derived read on the score — original analysis, not a spec
-   echo. Turns our own rubric output into a sentence (information gain). */
-function scoreNarrative(
-  facets: { label: string; score: number }[],
-  name: string,
-  cat: string,
-): string {
-  if (!facets.length) return "";
-  const sorted = [...facets].sort((a, b) => b.score - a.score);
-  const top = sorted[0];
-  const low = sorted[sorted.length - 1];
+/* The score as a gauge, so the number means something at a glance. */
+function ScoreRing({ score }: { score: number }) {
   return (
-    `In our ${cat} rubric the ${name} is strongest on ${top.label.toLowerCase()} ` +
-    `(${top.score}/100) and weakest on ${low.label.toLowerCase()} (${low.score}/100). ` +
-    `The overall score weights each of those by what actually matters for ${cat}.`
+    <span className="relative flex h-24 w-24 shrink-0 items-center justify-center">
+      <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90" aria-hidden>
+        <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="9" />
+        <circle
+          className="score-arc"
+          cx="50"
+          cy="50"
+          r="44"
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth="9"
+          strokeLinecap="round"
+          pathLength={100}
+          strokeDasharray={`${score} 100`}
+          style={{ filter: "drop-shadow(0 0 6px rgba(240,83,30,0.7))" }}
+        />
+      </svg>
+      <span className="font-display text-3xl font-extrabold tabular-nums text-white">{score}</span>
+    </span>
+  );
+}
+
+/* Five blocks and a word instead of a number and a weight. */
+function Facet({ label, value, word }: { label: string; value: number; word: string }) {
+  const lit = Math.max(1, Math.round(value / 20));
+  return (
+    <div className="flex items-center gap-3">
+      <span className="w-[8.5rem] shrink-0 text-sm text-white/75">{label}</span>
+      <span className="flex flex-1 gap-1" aria-hidden>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span key={i} className={`h-2 flex-1 rounded-full ${i < lit ? "bg-accent shadow-[0_0_8px_rgba(240,83,30,0.6)]" : "bg-white/12"}`} />
+        ))}
+      </span>
+      <span className="w-[6.25rem] shrink-0 text-right text-sm font-bold text-white">{word}</span>
+    </div>
   );
 }
 
@@ -84,307 +111,176 @@ export default async function ProductPage({
   const { product: p, peers, category } = data;
 
   const price = priceOf(p);
+  const deal = productDeal(p);
   const catLabel = category?.label ?? categoryLabel(p.category);
-  // Defensive: some catalog rows have mis-ordered p() args (specs/verdict
-  // swapped), so guard against non-object specs and non-string verdicts.
-  const specs =
-    p.specs && typeof p.specs === "object" && !Array.isArray(p.specs)
-      ? Object.entries(p.specs).filter(([, v]) => typeof v === "string")
-      : [];
-  const verdict = typeof p.expertVerdict === "string" ? p.expertVerdict : "";
-  const verdictSource =
-    typeof p.expertSource === "string" ? p.expertSource : "";
-  const rank =
-    peers.length && typeof p.gymgearScore === "number"
-      ? peers.filter((x) => (x.gymgearScore ?? 0) > (p.gymgearScore ?? 0)).length + 1
-      : null;
+  const facts = factsOf(p.specs).slice(0, 8);
+  /* Same order as the category page, so "#3" means the same thing on both. */
+  const order = rankWithDeals([p, ...peers]);
+  const rank = order.findIndex((x) => x.id === p.id) + 1;
+  const others = order.filter((x) => x.id !== p.id).slice(0, 3);
+  const score = typeof p.gymgearScore === "number" ? p.gymgearScore : null;
+  const facets = (p.scoreBreakdown ?? []).filter((f) => f.key !== "rated" || p.rating != null);
+  const heaviest = [...facets].sort((a, b) => b.weight - a.weight)[0];
 
   return (
     <>
       <SiteNav />
       <main className="min-h-[70vh] bg-off">
-        {/* Breadcrumb — crawlable path */}
-        <nav
-          aria-label="Breadcrumb"
-          className="mx-auto flex max-w-5xl flex-wrap items-center gap-1 px-5 pt-6 text-xs text-ink-3"
-        >
-          <Link href="/" className="hover:text-ink">
-            Home
-          </Link>
-          <ChevronRight className="h-3 w-3" />
-          <Link href={`/category/${p.category}`} className="hover:text-ink">
-            {catLabel}
-          </Link>
-          <ChevronRight className="h-3 w-3" />
-          <span className="text-ink-2">{p.name}</span>
-        </nav>
+        <div className="mx-auto max-w-5xl px-4 pb-14 pt-6">
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm text-white/60">
+            <Link href={`/gear#${category?.group ?? "equipment"}`} className="hover:text-white">
+              Gear
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5" />
+            <Link href={`/category/${p.category}`} className="hover:text-white">
+              {catLabel}
+            </Link>
+          </nav>
 
-        <div className="mx-auto max-w-5xl px-5 py-8">
-          {/* Header */}
-          <div className="grid gap-8 md:grid-cols-2">
-            <div className="overflow-hidden rounded-2xl border border-line bg-white">
-              {p.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.image}
-                  alt={p.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex aspect-square items-center justify-center font-display text-5xl font-bold text-navy/30">
-                  {p.brand.charAt(0)}
+          <div className="mt-4 grid gap-6 md:grid-cols-2 md:gap-10">
+            <div className="item-card rounded-2xl p-2.5">
+              <div className="relative h-80 overflow-hidden rounded-xl bg-white sm:h-[26rem]">
+                <div className="h-full w-full p-5">
+                  <ProductPhoto src={p.image} brand={p.brand} alt={p.name} />
                 </div>
-              )}
+                {deal && <span className="gg-corner-deal absolute right-0 top-0 h-9 text-sm">{deal.pct}% off</span>}
+                {p.awards?.[0] && (
+                  <span className="gg-dumbbell absolute bottom-3 left-3">
+                    <DumbbellMark />
+                    {p.awards[0]}
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div>
-              <p className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-accent">
-                {catLabel}
-              </p>
-              <h1 className="mt-1 font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+            <div className="flex flex-col">
+              <p className="text-white/60">{p.brand}</p>
+              <h1 className="mt-0.5 font-display text-3xl font-extrabold leading-tight tracking-tight text-white text-balance sm:text-4xl">
                 {p.name}
               </h1>
-              <p className="mt-1 text-ink-2">by {p.brand}</p>
 
-              {p.awards?.length ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {p.awards.map((a) => (
-                    <span
-                      key={a}
-                      className="flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-bold text-accent"
-                    >
-                      <Trophy className="h-3 w-3" />
-                      {a}
-                    </span>
-                  ))}
+              {score != null && (
+                <div className="mt-5 flex items-center gap-4">
+                  <ScoreRing score={score} />
+                  <div className="min-w-0">
+                    <p className="font-display text-2xl font-extrabold text-white">{scoreWord(score)}</p>
+                    <p className="text-sm text-white/70">
+                      GymGear Score out of 100
+                      {rank > 0 && (
+                        <>
+                          <br />
+                          Ranked #{rank} of {order.length} in {catLabel}
+                        </>
+                      )}
+                    </p>
+                  </div>
                 </div>
-              ) : null}
-
-              <div className="mt-4 flex items-baseline gap-3">
-                <span className="font-display text-4xl font-extrabold text-accent">
-                  {formatPrice(price)}
-                </span>
-                {p.salePrice && (
-                  <span className="text-lg text-ink-3 line-through">
-                    {formatPrice(p.price)}
-                  </span>
-                )}
-              </div>
-              {/* Retailer star rating only when the listing actually publishes
-                  one — an unrated product shows no stars rather than an
-                  invented score. Our GymGear Score is always shown above. */}
-              {p.rating != null && (
-              <div className="mt-2 flex items-center gap-1.5 text-sm text-ink-2">
-                <span className="relative inline-flex" aria-hidden>
-                  <span className="flex text-line">
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <Star key={i} className="h-4 w-4 shrink-0 fill-current" />
-                    ))}
-                  </span>
-                  <span
-                    className="absolute inset-y-0 left-0 flex overflow-hidden text-accent"
-                    style={{ width: `${(Math.min(p.rating ?? 0, 5) / 5) * 100}%` }}
-                  >
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <Star key={i} className="h-4 w-4 shrink-0 fill-current" />
-                    ))}
-                  </span>
-                </span>
-                <span className="font-bold text-ink">{p.rating}</span>
-                {p.reviewCount != null && (
-                  <span className="text-ink-3">
-                    from {p.reviewCount.toLocaleString()} owner reviews
-                  </span>
-                )}
-              </div>
               )}
 
-              <a
-                href={buyUrl(p)}
-                target="_blank"
-                rel="noopener noreferrer sponsored"
-                className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent font-body text-base font-bold text-white shadow-lg shadow-accent/30 transition-colors hover:bg-accent-hover"
-              >
-                Check price at {p.retailer}
-                <ArrowUpRight className="h-4 w-4" />
-              </a>
-              <p className="mt-2 text-center text-[0.7rem] text-ink-3">
-                We may earn a commission, at no extra cost to you.{" "}
-                <Link href="/disclosure" className="underline">
-                  How we make money
-                </Link>
-              </p>
+              {p.rating != null && (
+                <p className="mt-4 flex flex-wrap items-center gap-x-1.5 text-white/75">
+                  <Star className="h-5 w-5 fill-accent text-accent" />
+                  <span className="font-bold text-white">{p.rating} out of 5</span>
+                  {p.reviewCount != null && <span>from {p.reviewCount.toLocaleString("en-US")} owner reviews</span>}
+                </p>
+              )}
+
+              <div className="mt-auto pt-6">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="font-display text-4xl font-extrabold tabular-nums text-white">{formatPrice(price)}</span>
+                  {deal && <span className="text-lg tabular-nums text-white/55 line-through">{formatPrice(p.price)}</span>}
+                  {deal && (
+                    <span className="gg-tag gg-tag--award px-3 py-1.5 text-sm normal-case tracking-normal text-navy-deep">
+                      You save {formatPrice(Math.round(deal.save))}
+                    </span>
+                  )}
+                </div>
+                <a
+                  href={buyUrl(p)}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  className="glow-btn mt-4 flex min-h-13 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3.5 text-base font-bold text-white hover:bg-accent-hover"
+                >
+                  Check price at {p.retailer}
+                  <ArrowUpRight className="h-4 w-4" />
+                </a>
+                <p className="mt-2 text-center text-sm text-white/60">
+                  We may earn a commission, at no extra cost to you.{" "}
+                  <Link href="/disclosure" className="underline">
+                    How we make money
+                  </Link>
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* GymGear Score — proprietary data, the information-gain core */}
-          {typeof p.gymgearScore === "number" && (
-            <section className="mt-12 rounded-2xl border border-line bg-card p-6">
-              <div className="flex flex-wrap items-center gap-5">
-                <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl bg-accent text-white shadow-lg shadow-accent/30">
-                  <span className="font-display text-3xl font-extrabold leading-none">
-                    {p.gymgearScore}
-                  </span>
-                  <span className="text-[0.55rem] font-bold uppercase tracking-wide opacity-80">
-                    / 100
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="font-display text-xl font-extrabold tracking-tight text-ink">
-                    GymGear Score{rank ? ` — #${rank} in ${catLabel}` : ""}
-                  </h2>
-                  <p className="mt-1 text-sm leading-relaxed text-ink-2">
-                    {scoreNarrative(
-                      p.scoreBreakdown ?? [],
-                      p.name,
-                      catLabel.toLowerCase(),
-                    )}{" "}
-                    <Link
-                      href="/methodology"
-                      className="font-medium text-accent underline-offset-2 hover:underline"
-                    >
-                      How we score
-                    </Link>
-                    .
-                  </p>
-                </div>
-              </div>
-
-              {p.scoreBreakdown?.length ? (
-                <div className="mt-6 space-y-2.5">
-                  {p.scoreBreakdown.map((f) => (
-                    <div key={f.key} className="flex items-center gap-3 text-sm">
-                      <span className="w-32 shrink-0 text-ink-2">{f.label}</span>
-                      <span className="h-2 flex-1 overflow-hidden rounded-full bg-off">
-                        <span
-                          className="block h-full rounded-full bg-accent"
-                          style={{ width: `${f.score}%` }}
-                        />
-                      </span>
-                      <span className="w-9 shrink-0 text-right font-bold text-ink">
-                        {f.score}
-                      </span>
-                      <span className="w-10 shrink-0 text-right text-xs text-ink-3">
-                        {Math.round(f.weight * 100)}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </section>
-          )}
-
-          {/* Expert verdict — the "why" */}
-          {verdict && (
-            <section className="mt-8">
-              <h2 className="font-display text-2xl font-extrabold tracking-tight text-ink">
-                Our verdict
-              </h2>
-              <p className="mt-3 text-lg leading-relaxed text-ink-2">{verdict}</p>
-              {verdictSource && (
-                <p className="mt-2 text-sm text-ink-3">
-                  Assessment informed by {verdictSource}.
-                </p>
+          <div className="mt-12 grid gap-10 md:grid-cols-2">
+            <section>
+              <h2 className="font-display text-2xl font-extrabold tracking-tight text-white">About this product</h2>
+              <p className="mt-3 max-w-prose text-lg leading-relaxed text-white/80">{aboutProduct(p)}</p>
+              {facts.length > 0 && (
+                <dl className="mt-5 divide-y divide-white/10 border-y border-white/10">
+                  {facts.map((f) =>
+                    f.label ? (
+                      <div key={f.label} className="flex items-baseline justify-between gap-4 py-2.5 text-sm">
+                        <dt className="text-white/65">{f.label}</dt>
+                        <dd className="text-right font-bold text-white">{f.value}</dd>
+                      </div>
+                    ) : (
+                      <div key={f.value} className="py-2.5 text-sm font-bold text-white">
+                        {f.value}
+                      </div>
+                    ),
+                  )}
+                </dl>
               )}
             </section>
-          )}
 
-          {/* Specs */}
-          {specs.length > 0 && (
-            <section className="mt-10">
-              <h2 className="font-display text-2xl font-extrabold tracking-tight text-ink">
-                Specs
-              </h2>
-              <dl className="mt-4 overflow-hidden rounded-2xl border border-line bg-card">
-                {specs.map(([k, v], i) => (
-                  <div
-                    key={k}
-                    className={
-                      "flex items-center justify-between gap-4 px-5 py-3 text-sm " +
-                      (i % 2 ? "bg-off/60" : "")
-                    }
-                  >
-                    <dt className="text-ink-2">{k}</dt>
-                    <dd className="text-right font-medium text-ink">{v}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          )}
+            {score != null && facets.length > 0 && (
+              <section>
+                <h2 className="font-display text-2xl font-extrabold tracking-tight text-white">How it rates</h2>
+                <div className="mt-4 space-y-4">
+                  {facets.map((f) => (
+                    <Facet key={f.key} label={f.key === "trust" ? "Number of reviews" : f.label} value={f.score} word={facetWord(f.key, f.score)} />
+                  ))}
+                </div>
+                <p className="mt-5 text-sm leading-relaxed text-white/65">
+                  {heaviest.label} counts most for {catLabel.toLowerCase()}. Scores come from published data, not hands-on testing.{" "}
+                  <Link href="/methodology" className="font-bold text-accent underline-offset-2 hover:underline">
+                    How we score
+                  </Link>
+                </p>
+              </section>
+            )}
+          </div>
 
-          {/* How it ranks — internal links + category context (information gain) */}
-          {peers.length > 0 && (
-            <section className="mt-10">
-              <h2 className="font-display text-2xl font-extrabold tracking-tight text-ink">
-                How it compares in {catLabel}
-              </h2>
-              <div className="mt-4 space-y-2">
-                {peers.slice(0, 6).map((x) => (
-                  <Link
-                    key={x.id}
-                    href={`/gear/${x.id}`}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-line bg-card px-4 py-3 transition-colors hover:border-accent/40"
-                  >
-                    <span className="flex items-center gap-2 truncate">
-                      {typeof x.gymgearScore === "number" && (
-                        <span className="shrink-0 rounded-md bg-navy px-1.5 py-0.5 text-xs font-bold text-accent">
-                          {x.gymgearScore}
-                        </span>
-                      )}
-                      <span className="truncate font-bold text-ink">
-                        {x.name}
-                      </span>
-                      <span className="hidden shrink-0 text-sm text-ink-3 sm:inline">
-                        {x.brand}
+          {others.length > 0 && (
+            <section className="mt-12">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-display text-2xl font-extrabold tracking-tight text-white">Also worth a look</h2>
+                <Link href={`/compare?cat=${p.category}&ids=${p.id}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-bold text-accent hover:underline">
+                  <Scale className="h-4 w-4" />
+                  Compare side by side
+                </Link>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {others.map((x) => (
+                  <Link key={x.id} href={`/gear/${x.id}`} className="item-card glow-btn group flex min-w-0 flex-col rounded-2xl p-2.5">
+                    <span className="block h-40 overflow-hidden rounded-xl bg-white">
+                      <span className="block h-full w-full p-3 transition-transform duration-500 group-hover:scale-105">
+                        <ProductPhoto src={x.image} brand={x.brand} />
                       </span>
                     </span>
-                    <span className="flex shrink-0 items-center gap-1.5 text-sm">
-                      <span className="font-bold text-ink">
-                        {formatPrice(priceOf(x))}
-                      </span>
-                      <ChevronRight className="h-4 w-4 text-ink-3" />
+                    <span className="mt-3 block truncate px-1 font-bold text-white">{x.name}</span>
+                    <span className="block px-1 pb-1 text-sm text-white/70">
+                      {formatPrice(priceOf(x))}
+                      {typeof x.gymgearScore === "number" && ` \u00b7 ${scoreWord(x.gymgearScore)} (${x.gymgearScore})`}
                     </span>
                   </Link>
                 ))}
               </div>
-              <div className="mt-5 flex flex-wrap items-center gap-4">
-                <Link
-                  href={`/compare?cat=${p.category}&ids=${p.id}`}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_0_18px_rgba(232,84,42,0.5)]"
-                >
-                  <Scale className="h-4 w-4" />
-                  Compare side by side
-                </Link>
-                <Link
-                  href={`/category/${p.category}`}
-                  className="inline-flex items-center gap-1 text-sm font-bold text-accent hover:underline"
-                >
-                  See the full {catLabel} ranking
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              </div>
             </section>
           )}
-
-          {/* Buy footer */}
-          <div className="mt-12 rounded-2xl border border-line bg-card p-6 text-center">
-            <p className="font-display text-lg font-bold text-ink">
-              Ready to buy the {p.name}?
-            </p>
-            <a
-              href={buyUrl(p)}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              className="mx-auto mt-3 flex h-12 w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-accent font-body text-base font-bold text-white shadow-lg shadow-accent/30 transition-colors hover:bg-accent-hover"
-            >
-              Check price at {p.retailer}
-              <ArrowUpRight className="h-4 w-4" />
-            </a>
-            <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-ink-3">
-              <Check className="h-3.5 w-3.5 text-win" />
-              Independent score · no brand pays for placement
-            </p>
-          </div>
         </div>
       </main>
       <SiteFooter />

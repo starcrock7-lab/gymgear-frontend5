@@ -466,6 +466,21 @@ body {
   outline: none;
 }
 
+/* The product page's score gauge fills once on arrival. */
+.score-arc {
+  animation: score-arc 900ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+@keyframes score-arc {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .score-arc {
+    animation: none;
+  }
+}
+
 /* A raised product card: lit from above, sitting off the page. */
 .item-card {
   position: relative;
