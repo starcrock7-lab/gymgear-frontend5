@@ -66,7 +66,7 @@ export const priceOf = (p: CatalogProduct) => p.salePrice || p.price;
 const GOAL_WEIGHT: Record<string, Record<string, number>> = {
   /* Conditioning leads, but strength gear stays present — holding lean mass
      in a deficit is what stops fat loss becoming weight loss. */
-  "lose-weight": { cardio: 10, jumpropes: 6, kettlebells: 6, bands: 4, dumbbells: 3, yogamats: 1, racks: -6, plates: -5, barbells: -4, machines: -2 },
+  "lose-weight": { cardio: 14, jumpropes: 12, kettlebells: 6, bands: 4, dumbbells: 3, yogamats: 1, racks: -6, plates: -5, barbells: -4, machines: -2 },
   "get-fit": { cardio: 7, kettlebells: 5, dumbbells: 4, bands: 3, jumpropes: 2, yogamats: 1, racks: -2, plates: -2 },
   "build-strength": { racks: 10, barbells: 9, plates: 8, benches: 6, dumbbells: 2, cardio: -6, jumpropes: -5, yogamats: -3, foamrollers: -1 },
   "home-gym-setup": { machines: 8, racks: 7, barbells: 5, benches: 5, plates: 4, cardio: 3, dumbbells: 2 },
@@ -134,8 +134,16 @@ const SPACE_BANS: Record<string, string[]> = {
      rubber and a bench you can cover are genuinely fine, so they stay. */
   outdoor: ["machines", "cardio", "yogamats", "foamrollers"],
 };
-export function forbiddenCats(space: string): Set<string> {
-  return new Set(SPACE_BANS[space] || []);
+/* A goal rules gear out too. A fat-loss kit is cardio first with light weights
+   for circuits, done on the floor, so racks, bars, plates, strength machines
+   and a bench only spend the money cardio needs. A strength kit has no use for
+   cardio or a mat in a slot that could hold something to lift. */
+const GOAL_BANS: Record<string, string[]> = {
+  "lose-weight": ["racks", "barbells", "plates", "machines", "benches"],
+  "build-strength": ["cardio", "jumpropes", "yogamats"],
+};
+export function forbiddenCats(space: string, goal?: string): Set<string> {
+  return new Set([...(SPACE_BANS[space] || []), ...(GOAL_BANS[goal || ""] || [])]);
 }
 
 /* --- The room as a budget ---------------------------------------------
@@ -232,11 +240,12 @@ const DEAL_SWAP_MAX_QUALITY_DROP = 1;
 
 /* Own any of these and a bench is what makes them trainable. Soft rule: a kit
    is better with the bench, but dumbbells alone still work standing. */
-const NEEDS_BENCH = new Set(["dumbbells", "barbells", "plates", "racks"]);
+const BENCH_NEEDERS = new Set(["dumbbells", "barbells", "plates", "racks"]);
+const WALKING_PADS = new Set(["echelon-duotread", "echelon-duopad"]);
 /* A bench earns its place next to any of these — you can press, row or step
    off it. Wider than NEEDS_BENCH: kettlebells don't oblige a bench, but they
    absolutely use one. Only a bench with no weight at all is dead weight. */
-const BENCH_USABLE_WITH = new Set([...NEEDS_BENCH, "kettlebells", "machines"]);
+const BENCH_USABLE_WITH = new Set([...BENCH_NEEDERS, "kettlebells", "machines"]);
 /* Hard rule — these are useless without their partner, so the kit either buys
    the partner or drops the orphan. (Lockstep: server.js.) */
 const HARD_PAIRS: Record<string, string[]> = {
@@ -258,6 +267,8 @@ export function buildKit(
   catalog: Lite[],
   { cap, areaCap, target, ownedCats, banned, order, tight, lowCeil, needs, goal, experience }: { cap: number; areaCap: number; target: number; ownedCats: Set<string>; banned: Set<string>; order: string[]; tight: boolean; lowCeil: boolean; needs: Partial<Record<Pattern, 1 | 2>>; goal: string; experience?: string | null },
 ): string[] {
+  /* Where the goal bans benches, dumbbells are used without one. */
+  const NEEDS_BENCH = banned.has("benches") ? new Set<string>() : BENCH_NEEDERS;
   const perSlot = cap / Math.max(target, 1);
   /* 1.0 when the price sits at the category's ideal share of budget, falling
      off above (over budget hurts fast) and below (a $10 item isn't an anchor). */
@@ -341,6 +352,8 @@ export function buildKit(
        number. The softer versatility penalty above still nudges an advanced
        lifter toward a real range when they can afford it. */
     !(HEAVY_FIXED_PAIR_DUMBBELLS.has(p.id) && (experience !== "advanced" || goal === "lose-weight" || goal === "get-fit")) &&
+    /* A walking pad is for a room with no floor. A garage gets a real machine. */
+    !(!tight && WALKING_PADS.has(p.id)) &&
     !(tight && (p.cat === "machines" || p.cat === "cardio" || p.cat === "racks") && !p.compact) &&
     !(lowCeil && p.cat === "racks" && !LOW_CEIL_RACKS.has(p.id)) &&
     !(lowCeil && p.cat === "machines" && !LOW_CEIL_MACHINES.has(p.id));
@@ -606,6 +619,24 @@ export function buildKit(
       .filter((p) => allowed(p) && !picks.some((q) => q.cat === p.cat) && standsAlone(p) && fitsIn(p, stretch) && areaFits(p, areaStretch))
       .filter((p) => coverageFromTrains([...[...picks, p].map((q) => ({ category: q.cat, trains: q.trains })), ...owned])[pat] >= want)
       .sort((a, b) => a.price - b.price);
+    /* The slot may hold the wrong version of the right thing: a short band
+       where the kit needs one long enough for pull-ups. */
+    const swaps = fixes.length ? [] : picks.flatMap((cur, i) => catalog
+      .filter((p) => p.cat === cur.cat && p.id !== cur.id && eligible(p) && p.plateLoaded === cur.plateLoaded && p.rackLike === cur.rackLike &&
+        spent - cur.price + p.price <= stretch && areaUsed - cur.area + p.area <= areaStretch)
+      .filter((p) => {
+        const after = coverageFromTrains([...picks.map((q, j) => (j === i ? p : q)).map((q) => ({ category: q.cat, trains: q.trains })), ...owned]);
+        return after[pat] >= want && (Object.entries(needs) as [Pattern, 1 | 2][]).every(([k, v]) => cov[k] < v || after[k] >= v);
+      })
+      .map((p) => ({ i, p })))
+      .sort((a, b) => a.p.price - b.p.price);
+    if (swaps.length) {
+      const { i, p } = swaps[0];
+      spent += p.price - picks[i].price;
+      areaUsed += p.area - picks[i].area;
+      picks[i] = p;
+      continue;
+    }
     if (!fixes.length) {
       /* Nothing AFFORDABLE closes the gap — which on a small budget can mean
          the kit spent its last $3 on a jump rope and cannot reach a $12 band.
@@ -659,8 +690,12 @@ export function buildKit(
     picks.some((p) => NEEDS_BENCH.has(p.cat)) && !ownedCats.has("benches") && !picks.some((p) => p.cat === "benches");
   /* seatBench can trade away a bar, leaving a rack hydrateKits would then strip. */
   const orphaned = () =>
-    picks.some((p) => partnersOf(p, picks).some((n) => !ownedCats.has(n) && !picks.some((q) => q.cat === n)));
-  if (picks.length < MIN_PIECES || !meetsNeeds(picks) || unseated() || orphaned()) {
+    picks.some((p) => partnersOf(p, picks).some((n) => !ownedCats.has(n) && !picks.some((q) => q.cat === n))) ||
+    /* Same for a single-station machine whose rack was traded away. */
+    picks.some((p) => p.cat === "machines" && !p.rackLike && !hasBase()) ||
+    /* And a bench with no weight beside it, which hydrateKits strips. */
+    (picks.some((p) => p.cat === "benches") && !picks.some((p) => BENCH_USABLE_WITH.has(p.cat)) && ![...ownedCats].some((c) => BENCH_USABLE_WITH.has(c)));
+  if (picks.length + ownedCats.size < MIN_PIECES || !meetsNeeds(picks) || unseated() || orphaned()) {
     while (picks.length) drop(0);
     const pool = KIT_CATEGORIES.map(cheapestIn).filter((p): p is Lite => Boolean(p));
     let plan: Lite[] | null = null;
@@ -668,7 +703,7 @@ export function buildKit(
     for (let mask = 1; mask < 1 << pool.length; mask++) {
       const kit = pool.filter((_, i) => mask & (1 << i));
       const cost = kit.reduce((t, p) => t + p.price, 0);
-      if (cost > cap || cost >= planCost || kit.length < MIN_PIECES) continue;
+      if (cost > cap || cost >= planCost || kit.length + ownedCats.size < MIN_PIECES) continue;
       if (kit.reduce((t, p) => t + p.area, 0) > areaStretch) continue;
       if (kit.some((p) => p.cat === "racks") && kit.some((p) => p.rackLike)) continue;
       if (kit.some((p) => NEEDS_BENCH.has(p.cat)) && !ownedCats.has("benches") && !kit.some((p) => p.cat === "benches")) continue;
@@ -760,6 +795,7 @@ export function buildKit(
   if (!picks.some((p) => dealBoost(p) > 0)) {
     for (let i = 0; i < picks.length; i++) {
       const cur = picks[i];
+      if (goal === "lose-weight" && cur.cat === "cardio") continue;
       const alt = catalog
         .filter(
           (p) =>
@@ -881,7 +917,7 @@ export function hydrateKits(
       /* Trim toward the cap, but never down to something unusable: stop at
          MIN_PIECES, and never drop the bench that makes the free weights
          trainable (this loop used to happily strip a kit to one item). */
-      const needsBench = products.some((p) => NEEDS_BENCH.has(p.category));
+      const needsBench = products.some((p) => BENCH_NEEDERS.has(p.category));
       for (;;) {
         if (total <= cap || products.length <= MIN_PIECES) break;
         /* Trimming for budget must never re-open a coverage gap: a cheaper kit
@@ -950,7 +986,7 @@ export function selectKits(catalog: Catalog, a: BuilderAnswers): HydratedKit[] {
   const all = Object.values(catalog).flat();
   const cap = BUDGET_CAP[a.budget] || 2000;
   const target = PIECE_TARGET[a.equipmentCount || ""] || 4;
-  const forbidden = forbiddenCats(a.space || "");
+  const forbidden = forbiddenCats(a.space || "", a.goal);
   const ownedCats = new Set((a.owned || []).map((id) => OWNED_TO_CAT[id]).filter(Boolean));
   const order = categoryOrder(a.goal, a.space || "", target, a.experience);
   const tight = a.space === "apartment-corner" || a.space === "small-room";

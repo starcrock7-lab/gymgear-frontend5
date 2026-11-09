@@ -96,6 +96,8 @@ export const FOOTPRINTS: Record<string, { w: number; d: number }> = {
   "concept2-bikeerg": { w: 48, d: 24 },
   "schwinn-ic4": { w: 48, d: 22 },
   "sunny-rower": { w: 78, d: 20 },
+  "echelon-duopad": { w: 50, d: 22 },
+  "echelon-stair-climber-sport": { w: 55, d: 22 },
   "lifefitness-t3": { w: 79, d: 37 },
   "lf-club-treadmill": { w: 80, d: 39 },
   "lf-club-elliptical": { w: 84, d: 32 },

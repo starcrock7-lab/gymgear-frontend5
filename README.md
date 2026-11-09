@@ -111,6 +111,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-08 · weight-loss and strength kits now differ by rule: fat loss is cardio, rope and light weights with no bench or barbell gear, strength has no cardio or mat; audit enforces it · see git log
 - 2026-11-08 · budget answers renamed Affordable, Moderate, Premium, Elite with the dollar range underneath; "olympic barbell" suggestion no longer goes empty · see git log
 
 - 2026-11-08 · sale panel and product page show when the price was last read and a store's own sale end date; pages refresh every 15 minutes · this commit

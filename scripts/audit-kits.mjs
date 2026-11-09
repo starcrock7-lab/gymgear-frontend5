@@ -91,8 +91,14 @@ for (const goal of GOALS)
               const cats = k.products.map((p) => p.category);
               const has = (c) => cats.includes(c);
               const bad = [];
-              if (k.products.length < 3) bad.push(`only ${k.products.length} pieces`);
-              if (NEEDS_BENCH.some(has) && !has("benches") && !ownedCats.has("benches")) bad.push("free weights, no bench");
+              /* Gear they own counts: on a small budget, owning dumbbells and a
+                 bench leaves two useful strength pieces, and a third would be padding. */
+              if (k.products.length + ownedCats.size < 3) bad.push(`only ${k.products.length} pieces`);
+              if (goal !== "lose-weight" && NEEDS_BENCH.some(has) && !has("benches") && !ownedCats.has("benches")) bad.push("free weights, no bench");
+              /* The two goals must not come out as the same kit. */
+              if (goal === "lose-weight" && !has("cardio") && !has("jumpropes") && !ownedCats.has("cardio")) bad.push("fat-loss kit with no cardio");
+              if (goal === "lose-weight" && ["racks", "barbells", "plates", "machines", "benches"].some(has)) bad.push("fat-loss kit with strength gear");
+              if (goal === "build-strength" && ["cardio", "jumpropes", "yogamats"].some(has)) bad.push("strength kit with cardio gear");
               for (const [c, needs] of Object.entries(HARD))
                 /* Plates also load a plate-loaded machine, no barbell needed. */
                 if (has(c) && !(c === "plates" && k.products.some(isPlateLoaded)))
