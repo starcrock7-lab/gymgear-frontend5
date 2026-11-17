@@ -10,7 +10,8 @@ export const clicksEnabled = () => !!(URL_ && TOKEN);
 
 /* Runs several Redis commands in one request; returns each result. */
 export async function redis(cmds: (string | number)[][]): Promise<unknown[]> {
-  if (!URL_ || !TOKEN) return [];
+  /* Upstash rejects an empty pipeline (no clicks yet = nothing to count). */
+  if (!URL_ || !TOKEN || !cmds.length) return [];
   const res = await fetch(`${URL_}/pipeline`, {
     method: "POST",
     headers: { Authorization: `Bearer ${TOKEN}` },
