@@ -1,3 +1,4 @@
+import JsonLd, { breadcrumbs, itemList } from "@/components/JsonLd";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -240,6 +241,13 @@ export default async function CategoryPage({
         </div>
       </main>
       <SiteFooter />
+      <JsonLd
+        data={breadcrumbs([
+          { name: "Gear", path: "/gear" },
+          { name: category.label, path: `/category/${category.key}` },
+        ])}
+      />
+      <JsonLd data={itemList(`Best ${category.label.toLowerCase()}`, ranked.slice(0, 20).map((p) => ({ name: p.name, path: `/gear/${p.id}` })))} />
     </>
   );
 }

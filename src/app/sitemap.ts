@@ -5,6 +5,8 @@ import {
   NOINDEX_CATEGORIES,
 } from "@/lib/catalog";
 import { GUIDES } from "@/lib/guides";
+import { PLANS } from "@/lib/plans";
+import { brandSlug } from "@/lib/brands";
 
 const BASE = "https://gymgearcompare.com";
 
@@ -18,6 +20,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "", priority: 1 },
     { path: "/gear", priority: 0.9 },
     { path: "/deals", priority: 0.9 },
+    { path: "/home-gym-plans", priority: 0.9 },
+    { path: "/brands", priority: 0.6 },
     { path: "/guides", priority: 0.8 },
     { path: "/methodology", priority: 0.6 },
     { path: "/about", priority: 0.5 },
@@ -57,6 +61,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,
+    });
+  }
+  for (const p of PLANS) {
+    entries.push({
+      url: `${BASE}/home-gym-plans/${p.slug}`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.8,
+    });
+  }
+  /* Same rule as lib/brands.ts: a brand needs 3+ indexable products. */
+  const brandCount = new Map<string, number>();
+  for (const p of products) {
+    if (NOINDEX_CATEGORIES.has(p.category)) continue;
+    brandCount.set(brandSlug(p.brand), (brandCount.get(brandSlug(p.brand)) ?? 0) + 1);
+  }
+  for (const [slug, n] of brandCount) {
+    if (!slug || n < 3) continue;
+    entries.push({
+      url: `${BASE}/brands/${slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
     });
   }
   for (const g of GUIDES) {

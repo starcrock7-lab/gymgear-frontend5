@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getCategoryProducts } from "@/lib/catalog";
+import { loadCatalog } from "@/lib/plans";
 import type { QuizAnswers } from "@/lib/quiz";
 import { coverageGaps, coverageOf, coverageSummary, LIGHT_PIECES, muscleCoverage } from "@/lib/coverage";
 import {
   KIT_CATEGORIES, OWNED_TO_CAT, selectKits,
-  type Catalog, type CatalogProduct, type HydratedKit,
+  type HydratedKit,
 
 } from "@/lib/kit-builder";
 import { classStats } from "@/lib/price-check";
@@ -59,40 +59,6 @@ function defaultCopy(kit: HydratedKit, goal: string, ownedCats: Set<string>): { 
   return { name: kit.name, description: `${blurb} ${coverageSummary(kit.products, ownedCats)}` };
 }
 
-/* Every category the builder can draw from. Each getCategoryProducts call is
-   an ISR-cached fetch (deduped by Next), so a warm cache answers this without
-   touching the backend at all. */
-const ALL_CATS = [...KIT_CATEGORIES];
-
-/* Fetch in small waves rather than one 25-wide burst — on a cold cache every
-   category is a live request, and bursts have dropped connections (observed
-   locally: five core categories failed silently and the builder shipped a
-   visibly thinner kit). Anything that still fails gets one sequential retry;
-   a category that fails twice stays empty and is reported by the caller. */
-async function loadCatalog(): Promise<Catalog> {
-  const out: Catalog = {};
-  const failed: string[] = [];
-  const WAVE = 8;
-  for (let i = 0; i < ALL_CATS.length; i += WAVE) {
-    await Promise.all(
-      ALL_CATS.slice(i, i + WAVE).map(async (cat) => {
-        try {
-          out[cat] = (await getCategoryProducts(cat)) as CatalogProduct[];
-        } catch {
-          failed.push(cat);
-        }
-      }),
-    );
-  }
-  for (const cat of failed) {
-    try {
-      out[cat] = (await getCategoryProducts(cat)) as CatalogProduct[];
-    } catch {
-      out[cat] = [];
-    }
-  }
-  return out;
-}
 
 export async function POST(req: Request) {
   let a: Partial<QuizAnswers>;

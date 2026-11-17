@@ -6,7 +6,10 @@ import { motion } from "framer-motion";
 const navLinks = [
   { href: "/quiz", label: "Plan My Gym" },
   { href: "/gear", label: "Browse Gear" },
+  { href: "/home-gym-plans", label: "Home Gym Plans" },
+  { href: "/deals", label: "Deals" },
   { href: "/guides", label: "Buying Guides" },
+  { href: "/brands", label: "Brands" },
   { href: "/compare", label: "Compare Tool" },
   { href: "/extras", label: "Gear & Extras" },
   { href: "/sponsors", label: "Partners" },

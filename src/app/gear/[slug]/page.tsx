@@ -1,3 +1,5 @@
+import JsonLd, { breadcrumbs } from "@/components/JsonLd";
+import { brandSlug, getBrands } from "@/lib/brands";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -39,7 +41,7 @@ export async function generateMetadata({
   const { product: p } = data;
   const price = p.salePrice ?? p.price;
   return {
-    title: `${p.name} review & GymGear Score`,
+    title: `${p.name}: price, specs & GymGear Score`,
     description:
       `${p.name} by ${p.brand}: GymGear Score ${p.gymgearScore ?? "—"}/100, ` +
       (p.rating != null
@@ -121,6 +123,29 @@ export default async function ProductPage({
   const score = typeof p.gymgearScore === "number" ? p.gymgearScore : null;
   const facets = (p.scoreBreakdown ?? []).filter((f) => f.key !== "rated" || p.rating != null);
   const heaviest = [...facets].sort((a, b) => b.weight - a.weight)[0];
+  const brandPage = (await getBrands().catch(() => [])).some((b) => b.slug === brandSlug(p.brand))
+    ? `/brands/${brandSlug(p.brand)}`
+    : null;
+  /* Product structured data. No aggregateRating: the stars are the store's,
+     and Google's rules forbid marking up ratings gathered from other sites.
+     No availability either: we don't always know it. */
+  const productLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.name,
+    sku: p.id,
+    brand: { "@type": "Brand", name: p.brand.split(" | ")[0] },
+    category: catLabel,
+    ...(p.image ? { image: [p.image] } : {}),
+    ...(typeof p.expertVerdict === "string" && p.expertVerdict ? { description: p.expertVerdict } : {}),
+    offers: {
+      "@type": "Offer",
+      price: price.toFixed(2),
+      priceCurrency: "USD",
+      url: p.affiliateUrl || p.url,
+      seller: { "@type": "Organization", name: p.retailer },
+    },
+  };
 
   return (
     <>
@@ -154,7 +179,13 @@ export default async function ProductPage({
             </div>
 
             <div className="flex flex-col">
-              <p className="text-white/60">{p.brand}</p>
+              {brandPage ? (
+                <Link href={brandPage} className="text-white/60 hover:text-white hover:underline">
+                  {p.brand}
+                </Link>
+              ) : (
+                <p className="text-white/60">{p.brand}</p>
+              )}
               <h1 className="mt-0.5 font-display text-3xl font-extrabold leading-tight tracking-tight text-white text-balance sm:text-4xl">
                 {p.name}
               </h1>
@@ -290,6 +321,14 @@ export default async function ProductPage({
         </div>
       </main>
       <SiteFooter />
+      <JsonLd data={productLd} />
+      <JsonLd
+        data={breadcrumbs([
+          { name: "Gear", path: "/gear" },
+          { name: catLabel, path: `/category/${p.category}` },
+          { name: p.name, path: `/gear/${p.id}` },
+        ])}
+      />
     </>
   );
 }

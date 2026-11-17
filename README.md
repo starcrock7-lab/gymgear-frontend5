@@ -22,6 +22,9 @@ Next **16.2.9** (App Router, `src/` layout) · React **19.2.4** · Tailwind **v4
 | `/gear`, `/gear/[slug]` | `gear/` | Catalog browse + product detail |
 | `/category/[slug]` | `category/` | Category listing |
 | `/guides`, `/guides/[slug]` | `guides/` | Buying guides ranked by GymGear Score (`src/lib/guides.ts`) |
+| `/deals` | `deals/page.tsx` | Every live deal, category filter + sort (`DealsBrowser`); site-wide bar + sale/email pop-up come from `DealsBanner` in the layout |
+| `/home-gym-plans`, `/home-gym-plans/[slug]` | `home-gym-plans/` | 21 ready-made plans (budget, goal, space) run through the real kit builder (`src/lib/plans.ts`); no two may produce the same kits |
+| `/brands`, `/brands/[slug]` | `brands/` | Brands with 3+ products, ranked per category (`src/lib/brands.ts`) |
 | `/methodology` | `methodology/page.tsx` | Explains the GymGear Score rubric |
 | `/about`, `/contact`, `/sponsors`, `/privacy`, `/disclosure`, `/maintenance` | — | Static/support pages |
 | `/api/catalog/*` | `api/catalog/` | Local Next API routes serving catalog data (`all`, `categories`, `products/[cat]`) |
@@ -111,6 +114,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-16 · SEO: Product/Breadcrumb/ItemList JSON-LD (no store ratings, per Google rules), 21 home gym plan pages + brand pages in the sitemap and footer, product titles say "price, specs" not "review"; deals chips scroll the tapped one to center · see git log
 - 2026-11-16 · bolder deals bar, sale + email pop-up, MailerLite signup route (/api/subscribe), signup on /deals, privacy names MailerLite · see git log
 - 2026-11-16 · Black Friday: site-wide deals banner + /deals page (filter, sort, season label, folded store count); Deals in nav · see git log
 - 2026-11-08 · weight-loss and strength kits now differ by rule: fat loss is cardio, rope and light weights with no bench or barbell gear, strength has no cardio or mat; audit enforces it · see git log
