@@ -66,6 +66,13 @@ export default function PrivacyPage() {
               Google Analytics 4.
             </li>
             <li>
+              <strong className="text-ink">Link clicks</strong>: which link
+              was clicked, counted without cookies. We keep the count and a
+              one-way scrambled code of your IP address and browser, used only
+              to estimate how many different people clicked; it can&rsquo;t be
+              turned back into your IP address.
+            </li>
+            <li>
               <strong className="text-ink">Email address</strong> — only if you
               voluntarily subscribe or submit the partner contact form.
             </li>

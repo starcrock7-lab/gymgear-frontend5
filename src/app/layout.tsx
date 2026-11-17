@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import DealsBanner from "@/components/DealsBanner";
+import ClickTracker from "@/components/ClickTracker";
 import "./globals.css";
 
 // Body: Inter — the readable, low-quirk sans the tech world runs on.
@@ -69,6 +70,7 @@ export default function RootLayout({
         <DealsBanner />
         {children}
         <Analytics />
+        <ClickTracker />
       </body>
     </html>
   );

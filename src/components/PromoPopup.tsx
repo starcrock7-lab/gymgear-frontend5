@@ -18,7 +18,7 @@ const KEY = "gg.promo.v1";
 const SNOOZE_MS = 3 * 24 * 3.6e6;
 const DELAY_MS = 6000;
 /* Focused tools where an interruption costs more than it earns. */
-const QUIET = ["/quiz", "/planner", "/gym", "/start", "/maintenance"];
+const QUIET = ["/quiz", "/planner", "/gym", "/start", "/maintenance", "/stats"];
 
 function read(): { snoozedAt?: number; subscribed?: boolean } {
   try {
