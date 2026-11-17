@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
+import DealsBanner from "@/components/DealsBanner";
 import "./globals.css";
 
 // Body: Inter — the readable, low-quirk sans the tech world runs on.
@@ -65,6 +66,7 @@ export default function RootLayout({
       className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <DealsBanner />
         {children}
         <Analytics />
       </body>

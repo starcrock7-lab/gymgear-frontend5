@@ -147,6 +147,11 @@ export default function GearBrowser({
 
       <div hidden={tab !== "deals"} className="mt-8">
         <DealsStrip deals={deals} title="Best deals right now" limit={6} />
+        <p className="mt-6 text-center">
+          <Link href="/deals" className="font-bold text-white underline decoration-accent underline-offset-4">
+            See all {dealCount} deals
+          </Link>
+        </p>
       </div>
     </div>
   );

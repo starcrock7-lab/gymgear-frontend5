@@ -16,6 +16,7 @@ export const OPEN_SEARCH = "gymgear:open-search";
 const NAV_LINKS = [
   { href: "/gear", label: "Gear", also: "/category" },
   { href: "/compare", label: "Compare" },
+  { href: "/deals", label: "Deals" },
 ];
 
 export default function SiteNav() {

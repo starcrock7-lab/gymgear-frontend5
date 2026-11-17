@@ -178,3 +178,35 @@ export function dealsPitch(deals: Deal[]): string {
   }
   return `${deals.length} of your picks are discounted at the same time, led by the ${name(deals[0])}. We check sale prices daily.`;
 }
+
+/* The shopping event happening today, US Eastern time, or null outside the
+   season. Black Friday is the day after the fourth Thursday of November;
+   "Black Friday" runs from Nov 1 through that weekend and "Cyber Monday" is
+   the Monday after. Only the label changes: the deals are always the live
+   ones. */
+export function saleSeason(now = new Date()): "Black Friday" | "Cyber Monday" | null {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(now);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  const [year, month, day] = [get("year"), get("month"), get("day")];
+  if (month !== 11 && month !== 12) return null;
+  const firstDow = new Date(Date.UTC(year, 10, 1)).getUTCDay();
+  const thanksgiving = 1 + ((4 - firstDow + 7) % 7) + 21;
+  const cyber = thanksgiving + 4; // counted in November days, may pass 30
+  const dayOfSeason = month === 11 ? day : 30 + day;
+  if (dayOfSeason === cyber) return "Cyber Monday";
+  if (month === 11 && dayOfSeason < cyber) return "Black Friday";
+  return null;
+}
+
+/* Distinct stores behind a set of deals. Listings name the same store two
+   ways ("Titan Fitness" and "titan.fitness"), so names are folded first. */
+export function storeCount(deals: Deal[]): number {
+  const fold = (r: string) =>
+    r.toLowerCase().replace(/\.(com|fitness)$/, "").replace(/ fitness$/, "").trim();
+  return new Set(deals.map((d) => fold(d.product.retailer))).size;
+}
