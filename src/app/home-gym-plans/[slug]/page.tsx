@@ -7,7 +7,7 @@ import SiteFooter from "@/components/SiteFooter";
 import ProductPhoto from "@/components/ProductPhoto";
 import JsonLd, { breadcrumbs, itemList } from "@/components/JsonLd";
 import { coverageSummary } from "@/lib/coverage";
-import { formatPrice } from "@/lib/kit";
+import { distinctTiers, formatPrice, type KitType } from "@/lib/kit";
 import type { CatalogProduct, HydratedKit } from "@/lib/kit-builder";
 import { optionLabel } from "@/lib/quiz";
 import { PLANS, buildPlan, getPlan, loadCatalog, type Plan } from "@/lib/plans";
@@ -47,14 +47,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: plan.h1,
     description:
-      `${plan.h1}, built from real products at today's prices` +
+      `${plan.h1}, built by our kit builder from real products at today's prices` +
       (match && lead ? `: the ${lead} plus ${match.products.length - 1} more pieces for ${formatPrice(Math.round(match.totalPrice))} total` : "") +
-      ". Three versions: best value, best match and best quality.",
+      ".",
     alternates: { canonical: `/home-gym-plans/${plan.slug}` },
   };
 }
 
-function Kit({ kit }: { kit: HydratedKit }) {
+const TIER_WORD: Record<KitType, string> = { value: "best value", match: "best match", quality: "best quality" };
+
+function Kit({ kit }: { kit: HydratedKit & { alsoTypes: KitType[] } }) {
   const list = kit.products.reduce((s, p) => s + p.price, 0);
   const saved = Math.round(list - kit.totalPrice);
   return (
@@ -69,6 +71,11 @@ function Kit({ kit }: { kit: HydratedKit }) {
         </p>
       </div>
       <p className="mt-1 text-white/70">{TIER_NOTE[kit.type]}</p>
+      {kit.alsoTypes.length > 0 && (
+        <p className="mt-1 text-sm font-bold text-accent">
+          Also our {kit.alsoTypes.map((t) => TIER_WORD[t]).join(" and ")} pick: at this budget they come out the same.
+        </p>
+      )}
       <ul className="mt-4 divide-y divide-white/10">
         {kit.products.map((p) => (
           <li key={p.id}>
@@ -113,6 +120,7 @@ export default async function PlanPage({ params }: { params: Promise<{ slug: str
   if (!data) notFound();
   const { plan, kits } = data;
   const match = kits.find((k) => k.type === "match") ?? kits[0];
+  const tiers = distinctTiers(kits);
 
   return (
     <>
@@ -134,15 +142,18 @@ export default async function PlanPage({ params }: { params: Promise<{ slug: str
             <p className="mt-4 max-w-2xl text-lg text-white/80">
               Our pick: the {match.products[0]?.name} plus {match.products.length - 1} more{" "}
               {match.products.length - 1 === 1 ? "piece" : "pieces"} for {formatPrice(Math.round(match.totalPrice))}{" "}
-              total.
-              Below are three versions built by our kit builder from real products at today&apos;s prices.
+              total.{" "}
+              {tiers.length === 1
+                ? "At this budget the cheapest, best-matched and best-built kits come out the same, so there is one plan below"
+                : `Below are ${tiers.length} versions`}
+              , built by our kit builder from real products at today&apos;s prices.
             </p>
           ) : (
             <p className="mt-4 text-lg text-white/80">We couldn&apos;t load prices just now. Try again in a minute.</p>
           )}
 
           <div className="mt-8 grid gap-4">
-            {kits.map((k) => (
+            {tiers.map((k) => (
               <Kit key={k.type} kit={k} />
             ))}
           </div>

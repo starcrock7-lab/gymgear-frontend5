@@ -114,6 +114,7 @@ Deterministic wall (same as the kit builder): **the LLM never sources a price or
 
 Newest first. One line per completed task: `YYYY-MM-DD · what · commit`.
 
+- 2026-11-16 · identical tiers show once everywhere (lib/kit.ts distinctTiers, set-based so order differences merge); plan pages say which tiers a kit also is; builder output unchanged (22% of answer sets still converge at low budgets, by design) · see git log
 - 2026-11-16 · SEO: Product/Breadcrumb/ItemList JSON-LD (no store ratings, per Google rules), 21 home gym plan pages + brand pages in the sitemap and footer, product titles say "price, specs" not "review"; deals chips scroll the tapped one to center · see git log
 - 2026-11-16 · bolder deals bar, sale + email pop-up, MailerLite signup route (/api/subscribe), signup on /deals, privacy names MailerLite · see git log
 - 2026-11-16 · Black Friday: site-wide deals banner + /deals page (filter, sort, season label, folded store count); Deals in nav · see git log

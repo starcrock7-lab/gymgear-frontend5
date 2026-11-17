@@ -18,6 +18,7 @@ import {
   buyUrl,
   formatPrice,
   categoryLabel,
+  distinctTiers,
   kitTotal,
   saveKit,
   type Kit,
@@ -85,11 +86,8 @@ export default function KitResult({
   /* Buy links tapped this visit, so the phone bar can move on to the next. */
   const [opened, setOpened] = useState<string[]>([]);
   const selectedKit = kits.find((k) => k.type === selected) ?? kits[0];
-  /* A small budget can leave two tiers with the same gear. Show it once, under
-     Best Match when that is one of them. */
-  const gearOf = (k: Kit) => k.products.map((p) => p.id).join();
-  const tiers = kits.filter((k, i) => !kits.some((o, j) =>
-    j !== i && gearOf(o) === gearOf(k) && (o.type === "match" || (k.type !== "match" && j < i))));
+  /* Tiers with the same gear show once (lib/kit.ts distinctTiers). */
+  const tiers = distinctTiers(kits);
   const budgetTop = BUDGET_TOP[answers.budget ?? ""];
   const nextToBuy = selectedKit.products.find((p) => !opened.includes(p.id));
   const markOpened = (id: string) =>

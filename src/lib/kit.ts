@@ -164,3 +164,19 @@ export function clearKit(): void {
     /* ignore */
   }
 }
+
+/* A small budget can leave two or three tiers with the same gear: once the
+   room, budget and coverage rules are applied there is only one sensible kit.
+   Show it once, under Best Match when that is one of them, and say which
+   other tiers it also is. Gear is compared as a set, so the same products in
+   a different order still count as the same kit. */
+export function distinctTiers<T extends { type: KitType; products: { id: string }[] }>(
+  kits: T[],
+): (T & { alsoTypes: KitType[] })[] {
+  const gear = (k: T) => k.products.map((p) => p.id).sort().join();
+  return kits.flatMap((k) => {
+    const same = kits.filter((o) => gear(o) === gear(k));
+    const keep = same.find((o) => o.type === "match") ?? same[0];
+    return keep === k ? [{ ...k, alsoTypes: same.filter((o) => o !== k).map((o) => o.type) }] : [];
+  });
+}
