@@ -678,3 +678,36 @@ body {
   .glow-btn, .glow-btn::after { transition: none; }
   .search-hint { animation: none; }
 }
+
+/* Deals bar: a hot gradient with a light sweep, so it reads as the sale and
+   not as site chrome. */
+.deals-bar {
+  background: linear-gradient(90deg, #b8380f, #f0531e 30%, #ff7a3d 50%, #f0531e 70%, #b8380f);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.18), 0 6px 28px rgba(240, 83, 30, 0.35);
+}
+.deals-bar-sheen {
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+  transform: translateX(-100%);
+  animation: deals-sheen 4.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes deals-sheen {
+  0%, 30% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.deals-bar-flame { animation: deals-flame 1.6s ease-in-out infinite; }
+@keyframes deals-flame {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+.promo-pop[open] { animation: promo-in 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+.promo-pop[open]::backdrop { animation: promo-fade 0.3s ease-out; }
+@keyframes promo-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes promo-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .deals-bar-sheen, .deals-bar-flame { animation: none; }
+  .deals-bar-sheen { display: none; }
+  .promo-pop[open], .promo-pop[open]::backdrop { animation: promo-fade 0.2s ease-out; }
+}

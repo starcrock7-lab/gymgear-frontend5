@@ -45,7 +45,7 @@ export default function PrivacyPage() {
 
       <main className="mx-auto max-w-3xl px-5 py-14">
         <p className="mb-8 inline-block rounded-lg border border-line bg-card px-4 py-2 text-sm text-ink-3">
-          Last updated: June 8, 2026
+          Last updated: November 16, 2026
         </p>
 
         <Section title="Who We Are">
@@ -105,7 +105,8 @@ export default function PrivacyPage() {
         <Section title="Cookies & Third-Party Services">
           <p>
             We use Vercel Web Analytics (anonymous usage stats), Formspree
-            (contact form), and Render/Vercel (hosting). Each has its own
+            (contact form), MailerLite (deal-alert emails, only if you sign
+            up), and Render/Vercel (hosting). Each has its own
             privacy policy. You can disable cookies in your browser settings at
             any time.
           </p>

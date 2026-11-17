@@ -3,6 +3,7 @@ import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import DealsBrowser from "@/components/DealsBrowser";
+import EmailSignup from "@/components/EmailSignup";
 import { getAllProducts, getCategories } from "@/lib/catalog";
 import { checkedLabel, findDeals, saleSeason, storeCount } from "@/lib/deals";
 
@@ -81,6 +82,14 @@ export default async function DealsPage() {
           <div className="mx-auto max-w-6xl px-4 pb-16">
             <DealsBrowser deals={deals} labels={labels} />
           </div>
+        )}
+
+        {process.env.MAILERLITE_API_KEY && (
+          <section className="mx-auto max-w-2xl px-4 pb-20">
+            <h2 className="font-display text-2xl font-extrabold tracking-tight">Get the next sale in your inbox</h2>
+            <p className="mt-1 mb-4 text-white/70">We email you when home gym gear we track goes on sale.</p>
+            <EmailSignup id="deals-email" />
+          </section>
         )}
       </main>
       <SiteFooter />
