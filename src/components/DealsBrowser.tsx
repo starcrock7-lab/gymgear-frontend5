@@ -32,20 +32,28 @@ export default function DealsBrowser({ deals, labels }: { deals: Deal[]; labels:
     "min-h-11 shrink-0 rounded-xl px-4 text-sm font-bold transition-colors duration-200 " +
     (on ? "bg-accent text-white shadow-[0_0_22px_rgba(240,83,30,0.45)]" : "border border-white/15 text-white/70 hover:text-white");
 
+  /* Slide the tapped chip to the middle of the row, so the categories after
+     it come into view instead of hiding past the edge. */
+  const choose = (key: string, el: HTMLElement) => {
+    setCat(key);
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: smooth ? "smooth" : "auto", inline: "center", block: "nearest" });
+  };
+
   return (
     <>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-        <div className="-mx-4 flex min-w-0 gap-2 overflow-x-auto px-4 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_85%,transparent)] sm:mx-0 sm:px-0">
-          <button type="button" aria-pressed={cat === "all"} onClick={() => setCat("all")} className={chip(cat === "all")}>
+      <div className="flex flex-col gap-3">
+        <div className="-mx-4 flex gap-2 overflow-x-auto scroll-px-4 px-4 py-1 [scrollbar-width:none] [mask-image:linear-gradient(to_right,transparent,black_16px,black_calc(100%-40px),transparent)] [&::-webkit-scrollbar]:hidden">
+          <button type="button" aria-pressed={cat === "all"} onClick={(e) => choose("all", e.currentTarget)} className={chip(cat === "all")}>
             All ({deals.length})
           </button>
           {cats.map(([key, n]) => (
-            <button key={key} type="button" aria-pressed={cat === key} onClick={() => setCat(key)} className={chip(cat === key)}>
+            <button key={key} type="button" aria-pressed={cat === key} onClick={(e) => choose(key, e.currentTarget)} className={chip(cat === key)}>
               {labels[key] ?? key} ({n})
             </button>
           ))}
         </div>
-        <label htmlFor="deals-sort" className="flex shrink-0 items-center gap-2 text-sm text-white/70">
+        <label htmlFor="deals-sort" className="flex shrink-0 items-center gap-2 self-end text-sm text-white/70">
           Sort
           <select
             id="deals-sort"
